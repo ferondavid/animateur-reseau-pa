@@ -1,38 +1,14 @@
-"use client";
+// Composant serveur : récupère le compteur de remontées nouvelles
+// et délègue le rendu (avec état actif) au composant client NavigationClient.
+import { createClient } from "@/lib/supabase/server";
+import NavigationClient from "./NavigationClient";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+export default async function Navigation() {
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("remontees")
+    .select("*", { count: "exact", head: true })
+    .eq("statut", "nouvelle");
 
-const liens = [
-  { href: "/", label: "Carte" },
-  { href: "/magasins", label: "Magasins" },
-  { href: "/visites", label: "Visites" },
-  { href: "/actions-reseau", label: "Actions" },
-];
-
-function estActif(href: string, pathname: string): boolean {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(href + "/");
-}
-
-export default function Navigation() {
-  const pathname = usePathname();
-
-  return (
-    <nav className="flex items-center gap-2">
-      {liens.map((l) => (
-        <Link
-          key={l.href}
-          href={l.href}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            estActif(l.href, pathname)
-              ? "bg-slate-900 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-          }`}
-        >
-          {l.label}
-        </Link>
-      ))}
-    </nav>
-  );
+  return <NavigationClient nbNouvellesRemontees={count ?? 0} />;
 }

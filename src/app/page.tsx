@@ -36,6 +36,7 @@ export default async function Home() {
     { data: magasins },
     { data: prochainesVisites },
     { count: nbActionsOuvertes },
+    { count: nbRemonteesNouvelles },
   ] = await Promise.all([
     supabase
       .from("magasins")
@@ -74,6 +75,10 @@ export default async function Home() {
       .from("actions")
       .select("*", { count: "exact", head: true })
       .in("statut", ["ouverte", "en_cours"]),
+    supabase
+      .from("remontees")
+      .select("*", { count: "exact", head: true })
+      .eq("statut", "nouvelle"),
   ]);
 
   const moyConfiance =
@@ -109,7 +114,7 @@ export default async function Home() {
         <Navigation />
 
         {/* Métriques */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <CardMetrique
             label="Magasins actifs"
             valeur={String(nbMagasins ?? 0)}
@@ -131,6 +136,12 @@ export default async function Home() {
             valeur={String(nbActionsOuvertes ?? 0)}
             href="/actions-reseau"
             sub="ouvertes + en cours"
+          />
+          <CardMetrique
+            label="Remontées nouvelles"
+            valeur={String(nbRemonteesNouvelles ?? 0)}
+            href="/remontees"
+            rouge={(nbRemonteesNouvelles ?? 0) > 0}
           />
         </div>
 
@@ -235,25 +246,35 @@ function CardMetrique({
   valeur,
   href,
   sub,
+  rouge,
 }: {
   label: string;
   valeur: string;
   href: string;
   sub?: string;
+  rouge?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:border-slate-300 transition-colors flex flex-col gap-2"
+      className={`rounded-xl border p-6 shadow-sm transition-colors flex flex-col gap-2 ${
+        rouge
+          ? "bg-red-50 border-red-200 hover:border-red-300"
+          : "bg-white border-slate-200 hover:border-slate-300"
+      }`}
     >
       <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
         {label}
       </span>
-      <span className="text-3xl font-bold text-slate-900 leading-none">
+      <span
+        className={`text-3xl font-bold leading-none ${rouge ? "text-red-600" : "text-slate-900"}`}
+      >
         {valeur}
       </span>
       {sub && <span className="text-xs text-slate-400">{sub}</span>}
-      <span className="text-sm text-blue-600 font-medium mt-auto pt-2">
+      <span
+        className={`text-sm font-medium mt-auto pt-2 ${rouge ? "text-red-500" : "text-blue-600"}`}
+      >
         Voir →
       </span>
     </Link>

@@ -20,6 +20,28 @@ const statutActionStyles: Record<string, { label: string; style: string }> = {
   en_cours: { label: "En cours", style: "bg-orange-100 text-orange-800" },
 };
 
+const graviteRemonteeStyles: Record<string, { label: string; style: string }> =
+  {
+    normale: { label: "Normale", style: "bg-slate-100 text-slate-600" },
+    attention: { label: "Attention", style: "bg-orange-100 text-orange-800" },
+    urgente: { label: "Urgente", style: "bg-red-100 text-red-800" },
+  };
+
+const typeRemonteeLabels: Record<string, string> = {
+  commerciale: "Commerciale",
+  sav_technique: "SAV / Tech.",
+  concurrence: "Concurrence",
+  opportunite: "Opportunité",
+  autre: "Autre",
+};
+
+const statutRemonteeStyles: Record<string, { label: string; style: string }> =
+  {
+    nouvelle: { label: "Nouvelle", style: "bg-blue-100 text-blue-800" },
+    en_cours: { label: "En cours", style: "bg-orange-100 text-orange-800" },
+    traitee: { label: "Traitée", style: "bg-green-100 text-green-800" },
+  };
+
 const statutVisiteStyles: Record<string, string> = {
   planifiee: "bg-blue-100 text-blue-800",
   realisee: "bg-green-100 text-green-800",
@@ -54,8 +76,12 @@ export default async function MagasinDetailPage({
   const { id } = await params;
 
   const supabase = await createClient();
-  const [{ data: m }, { data: visites }, { data: actionsOuvertes }] =
-    await Promise.all([
+  const [
+    { data: m },
+    { data: visites },
+    { data: actionsOuvertes },
+    { data: remonteesActives },
+  ] = await Promise.all([
       supabase.from("magasins").select("*").eq("id", id).single(),
       supabase
         .from("visites")
@@ -73,6 +99,13 @@ export default async function MagasinDetailPage({
         .in("statut", ["ouverte", "en_cours"])
         .order("niveau_urgence", { ascending: false })
         .order("deadline", { ascending: true, nullsFirst: false }),
+      supabase
+        .from("remontees")
+        .select("id, titre, type, gravite, statut")
+        .eq("magasin_id", id)
+        .neq("statut", "archivee")
+        .order("created_at", { ascending: false })
+        .limit(5),
     ]);
 
   if (!m) notFound();
@@ -268,6 +301,65 @@ export default async function MagasinDetailPage({
               </div>
             )}
           </div>
+          {/* Card : Remontées terrain */}
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                Remontées terrain
+              </h2>
+              <Link
+                href={`/remontees/nouvelle?magasin_id=${id}`}
+                className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-700 transition-colors"
+              >
+                + Nouvelle remontée
+              </Link>
+            </div>
+
+            {(remonteesActives ?? []).length === 0 ? (
+              <p className="text-slate-400 text-sm">Aucune remontée active.</p>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {(remonteesActives ?? []).map((rem) => {
+                  const gravite =
+                    graviteRemonteeStyles[rem.gravite as string];
+                  const statut =
+                    statutRemonteeStyles[rem.statut as string];
+                  return (
+                    <div
+                      key={rem.id}
+                      className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${gravite?.style ?? "bg-slate-100 text-slate-600"}`}
+                        >
+                          {gravite?.label ?? rem.gravite}
+                        </span>
+                        <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                          {typeRemonteeLabels[rem.type as string] ?? rem.type}
+                        </span>
+                        <span className="text-sm text-slate-900 font-medium truncate">
+                          {rem.titre}
+                        </span>
+                        <span
+                          className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}
+                        >
+                          {statut?.label ?? rem.statut}
+                        </span>
+                      </div>
+                      <Link
+                        href={`/remontees/${rem.id}`}
+                        className="shrink-0 text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors ml-3"
+                      >
+                        Voir →
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Card : Actions ouvertes */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
