@@ -12,11 +12,13 @@ interface Magasin {
 interface Props {
   magasins: Magasin[];
   magasinIdInitial?: string;
+  descriptionInitiale?: string;
 }
 
 export default function FormulaireNouvelleAction({
   magasins,
   magasinIdInitial,
+  descriptionInitiale,
 }: Props) {
   const [portee, setPortee] = useState<"reseau" | "magasin">(
     magasinIdInitial ? "magasin" : "reseau"
@@ -50,6 +52,7 @@ export default function FormulaireNouvelleAction({
             <textarea
               name="description"
               rows={3}
+              defaultValue={descriptionInitiale ?? ""}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y"
               placeholder="Description détaillée de l'action..."
             />

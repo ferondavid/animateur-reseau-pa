@@ -3,6 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import BoutonSupprimerVisite from "./BoutonSupprimerVisite";
 
+const urgenceActionConfig: Record<number, { label: string; style: string }> = {
+  1: { label: "Info", style: "bg-slate-100 text-slate-600" },
+  2: { label: "Important", style: "bg-orange-100 text-orange-800" },
+  3: { label: "Urgent", style: "bg-red-100 text-red-800" },
+};
+
+const statutActionConfig: Record<string, { label: string; style: string }> = {
+  ouverte: { label: "Ouverte", style: "bg-blue-100 text-blue-800" },
+  en_cours: { label: "En cours", style: "bg-orange-100 text-orange-800" },
+};
+
 const statutStyles: Record<string, string> = {
   planifiee: "bg-blue-100 text-blue-800",
   realisee: "bg-green-100 text-green-800",
@@ -61,6 +72,17 @@ export default async function VisiteDetailPage({
     enseigne: string | null;
     ville: string | null;
   } | null;
+
+  // Actions ouvertes/en cours liées au magasin de cette visite
+  const { data: actionsLiees } = magasin
+    ? await supabase
+        .from("actions")
+        .select("id, titre, niveau_urgence, statut, deadline")
+        .eq("magasin_id", magasin.id)
+        .in("statut", ["ouverte", "en_cours"])
+        .order("niveau_urgence", { ascending: false })
+        .order("deadline", { ascending: true, nullsFirst: false })
+    : { data: [] };
 
   const nomMagasin = magasin
     ? `${magasin.enseigne ? magasin.enseigne + " — " : ""}${magasin.nom}`
@@ -198,6 +220,86 @@ export default async function VisiteDetailPage({
               </dl>
             </div>
           )}
+
+          {/* Card : Actions de suivi (uniquement si la visite est liée à un magasin) */}
+          {magasin && (() => {
+            const today = new Date().toISOString().split("T")[0];
+            // Lien vers la création : pré-remplit magasin + description si actions_decidees renseigné
+            const urlCreer =
+              `/actions-reseau/nouvelle?magasin_id=${magasin.id}` +
+              (v.actions_decidees
+                ? `&description=${encodeURIComponent(v.actions_decidees)}`
+                : "");
+
+            return (
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                    Actions de suivi
+                  </h2>
+                  <Link
+                    href={urlCreer}
+                    className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-700 transition-colors"
+                  >
+                    + Créer une action
+                  </Link>
+                </div>
+
+                {(actionsLiees ?? []).length === 0 ? (
+                  <p className="text-slate-400 text-sm">
+                    Aucune action ouverte pour ce magasin.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {(actionsLiees ?? []).map((a) => {
+                      const urgence =
+                        urgenceActionConfig[a.niveau_urgence as number];
+                      const statut =
+                        statutActionConfig[a.statut as string];
+                      const depasse = a.deadline && a.deadline < today;
+                      return (
+                        <div
+                          key={a.id}
+                          className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span
+                              className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${urgence?.style ?? "bg-slate-100 text-slate-600"}`}
+                            >
+                              {urgence?.label ?? a.niveau_urgence}
+                            </span>
+                            <span className="text-sm text-slate-900 font-medium truncate">
+                              {a.titre}
+                            </span>
+                            <span
+                              className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}
+                            >
+                              {statut?.label ?? a.statut}
+                            </span>
+                            {a.deadline && (
+                              <span
+                                className={`shrink-0 text-xs ${depasse ? "text-red-600 font-medium" : "text-slate-400"}`}
+                              >
+                                {new Date(a.deadline).toLocaleDateString(
+                                  "fr-FR"
+                                )}
+                              </span>
+                            )}
+                          </div>
+                          <Link
+                            href={`/actions-reseau/${a.id}`}
+                            className="shrink-0 text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors ml-3"
+                          >
+                            Voir →
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Indicateurs */}
           {(v.note_confiance || v.note_business) && (

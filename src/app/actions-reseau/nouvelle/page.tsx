@@ -5,9 +5,9 @@ import FormulaireNouvelleAction from "./FormulaireNouvelleAction";
 export default async function NouvelleActionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ magasin_id?: string }>;
+  searchParams: Promise<{ magasin_id?: string; description?: string }>;
 }) {
-  const { magasin_id } = await searchParams;
+  const { magasin_id, description } = await searchParams;
   const supabase = await createClient();
 
   const { data: magasins } = await supabase
@@ -33,6 +33,7 @@ export default async function NouvelleActionPage({
         <FormulaireNouvelleAction
           magasins={magasins ?? []}
           magasinIdInitial={magasin_id}
+          descriptionInitiale={description}
         />
       </div>
     </main>
