@@ -7,9 +7,11 @@ export async function updateSession(request: NextRequest) {
   console.log("🔵 MIDDLEWARE", pathname);
 
   // Routes publiques : on ne fait RIEN
+  // IMPORTANT : /evaluation/* doit rester public (formulaire rempli par les gérants sans compte)
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
+    pathname.startsWith("/evaluation") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon")
   ) {

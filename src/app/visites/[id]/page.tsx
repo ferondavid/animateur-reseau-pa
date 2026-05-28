@@ -1,7 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import BoutonSupprimerVisite from "./BoutonSupprimerVisite";
+import BoutonCopierLien from "@/components/BoutonCopierLien";
+import EtoilesNote from "@/components/EtoilesNote";
+import { QUESTIONS_EVAL, moyenneNotes } from "@/lib/evaluations";
 
 const urgenceActionConfig: Record<number, { label: string; style: string }> = {
   1: { label: "Info", style: "bg-slate-100 text-slate-600" },
@@ -73,16 +77,31 @@ export default async function VisiteDetailPage({
     ville: string | null;
   } | null;
 
-  // Actions ouvertes/en cours liées au magasin de cette visite
-  const { data: actionsLiees } = magasin
-    ? await supabase
-        .from("actions")
-        .select("id, titre, niveau_urgence, statut, deadline")
-        .eq("magasin_id", magasin.id)
-        .in("statut", ["ouverte", "en_cours"])
-        .order("niveau_urgence", { ascending: false })
-        .order("deadline", { ascending: true, nullsFirst: false })
-    : { data: [] };
+  // Fetches parallèles : actions + évaluation existante + headers pour URL publique
+  const [{ data: actionsLiees }, { data: evalExistante }, headersList] =
+    await Promise.all([
+      magasin
+        ? supabase
+            .from("actions")
+            .select("id, titre, niveau_urgence, statut, deadline")
+            .eq("magasin_id", magasin.id)
+            .in("statut", ["ouverte", "en_cours"])
+            .order("niveau_urgence", { ascending: false })
+            .order("deadline", { ascending: true, nullsFirst: false })
+        : Promise.resolve({ data: [] as { id: string; titre: string; niveau_urgence: number; statut: string; deadline: string | null }[] }),
+      supabase
+        .from("evaluations_visite")
+        .select(
+          "id, q1_ecoute, q2_pertinence, q3_solutions, q4_suivi, q5_disponibilite, q6_satisfaction_globale, commentaire_texte"
+        )
+        .eq("visite_id", id)
+        .maybeSingle(),
+      headers(),
+    ]);
+
+  const host = headersList.get("host") ?? "localhost:3000";
+  const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+  const evalUrl = `${proto}://${host}/evaluation/${id}`;
 
   const nomMagasin = magasin
     ? `${magasin.enseigne ? magasin.enseigne + " — " : ""}${magasin.nom}`
@@ -300,6 +319,60 @@ export default async function VisiteDetailPage({
               </div>
             );
           })()}
+
+          {/* Card évaluation qualité — uniquement pour les visites réalisées */}
+          {v.statut === "realisee" && (
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+                Évaluation qualité
+              </h2>
+
+              {evalExistante ? (
+                // Évaluation reçue : afficher le résumé
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-slate-600">
+                      Note globale :{" "}
+                      <EtoilesNote
+                        note={evalExistante.q6_satisfaction_globale}
+                        mode="display"
+                        taille="sm"
+                      />
+                    </p>
+                    {moyenneNotes(evalExistante as Record<string, number | null>) !== null && (
+                      <span className="text-sm font-semibold text-amber-500">
+                        Moy.{" "}
+                        {moyenneNotes(
+                          evalExistante as Record<string, number | null>
+                        )!.toFixed(1)}
+                        /5
+                      </span>
+                    )}
+                  </div>
+                  {evalExistante.commentaire_texte && (
+                    <p className="text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                      {evalExistante.commentaire_texte}
+                    </p>
+                  )}
+                  <Link
+                    href={`/evaluations/${evalExistante.id}`}
+                    className="inline-block text-sm text-blue-600 hover:underline font-medium"
+                  >
+                    Voir le détail →
+                  </Link>
+                </div>
+              ) : (
+                // Pas encore évaluée : proposer de copier le lien
+                <div className="space-y-3">
+                  <p className="text-sm text-slate-500">
+                    Cette visite n'a pas encore été évaluée. Partagez ce lien
+                    au gérant pour qu'il puisse noter la visite.
+                  </p>
+                  <BoutonCopierLien url={evalUrl} />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Indicateurs */}
           {(v.note_confiance || v.note_business) && (

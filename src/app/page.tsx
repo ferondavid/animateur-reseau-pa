@@ -37,6 +37,7 @@ export default async function Home() {
     { data: prochainesVisites },
     { count: nbActionsOuvertes },
     { count: nbRemonteesNouvelles },
+    { data: notesEval },
   ] = await Promise.all([
     supabase
       .from("magasins")
@@ -79,6 +80,7 @@ export default async function Home() {
       .from("remontees")
       .select("*", { count: "exact", head: true })
       .eq("statut", "nouvelle"),
+    supabase.from("evaluations_visite").select("q6_satisfaction_globale"),
   ]);
 
   const moyConfiance =
@@ -94,6 +96,16 @@ export default async function Home() {
       ? (
           notesBusiness.reduce((s, v) => s + (v.note_business ?? 0), 0) /
           notesBusiness.length
+        ).toFixed(1)
+      : null;
+
+  const moySatisfaction =
+    notesEval && notesEval.length > 0
+      ? (
+          notesEval.reduce(
+            (s, e) => s + (e.q6_satisfaction_globale ?? 0),
+            0
+          ) / notesEval.length
         ).toFixed(1)
       : null;
 
@@ -114,7 +126,7 @@ export default async function Home() {
         <Navigation />
 
         {/* Métriques */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <CardMetrique
             label="Magasins actifs"
             valeur={String(nbMagasins ?? 0)}
@@ -142,6 +154,12 @@ export default async function Home() {
             valeur={String(nbRemonteesNouvelles ?? 0)}
             href="/remontees"
             rouge={(nbRemonteesNouvelles ?? 0) > 0}
+          />
+          <CardMetrique
+            label="Satisfaction membres"
+            valeur={moySatisfaction ? `${moySatisfaction}/5` : "—"}
+            href="/evaluations"
+            sub="note globale moy."
           />
         </div>
 

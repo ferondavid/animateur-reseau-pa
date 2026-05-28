@@ -9,6 +9,7 @@ const liens = [
   { href: "/visites", label: "Visites" },
   { href: "/actions-reseau", label: "Actions" },
   { href: "/remontees", label: "Remontées" },
+  { href: "/evaluations", label: "Évaluations" },
 ];
 
 function estActif(href: string, pathname: string): boolean {
