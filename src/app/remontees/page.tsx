@@ -23,7 +23,6 @@ export const statutConfig: Record<string, { label: string; style: string }> = {
   archivee: { label: "Archivée", style: "bg-slate-100 text-slate-600" },
 };
 
-// Ordre de tri : nouvelle en premier, puis gravité urgente avant attention/normale
 const statutOrdre: Record<string, number> = {
   nouvelle: 0,
   en_cours: 1,
@@ -51,7 +50,7 @@ export default async function RemonteesPage({
   const { filtre } = await searchParams;
   const supabase = await createClient();
 
-  // Compteur de remontées nouvelles (toujours affiché, indépendant du filtre)
+  // Compteur nouvelles indépendant du filtre actif
   const [remonteesFetch, { count: nbNouvelles }] = await Promise.all([
     (() => {
       let q = supabase
@@ -72,7 +71,7 @@ export default async function RemonteesPage({
 
   const { data: remontees } = remonteesFetch;
 
-  // Tri JS : statut priorité, gravité DESC, created_at DESC
+  // Tri : statut priorité, gravité DESC, created_at DESC
   const triees = [...(remontees ?? [])].sort((a, b) => {
     const sa = statutOrdre[a.statut] ?? 99;
     const sb = statutOrdre[b.statut] ?? 99;
@@ -80,14 +79,12 @@ export default async function RemonteesPage({
     const ga = graviteOrdre[a.gravite] ?? 99;
     const gb = graviteOrdre[b.gravite] ?? 99;
     if (ga !== gb) return ga - gb;
-    return (
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         {/* En-tête */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -99,7 +96,6 @@ export default async function RemonteesPage({
                 {triees.length} remontée{triees.length !== 1 ? "s" : ""}
               </p>
             </div>
-            {/* Badge rouge si des remontées nouvelles existent */}
             {(nbNouvelles ?? 0) > 0 && (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
                 {nbNouvelles} nouvelle{(nbNouvelles ?? 0) > 1 ? "s" : ""}
@@ -108,7 +104,7 @@ export default async function RemonteesPage({
           </div>
           <Link
             href="/remontees/nouvelle"
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors shrink-0"
           >
             + Nouvelle remontée
           </Link>
@@ -119,9 +115,7 @@ export default async function RemonteesPage({
         {/* Filtres */}
         <div className="flex gap-2 flex-wrap">
           {filtres.map((f) => {
-            const href = f.key
-              ? `/remontees?filtre=${f.key}`
-              : "/remontees";
+            const href = f.key ? `/remontees?filtre=${f.key}` : "/remontees";
             const actif = filtre === f.key || (!filtre && !f.key);
             return (
               <Link
@@ -139,8 +133,8 @@ export default async function RemonteesPage({
           })}
         </div>
 
-        {/* Tableau / état vide */}
-        {triees.length === 0 ? (
+        {/* État vide */}
+        {triees.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-sm">
             <p className="text-slate-400 mb-3 text-sm">
               Aucune remontée trouvée
@@ -152,89 +146,121 @@ export default async function RemonteesPage({
               Créer une nouvelle remontée →
             </Link>
           </div>
-        ) : (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Gravité
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Type
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Titre
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Magasin
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Statut
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Date
-                  </th>
-                  <th className="px-6 py-3.5" />
-                </tr>
-              </thead>
-              <tbody>
-                {triees.map((r) => {
-                  const gravite = graviteConfig[r.gravite];
-                  const statut = statutConfig[r.statut];
-                  const magasin = r.magasins as unknown as {
-                    nom: string;
-                    enseigne: string | null;
-                  } | null;
-                  return (
-                    <tr
-                      key={r.id}
-                      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gravite?.style ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {gravite?.label ?? r.gravite}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                          {typeLabels[r.type] ?? r.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-medium text-slate-900 max-w-xs truncate">
-                        {r.titre}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 text-sm">
-                        {magasin
-                          ? `${magasin.enseigne ? magasin.enseigne + " — " : ""}${magasin.nom}`
-                          : "—"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {statut?.label ?? r.statut}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">
-                        {new Date(r.created_at).toLocaleDateString("fr-FR")}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link
-                          href={`/remontees/${r.id}`}
-                          className="text-slate-900 hover:underline font-medium"
-                        >
-                          Voir →
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        )}
+
+        {triees.length > 0 && (
+          <>
+            {/* Vue desktop : tableau */}
+            <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Gravité</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Type</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Titre</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Magasin</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Statut</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Date</th>
+                    <th className="px-6 py-3.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {triees.map((r) => {
+                    const gravite = graviteConfig[r.gravite];
+                    const statut = statutConfig[r.statut];
+                    const magasin = r.magasins as unknown as {
+                      nom: string;
+                      enseigne: string | null;
+                    } | null;
+                    return (
+                      <tr
+                        key={r.id}
+                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gravite?.style ?? "bg-slate-100 text-slate-600"}`}>
+                            {gravite?.label ?? r.gravite}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                            {typeLabels[r.type] ?? r.type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-medium text-slate-900 max-w-xs truncate">
+                          {r.titre}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 text-sm">
+                          {magasin
+                            ? `${magasin.enseigne ? magasin.enseigne + " — " : ""}${magasin.nom}`
+                            : "—"}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}>
+                            {statut?.label ?? r.statut}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">
+                          {new Date(r.created_at).toLocaleDateString("fr-FR")}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Link href={`/remontees/${r.id}`} className="text-slate-900 hover:underline font-medium">
+                            Voir →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Vue mobile : cartes empilées */}
+            <div className="md:hidden space-y-3">
+              {triees.map((r) => {
+                const gravite = graviteConfig[r.gravite];
+                const statut = statutConfig[r.statut];
+                const magasin = r.magasins as unknown as {
+                  nom: string;
+                  enseigne: string | null;
+                } | null;
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/remontees/${r.id}`}
+                    className="block bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:bg-slate-50 transition-colors"
+                  >
+                    {/* Gravité + statut */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gravite?.style ?? "bg-slate-100 text-slate-600"}`}>
+                        {gravite?.label ?? r.gravite}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}>
+                        {statut?.label ?? r.statut}
+                      </span>
+                    </div>
+                    {/* Titre */}
+                    <p className="font-semibold text-slate-900 mb-1.5 leading-snug">
+                      {r.titre}
+                    </p>
+                    {/* Type + magasin */}
+                    <p className="text-sm text-slate-500 mb-3">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mr-2">
+                        {typeLabels[r.type] ?? r.type}
+                      </span>
+                      {magasin
+                        ? `${magasin.enseigne ? magasin.enseigne + " — " : ""}${magasin.nom}`
+                        : ""}
+                    </p>
+                    {/* Date */}
+                    <p className="text-xs text-slate-400">
+                      {new Date(r.created_at).toLocaleDateString("fr-FR")}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </main>

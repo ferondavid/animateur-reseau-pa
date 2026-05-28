@@ -47,7 +47,7 @@ export default async function ActionsPage({
 
   const { data: actions } = await query;
 
-  // Tri : statut priorité, puis urgence DESC, puis deadline ASC (null en dernier)
+  // Tri : statut priorité, urgence DESC, deadline ASC (null en dernier)
   const triees = [...(actions ?? [])].sort((a, b) => {
     const sa = statutOrdre[a.statut] ?? 99;
     const sb = statutOrdre[b.statut] ?? 99;
@@ -63,8 +63,8 @@ export default async function ActionsPage({
   const today = new Date().toISOString().split("T")[0];
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         {/* En-tête */}
         <div className="flex items-center justify-between">
           <div>
@@ -75,7 +75,7 @@ export default async function ActionsPage({
           </div>
           <Link
             href="/actions-reseau/nouvelle"
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors shrink-0"
           >
             + Nouvelle action
           </Link>
@@ -104,8 +104,8 @@ export default async function ActionsPage({
           })}
         </div>
 
-        {/* Tableau / état vide */}
-        {triees.length === 0 ? (
+        {/* État vide */}
+        {triees.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-sm">
             <p className="text-slate-400 mb-3 text-sm">Aucune action trouvée</p>
             <Link
@@ -115,99 +115,131 @@ export default async function ActionsPage({
               Créer une nouvelle action →
             </Link>
           </div>
-        ) : (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Urgence
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Titre
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Portée
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Deadline
-                  </th>
-                  <th className="text-left px-6 py-3.5 font-medium text-slate-600">
-                    Statut
-                  </th>
-                  <th className="px-6 py-3.5" />
-                </tr>
-              </thead>
-              <tbody>
-                {triees.map((action) => {
-                  const urgence = urgenceConfig[action.niveau_urgence];
-                  const statut = statutConfig[action.statut];
-                  const magasin = action.magasins as unknown as {
-                    nom: string;
-                  } | null;
-                  const deadlineDepasse =
-                    action.deadline &&
-                    action.deadline < today &&
-                    !["realisee", "annulee"].includes(action.statut);
+        )}
 
-                  return (
-                    <tr
-                      key={action.id}
-                      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${urgence?.style ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {urgence?.label ?? action.niveau_urgence}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-medium text-slate-900 max-w-xs truncate">
-                        {action.titre}
-                      </td>
-                      <td className="px-6 py-4">
-                        {action.portee === "reseau" ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">
-                            Réseau
-                          </span>
-                        ) : magasin ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                            {magasin.nom}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-xs">—</span>
-                        )}
-                      </td>
-                      <td
-                        className={`px-6 py-4 ${deadlineDepasse ? "text-red-600 font-medium" : "text-slate-700"}`}
+        {triees.length > 0 && (
+          <>
+            {/* Vue desktop : tableau */}
+            <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Urgence</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Titre</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Portée</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Deadline</th>
+                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Statut</th>
+                    <th className="px-6 py-3.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {triees.map((action) => {
+                    const urgence = urgenceConfig[action.niveau_urgence];
+                    const statut = statutConfig[action.statut];
+                    const magasin = action.magasins as unknown as { nom: string } | null;
+                    const deadlineDepasse =
+                      action.deadline &&
+                      action.deadline < today &&
+                      !["realisee", "annulee"].includes(action.statut);
+                    return (
+                      <tr
+                        key={action.id}
+                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
                       >
-                        {action.deadline
-                          ? new Date(action.deadline).toLocaleDateString(
-                              "fr-FR"
-                            )
-                          : "—"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {statut?.label ?? action.statut}
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${urgence?.style ?? "bg-slate-100 text-slate-600"}`}>
+                            {urgence?.label ?? action.niveau_urgence}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-medium text-slate-900 max-w-xs truncate">
+                          {action.titre}
+                        </td>
+                        <td className="px-6 py-4">
+                          {action.portee === "reseau" ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">
+                              Réseau
+                            </span>
+                          ) : magasin ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                              {magasin.nom}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-xs">—</span>
+                          )}
+                        </td>
+                        <td className={`px-6 py-4 ${deadlineDepasse ? "text-red-600 font-medium" : "text-slate-700"}`}>
+                          {action.deadline
+                            ? new Date(action.deadline).toLocaleDateString("fr-FR")
+                            : "—"}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}>
+                            {statut?.label ?? action.statut}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Link href={`/actions-reseau/${action.id}`} className="text-slate-900 hover:underline font-medium">
+                            Voir →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Vue mobile : cartes empilées */}
+            <div className="md:hidden space-y-3">
+              {triees.map((action) => {
+                const urgence = urgenceConfig[action.niveau_urgence];
+                const statut = statutConfig[action.statut];
+                const magasin = action.magasins as unknown as { nom: string } | null;
+                const deadlineDepasse =
+                  action.deadline &&
+                  action.deadline < today &&
+                  !["realisee", "annulee"].includes(action.statut);
+                return (
+                  <Link
+                    key={action.id}
+                    href={`/actions-reseau/${action.id}`}
+                    className="block bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:bg-slate-50 transition-colors"
+                  >
+                    {/* Urgence + statut */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${urgence?.style ?? "bg-slate-100 text-slate-600"}`}>
+                        {urgence?.label ?? action.niveau_urgence}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}>
+                        {statut?.label ?? action.statut}
+                      </span>
+                    </div>
+                    {/* Titre */}
+                    <p className="font-semibold text-slate-900 mb-1.5 leading-snug">
+                      {action.titre}
+                    </p>
+                    {/* Portée + deadline */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {action.portee === "reseau" ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">
+                          Réseau
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link
-                          href={`/actions-reseau/${action.id}`}
-                          className="text-slate-900 hover:underline font-medium"
-                        >
-                          Voir →
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      ) : magasin ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                          {magasin.nom}
+                        </span>
+                      ) : null}
+                      {action.deadline && (
+                        <span className={`text-xs ${deadlineDepasse ? "text-red-600 font-medium" : "text-slate-400"}`}>
+                          {new Date(action.deadline).toLocaleDateString("fr-FR")}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </main>
