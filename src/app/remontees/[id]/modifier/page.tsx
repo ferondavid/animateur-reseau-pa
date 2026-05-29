@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { updateRemontee } from "../actions";
+import { updateRemontee, supprimerPhotoRemontee } from "../actions";
+import PieceJointe from "@/components/PieceJointe";
 
 export default async function ModifierRemonteePage({
   params,
@@ -14,7 +15,7 @@ export default async function ModifierRemonteePage({
   const [{ data: r }, { data: magasins }] = await Promise.all([
     supabase
       .from("remontees")
-      .select("id, magasin_id, type, titre, description, gravite")
+      .select("id, magasin_id, type, titre, description, gravite, photo_url")
       .eq("id", id)
       .single(),
     supabase.from("magasins").select("id, nom, enseigne, ville").order("nom"),
@@ -111,6 +112,30 @@ export default async function ModifierRemonteePage({
               />
             </div>
           </div>
+
+          {/* Pièce jointe existante */}
+          {r.photo_url && (
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-3">
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                Pièce jointe actuelle
+              </h2>
+              <PieceJointe url={r.photo_url as string} />
+              <div className="flex gap-2 pt-1">
+                <form action={supprimerPhotoRemontee}>
+                  <input type="hidden" name="id" value={r.id} />
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 text-xs font-medium hover:bg-red-100 transition-colors"
+                  >
+                    🗑 Supprimer la pièce jointe
+                  </button>
+                </form>
+              </div>
+              <p className="text-xs text-slate-400">
+                Pour remplacer, supprime d&apos;abord puis enregistre avec un nouveau fichier — ou utilise le formulaire de remontée depuis la fiche membre.
+              </p>
+            </div>
+          )}
 
           {/* Gravité */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">

@@ -81,6 +81,15 @@ export async function repondreRemontee(formData: FormData) {
   redirect(`/remontees/${id}`);
 }
 
+export async function supprimerPhotoRemontee(formData: FormData) {
+  const id = formData.get("id") as string;
+  const supabase = await createClient();
+  await supabase.from("remontees").update({ photo_url: null }).eq("id", id);
+  revalidatePath(`/remontees/${id}`);
+  revalidatePath(`/remontees/${id}/modifier`);
+  redirect(`/remontees/${id}/modifier`);
+}
+
 export async function changeStatutRemontee(formData: FormData) {
   const id = formData.get("id") as string;
   const nouveau_statut = formData.get("statut") as string;

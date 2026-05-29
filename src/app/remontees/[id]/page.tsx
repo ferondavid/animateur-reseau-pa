@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { changeStatutRemontee } from "./actions";
 import FormulaireReponse from "./FormulaireReponse";
 import BoutonSupprimerRemontee from "./BoutonSupprimerRemontee";
+import PieceJointe from "@/components/PieceJointe";
 
 const graviteConfig: Record<string, { label: string; style: string }> = {
   normale: { label: "Normale", style: "bg-slate-100 text-slate-600" },
@@ -159,13 +160,14 @@ export default async function RemonteeDetailPage({
           </div>
 
           {/* Card : Description */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
               Description
             </h2>
             <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">
               {r.description}
             </p>
+            <PieceJointe url={r.photo_url as string | null} />
           </div>
 
           {/* Card : Réponse animateur */}
