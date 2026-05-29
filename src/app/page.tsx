@@ -48,7 +48,7 @@ export default async function Landing() {
             <LandingCards />
           </div>
 
-          {/* 2. Hero news principal */}
+          {/* 2. Hero news — contenu intégral visible */}
           {newsPrincipale && (
             <section>
               <div className="flex items-center justify-between mb-4">
