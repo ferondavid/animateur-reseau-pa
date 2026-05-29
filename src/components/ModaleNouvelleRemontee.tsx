@@ -25,11 +25,14 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
       const { data: uploaded, error: upErr } = await supabase.storage
         .from("photos-remontees")
         .upload(chemin, fichier, { upsert: false });
-      if (!upErr && uploaded) {
+      if (upErr) {
+        console.error("[Remontee] upload storage échoué:", JSON.stringify(upErr));
+      } else if (uploaded) {
         const { data: pub } = supabase.storage
           .from("photos-remontees")
           .getPublicUrl(uploaded.path);
         photo_url = pub.publicUrl;
+        console.log("[Remontee] photo_url obtenu:", photo_url);
       }
     }
 

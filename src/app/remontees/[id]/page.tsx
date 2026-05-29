@@ -53,9 +53,26 @@ export default async function RemonteeDetailPage({
   const gravite = graviteConfig[r.gravite as string];
   const statut = statutConfig[r.statut as string];
 
+  console.log("[REMONTEE DEBUG]", JSON.stringify({
+    id: r.id,
+    titre: r.titre,
+    photo_url: (r as Record<string, unknown>).photo_url,
+    toutesLesCles: Object.keys(r as object),
+  }, null, 2));
+
   return (
     <main className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-3xl mx-auto">
+        {/* Debug temporaire */}
+        <div style={{background:"#fef3c7",padding:16,marginBottom:16,fontFamily:"monospace",fontSize:11,borderRadius:8}}>
+          <strong>🔬 DEBUG REMONTEE</strong>
+          <pre>{JSON.stringify({
+            id: r.id,
+            photo_url: (r as Record<string, unknown>).photo_url ?? null,
+            type_photo_url: typeof (r as Record<string, unknown>).photo_url,
+            toutesLesCles: Object.keys(r as object),
+          }, null, 2)}</pre>
+        </div>
         {/* En-tête */}
         <div className="flex items-start justify-between mb-8">
           <div>
