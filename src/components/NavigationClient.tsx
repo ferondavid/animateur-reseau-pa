@@ -11,6 +11,7 @@ const liens = [
   { href: "/actions-reseau", label: "Actions" },
   { href: "/remontees", label: "Remontées" },
   { href: "/evaluations", label: "Évaluations" },
+  { href: "/animateur/news", label: "News" },
 ];
 
 function estActif(href: string, pathname: string): boolean {

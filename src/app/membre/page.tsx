@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import RechercheMagasin from "@/components/RechercheMagasin";
-import Link from "next/link";
+import BoutonChangerRole from "@/components/BoutonChangerRole";
 
 export default async function MembrePage() {
   const supabase = await createClient();
@@ -22,12 +22,7 @@ export default async function MembrePage() {
               Sélectionnez votre magasin pour accéder à votre tableau de bord
             </p>
           </div>
-          <Link
-            href="/"
-            className="shrink-0 text-sm text-slate-400 hover:text-slate-600 transition-colors pt-1"
-          >
-            ← Changer de rôle
-          </Link>
+          <BoutonChangerRole />
         </div>
 
         <RechercheMagasin magasins={magasins ?? []} />

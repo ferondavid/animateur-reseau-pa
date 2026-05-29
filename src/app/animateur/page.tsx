@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import CarteWrapper from "@/components/CarteWrapper";
 import Navigation from "@/components/Navigation";
 import PersistRole from "@/components/PersistRole";
-import ChangerRole from "@/components/ChangerRole";
+import BoutonChangerRole from "@/components/BoutonChangerRole";
 import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
 
@@ -152,7 +152,7 @@ export default async function AnimateurPage() {
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <ChangerRole />
+            <BoutonChangerRole />
             <Link
               href="/pilotage"
               className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
