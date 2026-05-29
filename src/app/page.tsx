@@ -47,66 +47,49 @@ export default async function Landing() {
           <LandingCards />
         </div>
 
-        {/* Hero news — première news seule, pleine largeur, contenu complet */}
+        {/* Hero news — même style que la page détail /news/[id] */}
         {newsPrincipale && (
-          <div className="w-full max-w-5xl mx-auto px-6 md:px-10 mt-16 mb-12">
+          <div className="w-full max-w-2xl mx-auto px-6 md:px-10 mt-16 mb-12">
             <p className="text-center text-xs font-semibold text-slate-400 uppercase tracking-widest mb-6">
               Actualités du réseau
             </p>
 
-            {/* Card hero inline — stack vertical : image en haut, texte dessous */}
-            <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
-              {/* Image en haut, pleine largeur */}
-              <div className="relative w-full h-80 md:h-96 lg:h-[28rem]">
+            <div className="space-y-6">
+              {/* Image / dégradé */}
+              <div className="rounded-2xl overflow-hidden h-48">
                 {newsPrincipale.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={newsPrincipale.image_url}
                     alt={newsPrincipale.titre}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className={`absolute inset-0 w-full h-full ${GRADIENT[newsPrincipale.type] ?? "bg-gradient-to-br from-slate-400 to-slate-600"}`} />
+                  <div className={`w-full h-full ${GRADIENT[newsPrincipale.type] ?? "bg-gradient-to-br from-slate-400 to-slate-600"}`} />
                 )}
-                {newsPrincipale.epinglee && (
-                  <div className="absolute top-4 left-4 bg-amber-400 text-amber-950 px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
-                    📌 Épinglée
-                  </div>
-                )}
-                <div className={`absolute top-4 right-4 text-xs font-bold px-3 py-1.5 rounded-full shadow-md ${TYPE_BADGE[newsPrincipale.type] ?? "bg-slate-100 text-slate-700"}`}>
-                  {TYPE_LABEL[newsPrincipale.type] ?? newsPrincipale.type}
-                </div>
               </div>
 
-              {/* Contenu en dessous, pleine largeur */}
-              <div className="p-8 md:p-12 flex flex-col">
-                <p className="text-sm text-slate-500">
-                  {new Date(newsPrincipale.date_publication).toLocaleDateString("fr-FR", {
-                    weekday: "long", day: "numeric", month: "long", year: "numeric",
-                  })}
-                  {newsPrincipale.auteur ? ` · par ${newsPrincipale.auteur}` : ""}
-                </p>
-                <h2 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900 leading-tight">
-                  {newsPrincipale.titre}
-                </h2>
-                <div className="mt-5 mb-5 h-px bg-slate-100" />
-                <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap flex-1">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <span>{newsPrincipale.auteur ?? "Animateur"}</span>
+                  <span>·</span>
+                  <span>
+                    {new Date(newsPrincipale.date_publication).toLocaleDateString("fr-FR", {
+                      day: "numeric", month: "long", year: "numeric",
+                    })}
+                  </span>
+                  {newsPrincipale.epinglee && <span className="ml-1">📌 Épinglée</span>}
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900">{newsPrincipale.titre}</h2>
+                <div className="text-slate-700 leading-relaxed whitespace-pre-wrap">
                   {newsPrincipale.contenu}
-                </p>
-                <div className="mt-6 flex items-center justify-between">
-                  <p className="text-xs text-slate-400">
-                    Publiée le {new Date(newsPrincipale.date_publication).toLocaleDateString("fr-FR")}
-                  </p>
-                  <Link href={`/news/${newsPrincipale.id}`} className="text-xs font-medium text-blue-600 hover:underline">
-                    Lien permanent →
-                  </Link>
                 </div>
               </div>
             </div>
 
             {/* Mini-cards secondaires */}
             {newsSecondaires.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">
                 {newsSecondaires.map((n) => <CardNews key={n.id} news={n} />)}
               </div>
             )}
