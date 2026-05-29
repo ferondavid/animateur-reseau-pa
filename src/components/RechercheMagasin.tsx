@@ -28,7 +28,7 @@ export default function RechercheMagasin({ magasins }: { magasins: Magasin[] }) 
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Rechercher un magasin, une ville…"
-        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
       />
 
       {filtres.length === 0 ? (

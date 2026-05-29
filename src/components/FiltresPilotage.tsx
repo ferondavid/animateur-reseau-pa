@@ -106,7 +106,7 @@ export default function FiltresPilotage({ regions, magasins }: Props) {
           <select
             value={region}
             onChange={(e) => update({ region: e.target.value, magasin_id: "" })}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
           >
             <option value="toutes">Toutes les régions</option>
             {regions.map((r) => (
@@ -121,7 +121,7 @@ export default function FiltresPilotage({ regions, magasins }: Props) {
         <select
           value={magasin_id}
           onChange={(e) => update({ magasin_id: e.target.value })}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300 max-w-xs truncate"
+          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300 max-w-xs truncate"
         >
           <option value="">Tous les magasins</option>
           {magasins.map((m) => (

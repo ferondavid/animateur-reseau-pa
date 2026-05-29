@@ -64,12 +64,12 @@ export default function ModifierNewsPage({ params }: { params: Promise<{ id: str
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Titre *</label>
-              <input name="titre" required type="text" defaultValue={news.titre as string} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900" />
+              <input name="titre" required type="text" defaultValue={news.titre as string} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900" />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Type *</label>
-              <select name="type" defaultValue={news.type as string} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+              <select name="type" defaultValue={news.type as string} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900">
                 <option value="info">Info</option>
                 <option value="evenement">Événement</option>
                 <option value="alerte">Alerte</option>
@@ -79,7 +79,7 @@ export default function ModifierNewsPage({ params }: { params: Promise<{ id: str
 
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Contenu *</label>
-              <textarea name="contenu" required rows={8} defaultValue={news.contenu as string} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y" />
+              <textarea name="contenu" required rows={8} defaultValue={news.contenu as string} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y" />
             </div>
 
             <div>

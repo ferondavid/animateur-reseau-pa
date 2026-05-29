@@ -90,7 +90,7 @@ export default async function RDVAdminPage({
               name="magasin"
               defaultValue={magasin ?? ""}
               onChange={(e) => e.currentTarget.form?.submit()}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
             >
               <option value="">Tous les magasins</option>
               {(magasins ?? []).map((m) => (

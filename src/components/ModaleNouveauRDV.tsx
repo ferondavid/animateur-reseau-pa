@@ -121,24 +121,24 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Objet *</label>
-            <input name="objet" required type="text" placeholder="Ex : Point trimestriel" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            <input name="objet" required type="text" placeholder="Ex : Point trimestriel" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Date souhaitée *</label>
-              <input name="date_souhaitee" required type="date" min={today} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <input name="date_souhaitee" required type="date" min={today} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Heure (optionnel)</label>
-              <input name="heure_souhaitee" type="time" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <input name="heure_souhaitee" type="time" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
           </div>
 
           {type === "physique" && (
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Lieu proposé</label>
-              <input name="lieu" type="text" placeholder="Au magasin" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <input name="lieu" type="text" placeholder="Au magasin" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
           )}
 
@@ -150,7 +150,7 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Message (optionnel)</label>
-            <textarea name="message" rows={2} placeholder="Informations complémentaires…" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y" />
+            <textarea name="message" rows={2} placeholder="Informations complémentaires…" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y" />
           </div>
 
           {autresMagasins.length > 0 && (
@@ -163,7 +163,7 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
                 value={recherche}
                 onChange={(e) => setRecherche(e.target.value)}
                 placeholder="Rechercher…"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <div className="max-h-36 overflow-y-auto space-y-1 rounded-lg border border-slate-100 p-1">
                 {magasinsFiltres.map((m) => (

@@ -73,7 +73,7 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
-            <select name="type" required defaultValue="" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <select name="type" required defaultValue="" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400">
               <option value="" disabled>— Choisir —</option>
               <option value="commerciale">Commerciale</option>
               <option value="sav_technique">SAV / Technique</option>
@@ -85,17 +85,17 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Titre *</label>
-            <input name="titre" required type="text" placeholder="Résumé en une ligne" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            <input name="titre" required type="text" placeholder="Résumé en une ligne" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400" />
           </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Description *</label>
-            <textarea name="description" required rows={3} placeholder="Décrivez la situation…" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-y" />
+            <textarea name="description" required rows={3} placeholder="Décrivez la situation…" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 resize-y" />
           </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Gravité</label>
-            <select name="gravite" defaultValue="normale" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <select name="gravite" defaultValue="normale" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400">
               <option value="normale">Normale</option>
               <option value="attention">Attention</option>
               <option value="urgente">Urgente</option>

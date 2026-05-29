@@ -36,19 +36,19 @@ export default function ModaleReporterRDV({ rdvId, onClose }: Props) {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Nouvelle date *</label>
               <input name="date" required type="date" min={today}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Heure (optionnel)</label>
               <input name="heure" type="time"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400" />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Raison du report (optionnel)</label>
             <textarea name="raison" rows={2} placeholder="Ex : Indisponibilité, agenda chargé…"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" />
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" />
           </div>
 
           <div className="flex gap-3 pt-1">
