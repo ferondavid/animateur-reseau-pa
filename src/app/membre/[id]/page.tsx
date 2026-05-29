@@ -4,6 +4,7 @@ import PersistRole from "@/components/PersistRole";
 import BoutonChangerMagasin from "@/components/BoutonChangerMagasin";
 import BoutonChangerRole from "@/components/BoutonChangerRole";
 import ActionsMembre from "@/components/ActionsMembre";
+import Link from "next/link";
 import HeroNews from "@/components/HeroNews";
 import type { NewsItem } from "@/components/CardNews";
 

@@ -4,80 +4,52 @@ import LandingCards from "@/components/LandingCards";
 import HeroNews from "@/components/HeroNews";
 import CardNews from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
-import Link from "next/link";
 
 export default async function Landing() {
   const supabase = await createClient();
 
-  let newsPrincipale: NewsItem | null = null;
-  let newsSecondaires: NewsItem[] = [];
+  const { data: toutesLesNews } = await supabase
+    .from("news")
+    .select("*")
+    .eq("publie", true)
+    .order("epinglee", { ascending: false })
+    .order("date_publication", { ascending: false })
+    .limit(5);
 
-  try {
-    const { data: principale } = await supabase
-      .from("news")
-      .select("id, titre, contenu, image_url, type, auteur, epinglee, publie, date_publication")
-      .eq("publie", true)
-      .order("epinglee", { ascending: false })
-      .order("date_publication", { ascending: false })
-      .limit(1)
-      .single();
-    newsPrincipale = principale as NewsItem | null;
-
-    const { data: secondaires } = await supabase
-      .from("news")
-      .select("id, titre, contenu, image_url, type, auteur, epinglee, publie, date_publication")
-      .eq("publie", true)
-      .order("epinglee", { ascending: false })
-      .order("date_publication", { ascending: false })
-      .range(1, 2);
-    newsSecondaires = (secondaires ?? []) as NewsItem[];
-  } catch { /* table absente — ignore */ }
+  const newsPrincipale = (toutesLesNews?.[0] ?? null) as NewsItem | null;
+  const newsSecondaires = (toutesLesNews?.slice(1, 3) ?? []) as NewsItem[];
 
   return (
     <>
       <BoundaryRedirect />
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 p-6 md:p-10">
-        <div className="max-w-6xl mx-auto flex flex-col gap-12">
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 pb-16">
 
-          {/* 1. Titre + choix de rôle */}
-          <div className="flex flex-col items-center gap-8 pt-10">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-slate-900 mb-3">Animateur Réseau PA</h1>
-              <p className="text-lg text-slate-500">Choisissez votre profil</p>
-            </div>
-            <LandingCards />
+        {/* 1. Header + choix de rôle */}
+        <div className="max-w-4xl mx-auto px-6 md:px-10 pt-16 pb-4 flex flex-col items-center gap-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-slate-900 mb-3">Animateur Réseau PA</h1>
+            <p className="text-lg text-slate-500">Choisissez votre profil</p>
           </div>
+          <LandingCards />
+        </div>
 
-          {/* 2. Hero news — contenu intégral visible */}
-          {newsPrincipale && (
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-                  Actualité du réseau
-                </h2>
-                <Link href="/news" className="text-sm font-medium text-blue-600 hover:underline">
-                  Toutes les actualités →
-                </Link>
-              </div>
-              <HeroNews news={newsPrincipale} />
-            </section>
-          )}
-
-          {/* 3. Mini-cards secondaires */}
-          {newsSecondaires.length > 0 && (
-            <section>
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-                Autres actualités
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* 2. Hero news — contenu intégral, pleine largeur */}
+        {newsPrincipale && (
+          <section className="w-full max-w-6xl mx-auto px-6 md:px-10 mt-16 mb-12">
+            <p className="text-center text-xs font-semibold text-slate-400 uppercase tracking-widest mb-6">
+              Actualités du réseau
+            </p>
+            <HeroNews news={newsPrincipale} />
+            {newsSecondaires.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 {newsSecondaires.map((n) => (
                   <CardNews key={n.id} news={n} />
                 ))}
               </div>
-            </section>
-          )}
+            )}
+          </section>
+        )}
 
-        </div>
       </main>
     </>
   );
