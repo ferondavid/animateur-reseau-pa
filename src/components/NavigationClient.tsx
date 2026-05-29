@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const liens = [
   { href: "/pilotage", label: "Pilotage" },
-  { href: "/", label: "Carte" },
+  { href: "/animateur", label: "Carte" },
   { href: "/magasins", label: "Magasins" },
   { href: "/visites", label: "Visites" },
   { href: "/actions-reseau", label: "Actions" },
@@ -14,7 +14,6 @@ const liens = [
 ];
 
 function estActif(href: string, pathname: string): boolean {
-  if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(href + "/");
 }
 
