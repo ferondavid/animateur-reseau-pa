@@ -8,6 +8,7 @@ const liens = [
   { href: "/animateur", label: "Carte" },
   { href: "/magasins", label: "Magasins" },
   { href: "/visites", label: "Visites" },
+  { href: "/animateur/rdv", label: "RDV" },
   { href: "/actions-reseau", label: "Actions" },
   { href: "/remontees", label: "Remontées" },
   { href: "/evaluations", label: "Évaluations" },
@@ -20,8 +21,10 @@ function estActif(href: string, pathname: string): boolean {
 
 export default function NavigationClient({
   nbNouvellesRemontees = 0,
+  nbRDVEnAttente = 0,
 }: {
   nbNouvellesRemontees?: number;
+  nbRDVEnAttente?: number;
 }) {
   const pathname = usePathname();
 
@@ -32,6 +35,8 @@ export default function NavigationClient({
         const badge =
           l.href === "/remontees" && nbNouvellesRemontees > 0
             ? nbNouvellesRemontees
+            : l.href === "/animateur/rdv" && nbRDVEnAttente > 0
+            ? nbRDVEnAttente
             : null;
 
         return (

@@ -3,6 +3,8 @@ import CarteWrapper from "@/components/CarteWrapper";
 import Navigation from "@/components/Navigation";
 import PersistRole from "@/components/PersistRole";
 import BoutonChangerRole from "@/components/BoutonChangerRole";
+import CardRDVDemande from "@/components/CardRDVDemande";
+import type { RDVDemande } from "@/components/CardRDVDemande";
 import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
 
@@ -97,6 +99,27 @@ export default async function AnimateurPage() {
       .not("statut", "in", "(traitee,archivee)"),
   ]);
 
+  // RDV en attente
+  const dans7j = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
+  const { data: rdvsEnAttente } = await supabase
+    .from("rendez_vous")
+    .select(`id, type, statut, date_souhaitee, heure_souhaitee, objet, message, lieu,
+      magasins(id, nom, enseigne, ville),
+      rendez_vous_invites(magasin_id, magasins(nom, enseigne))`)
+    .in("statut", ["demande", "reporte"])
+    .order("date_souhaitee", { ascending: true })
+    .limit(10);
+
+  // Trier : urgents (dans 7j) en premier, puis par date
+  const rdvsSorted = (rdvsEnAttente ?? []).sort((a, b) => {
+    const aUrgent = a.date_souhaitee <= dans7j ? 0 : 1;
+    const bUrgent = b.date_souhaitee <= dans7j ? 0 : 1;
+    if (aUrgent !== bUrgent) return aUrgent - bUrgent;
+    return a.date_souhaitee.localeCompare(b.date_souhaitee);
+  });
+  const rdvsAffich = rdvsSorted.slice(0, 6);
+  const rdvsTotal = rdvsSorted.length;
+
   const magasinsList = magasins ?? [];
   const risqueMap = calculerRisqueMagasins(
     magasinsList.map((m) => m.id),
@@ -164,6 +187,37 @@ export default async function AnimateurPage() {
 
         {/* Navigation */}
         <Navigation />
+
+        {/* RDV en attente */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+              📅 Demandes de RDV à traiter
+              {rdvsTotal > 0 && (
+                <span className="ml-2 text-xs font-bold text-slate-900 bg-slate-200 rounded-full px-2 py-0.5">
+                  {rdvsTotal}
+                </span>
+              )}
+            </h2>
+            {rdvsTotal > 6 && (
+              <Link href="/animateur/rdv" className="text-sm text-blue-600 hover:underline font-medium">
+                Voir tout ({rdvsTotal}) →
+              </Link>
+            )}
+          </div>
+
+          {rdvsTotal === 0 ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3 text-sm text-emerald-700 font-medium">
+              Aucune demande de RDV en attente 👍
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {(rdvsAffich as unknown as RDVDemande[]).map((r) => (
+                <CardRDVDemande key={r.id} rdv={r} />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Métriques */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

@@ -1,14 +1,24 @@
-// Composant serveur : récupère le compteur de remontées nouvelles
-// et délègue le rendu (avec état actif) au composant client NavigationClient.
 import { createClient } from "@/lib/supabase/server";
 import NavigationClient from "./NavigationClient";
 
 export default async function Navigation() {
   const supabase = await createClient();
-  const { count } = await supabase
-    .from("remontees")
-    .select("*", { count: "exact", head: true })
-    .eq("statut", "nouvelle");
 
-  return <NavigationClient nbNouvellesRemontees={count ?? 0} />;
+  const [{ count: nbRemontees }, { count: nbRDV }] = await Promise.all([
+    supabase
+      .from("remontees")
+      .select("*", { count: "exact", head: true })
+      .eq("statut", "nouvelle"),
+    supabase
+      .from("rendez_vous")
+      .select("*", { count: "exact", head: true })
+      .in("statut", ["demande", "reporte"]),
+  ]);
+
+  return (
+    <NavigationClient
+      nbNouvellesRemontees={nbRemontees ?? 0}
+      nbRDVEnAttente={nbRDV ?? 0}
+    />
+  );
 }
