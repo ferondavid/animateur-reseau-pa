@@ -22,27 +22,19 @@ function gradient(t: string) {
   } as Record<string, string>)[t] ?? "bg-gradient-to-br from-slate-400 to-slate-600";
 }
 
-function dateFR(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric",
-  });
-}
-
 export default function HeroNews({ news }: { news: NewsItem }) {
   return (
-    <article className="w-full bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden min-h-[400px] grid grid-cols-1 md:grid-cols-2">
+    <article className="w-full bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-200">
 
-      {/* Image / dégradé */}
-      <div className="relative aspect-[16/10] md:aspect-auto md:h-full">
-        {news.image_url ? (
+      {/* Image pleine largeur */}
+      <div className={`relative w-full h-80 md:h-96 lg:h-[28rem] ${!news.image_url ? gradient(news.type) : ""}`}>
+        {news.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={news.image_url}
             alt={news.titre}
             className="absolute inset-0 w-full h-full object-cover"
           />
-        ) : (
-          <div className={`absolute inset-0 w-full h-full ${gradient(news.type)}`} />
         )}
         {news.epinglee && (
           <div className="absolute top-4 left-4 bg-amber-400 text-amber-950 px-3 py-1.5 rounded-full text-xs font-bold shadow-md inline-flex items-center gap-1.5">
@@ -54,31 +46,26 @@ export default function HeroNews({ news }: { news: NewsItem }) {
         </div>
       </div>
 
-      {/* Contenu */}
-      <div className="p-6 md:p-10 flex flex-col">
+      {/* Texte en dessous */}
+      <div className="p-8 md:p-12">
         <p className="text-sm text-slate-500">
-          {dateFR(news.date_publication)}
+          {new Date(news.date_publication).toLocaleDateString("fr-FR", {
+            weekday: "long", day: "numeric", month: "long", year: "numeric",
+          })}
           {news.auteur ? ` · par ${news.auteur}` : ""}
         </p>
-
-        <h2 className="mt-3 text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mt-3">
           {news.titre}
-        </h2>
-
-        <div className="mt-5 mb-5 h-px bg-slate-100" />
-
-        <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap flex-1">
+        </h1>
+        <div className="h-px bg-slate-100 my-5" />
+        <div className="whitespace-pre-wrap text-slate-700 leading-relaxed text-base">
           {news.contenu}
-        </p>
-
+        </div>
         <div className="mt-6 flex items-center justify-between">
           <p className="text-xs text-slate-400">
             Publiée le {new Date(news.date_publication).toLocaleDateString("fr-FR")}
           </p>
-          <Link
-            href={`/news/${news.id}`}
-            className="text-xs font-medium text-blue-600 hover:underline"
-          >
+          <Link href={`/news/${news.id}`} className="text-xs font-medium text-blue-600 hover:underline">
             Lien permanent →
           </Link>
         </div>
