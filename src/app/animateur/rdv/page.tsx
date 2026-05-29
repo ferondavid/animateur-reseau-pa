@@ -1,13 +1,15 @@
+export const dynamic = "force-dynamic";
+
 import { createClient } from "@/lib/supabase/server";
 import CardRDVDemande from "@/components/CardRDVDemande";
 import type { RDVDemande } from "@/components/CardRDVDemande";
 import Link from "next/link";
 
 const TABS = [
-  { key: "attente", label: "En attente", statuts: ["demande", "reporte"] },
-  { key: "confirme", label: "Confirmés", statuts: ["confirme"] },
-  { key: "passe", label: "Passés", statuts: ["fait"] },
-  { key: "tout", label: "Tout", statuts: ["demande", "reporte", "confirme", "annule", "fait"] },
+  { key: "attente",  label: "En attente", statuts: ["demande", "reporte"] },
+  { key: "confirme", label: "Confirmés",  statuts: ["confirme"] },
+  { key: "passe",    label: "Passés",     statuts: ["fait"] },
+  { key: "tout",     label: "Tout",       statuts: ["demande", "reporte", "confirme", "annule", "fait"] },
 ];
 
 const RDV_SELECT = `id, type, statut, date_souhaitee, heure_souhaitee, objet, message, lieu, lien_visio, created_at,
@@ -27,24 +29,36 @@ export default async function RDVAdminPage({
   let query = supabase
     .from("rendez_vous")
     .select(RDV_SELECT)
-    .in("statut", activeTab.statuts)
     .order("date_souhaitee", { ascending: true });
+
+  // "Passés" = fait OU date dépassée
+  if (activeTab.key === "passe") {
+    query = query.or(`statut.eq.fait,date_souhaitee.lt.${today}`);
+  } else {
+    query = query.in("statut", activeTab.statuts);
+  }
 
   if (magasin) query = query.eq("magasin_id", magasin);
 
-  const { data: rdvs } = await query;
+  const { data: rdvs, error } = await query;
 
-  // Liste des magasins pour le filtre
+  console.log("[RDV PAGE]", {
+    tabActif: activeTab.key,
+    filtreStatut: activeTab.statuts,
+    filtreMagasin: magasin ?? "tous",
+    nbResultats: rdvs?.length ?? 0,
+    premierRDV: rdvs?.[0] ?? null,
+    error: error ?? null,
+  });
+
   const { data: magasins } = await supabase
     .from("magasins")
     .select("id, nom, enseigne")
     .eq("statut", "actif")
     .order("nom");
 
-  const enAttente = (rdvs ?? []).filter((r) =>
-    activeTab.key === "attente" || activeTab.key === "tout"
-      ? ["demande", "reporte"].includes(r.statut)
-      : false
+  const nbAttente = (rdvs ?? []).filter((r) =>
+    ["demande", "reporte"].includes(r.statut)
   ).length;
 
   return (
@@ -55,7 +69,9 @@ export default async function RDVAdminPage({
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">Rendez-vous</h1>
             <p className="text-slate-500 text-sm mt-0.5">
-              {enAttente > 0 ? `${enAttente} demande${enAttente > 1 ? "s" : ""} en attente` : "Aucune demande en attente"}
+              {nbAttente > 0
+                ? `${nbAttente} demande${nbAttente > 1 ? "s" : ""} en attente`
+                : "Aucune demande en attente"}
             </p>
           </div>
           <Link
@@ -75,7 +91,9 @@ export default async function RDVAdminPage({
                 key={t.key}
                 href={`/animateur/rdv?tab=${t.key}${magasin ? `&magasin=${magasin}` : ""}`}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                  tab === t.key ? "bg-white shadow-sm text-slate-900" : "text-slate-600 hover:text-slate-900"
+                  tab === t.key
+                    ? "bg-white shadow-sm text-slate-900"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 {t.label}
@@ -98,7 +116,10 @@ export default async function RDVAdminPage({
                 </option>
               ))}
             </select>
-            <button type="submit" className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <button
+              type="submit"
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            >
               Filtrer
             </button>
           </form>
@@ -117,7 +138,10 @@ export default async function RDVAdminPage({
           </div>
         )}
 
-        <Link href="/animateur" className="inline-block text-sm text-slate-400 hover:text-slate-700 transition-colors">
+        <Link
+          href="/animateur"
+          className="inline-block text-sm text-slate-400 hover:text-slate-700 transition-colors"
+        >
           ← Retour tableau de bord
         </Link>
       </div>

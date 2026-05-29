@@ -200,7 +200,7 @@ export default async function AnimateurPage() {
               )}
             </h2>
             {rdvsTotal > 6 && (
-              <Link href="/animateur/rdv" className="text-sm text-blue-600 hover:underline font-medium">
+              <Link href="/animateur/rdv?tab=attente" className="text-sm text-blue-600 hover:underline font-medium">
                 Voir tout ({rdvsTotal}) →
               </Link>
             )}
