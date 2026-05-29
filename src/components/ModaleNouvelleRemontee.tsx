@@ -26,13 +26,16 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
         .from("photos-remontees")
         .upload(chemin, fichier, { upsert: false });
       if (upErr) {
+        // Upload raté → on continue sans photo et on prévient
         console.error("[Remontee] upload storage échoué:", JSON.stringify(upErr));
+        setToast(`⚠️ Fichier non joint (bucket inaccessible) : ${upErr.message}. La remontée sera envoyée sans pièce jointe.`);
+        await new Promise((r) => setTimeout(r, 2500));
+        setToast("");
       } else if (uploaded) {
         const { data: pub } = supabase.storage
           .from("photos-remontees")
           .getPublicUrl(uploaded.path);
         photo_url = pub.publicUrl;
-        console.log("[Remontee] photo_url obtenu:", photo_url);
       }
     }
 
