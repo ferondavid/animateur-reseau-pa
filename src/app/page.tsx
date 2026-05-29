@@ -54,10 +54,10 @@ export default async function Landing() {
               Actualités du réseau
             </p>
 
-            {/* Card hero inline — pas de CardNews, pas de line-clamp */}
-            <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
-              {/* Image gauche */}
-              <div className="relative aspect-[16/10] md:aspect-auto md:h-full min-h-[220px]">
+            {/* Card hero inline — stack vertical : image en haut, texte dessous */}
+            <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+              {/* Image en haut, pleine largeur */}
+              <div className="relative w-full h-80 md:h-96 lg:h-[28rem]">
                 {newsPrincipale.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -78,8 +78,8 @@ export default async function Landing() {
                 </div>
               </div>
 
-              {/* Contenu droite — tout visible, pas de line-clamp */}
-              <div className="p-6 md:p-10 flex flex-col">
+              {/* Contenu en dessous, pleine largeur */}
+              <div className="p-8 md:p-12 flex flex-col">
                 <p className="text-sm text-slate-500">
                   {new Date(newsPrincipale.date_publication).toLocaleDateString("fr-FR", {
                     weekday: "long", day: "numeric", month: "long", year: "numeric",
