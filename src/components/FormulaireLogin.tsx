@@ -44,16 +44,13 @@ export default function FormulaireLogin() {
         <form action={actionM} className="p-8 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Code postal de votre agence
+              Identifiant
             </label>
             <input
-              name="cp"
+              name="login"
               type="text"
-              placeholder="69000"
               required
-              inputMode="numeric"
-              pattern="\d{5}"
-              maxLength={5}
+              autoComplete="username"
               className={`${INPUT_CLASS} focus:border-emerald-500 focus:ring-emerald-500/30`}
             />
           </div>
@@ -65,6 +62,7 @@ export default function FormulaireLogin() {
               name="password"
               type="password"
               required
+              autoComplete="current-password"
               className={`${INPUT_CLASS} focus:border-emerald-500 focus:ring-emerald-500/30`}
             />
           </div>
