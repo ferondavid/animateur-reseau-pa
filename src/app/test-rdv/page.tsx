@@ -9,15 +9,20 @@ export default async function TestRDV() {
     supabase.from("news").select("id, titre").limit(1),
   ]);
 
+  // Récupère un vrai magasin_id pour le test FK
+  const { data: unMagasin } = await supabase.from("magasins").select("id").limit(1).single();
+
   // Test insert rendez_vous
-  const insertResult = await supabase.from("rendez_vous").insert({
-    magasin_id: "00000000-0000-0000-0000-000000000000",
-    type: "tel",
-    date_souhaitee: "2099-01-01",
-    objet: "[TEST] diagnostic",
-    statut: "demande",
-    demandeur_type: "magasin",
-  }).select("id").single();
+  const insertResult = unMagasin
+    ? await supabase.from("rendez_vous").insert({
+        magasin_id: unMagasin.id,
+        type: "tel",
+        date_souhaitee: "2099-01-01",
+        objet: "[TEST] diagnostic",
+        statut: "demande",
+        demandeur_type: "magasin",
+      }).select("id").single()
+    : { data: null, error: { message: "Aucun magasin en base", code: "NO_DATA" } };
 
   // Nettoyage si l'insert a réussi
   if (insertResult.data?.id) {
