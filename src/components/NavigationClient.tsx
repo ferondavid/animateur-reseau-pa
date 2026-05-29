@@ -26,7 +26,7 @@ export default function NavigationClient({
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-2 flex-wrap">
+    <nav className="flex items-center gap-1 rounded-2xl bg-slate-100 border border-slate-200/60 shadow-sm p-1.5 overflow-x-auto">
       {liens.map((l) => {
         const actif = estActif(l.href, pathname);
         const badge =
@@ -38,14 +38,13 @@ export default function NavigationClient({
           <Link
             key={l.href}
             href={l.href}
-            className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`relative shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
               actif
-                ? "bg-slate-900 text-white"
-                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                ? "bg-white shadow-sm text-slate-900"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
             }`}
           >
             {l.label}
-            {/* Badge rouge pour les remontées nouvelles */}
             {badge !== null && (
               <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1 leading-none">
                 {badge > 99 ? "99+" : badge}

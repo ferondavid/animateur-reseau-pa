@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import CarteWrapper from "@/components/CarteWrapper";
 import Navigation from "@/components/Navigation";
 import Link from "next/link";
+import { calculerRisqueMagasins } from "@/lib/risque";
 
 function premierJourMois(d: Date): string {
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
@@ -38,6 +39,8 @@ export default async function Home() {
     { count: nbActionsOuvertes },
     { count: nbRemonteesNouvelles },
     { data: notesEval },
+    { data: visitesPourRisque },
+    { data: remonteesUrgentesActives },
   ] = await Promise.all([
     supabase
       .from("magasins")
@@ -62,7 +65,7 @@ export default async function Home() {
       .not("note_business", "is", null),
     supabase
       .from("magasins")
-      .select("id, nom, ville, region, latitude, longitude")
+      .select("id, nom, enseigne, ville, region, latitude, longitude")
       .not("latitude", "is", null)
       .order("nom"),
     supabase
@@ -81,7 +84,37 @@ export default async function Home() {
       .select("*", { count: "exact", head: true })
       .eq("statut", "nouvelle"),
     supabase.from("evaluations_visite").select("q6_satisfaction_globale"),
+    supabase
+      .from("visites")
+      .select("magasin_id, date_realisee, note_confiance, note_business")
+      .eq("statut", "realisee"),
+    supabase
+      .from("remontees")
+      .select("magasin_id")
+      .eq("gravite", "urgente")
+      .not("statut", "in", "(traitee,archivee)"),
   ]);
+
+  // Calcul du risque par magasin (pour pins colorés sur la carte)
+  const magasinsList = magasins ?? [];
+  const risqueMap = calculerRisqueMagasins(
+    magasinsList.map((m) => m.id),
+    visitesPourRisque ?? [],
+    remonteesUrgentesActives ?? []
+  );
+  const magasinsAvecRisque = magasinsList.map((m) => {
+    const r = risqueMap.get(m.id);
+    return {
+      ...m,
+      risque: r
+        ? {
+            niveau: r.niveau,
+            raisons: r.raisons,
+            joursSansVisite: r.joursSansVisite,
+          }
+        : undefined,
+    };
+  });
 
   const moyConfiance =
     notesConfiance && notesConfiance.length > 0
@@ -176,7 +209,7 @@ export default async function Home() {
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
             Carte du réseau
           </h2>
-          <CarteWrapper magasins={magasins ?? []} />
+          <CarteWrapper magasins={magasinsAvecRisque} />
         </div>
 
         {/* Prochaines visites planifiées */}
