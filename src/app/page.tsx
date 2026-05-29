@@ -35,9 +35,14 @@ export default async function Landing() {
           {/* Actualités */}
           {(newsData ?? []).length > 0 && (
             <div className="w-full">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4 text-center">
-                Actualités du réseau
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                  Actualités du réseau
+                </h2>
+                <Link href="/news" className="text-sm font-medium text-blue-600 hover:underline">
+                  Toutes les actualités →
+                </Link>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(newsData as NewsItem[]).map((n) => (
                   <CardNews key={n.id} news={n} />
