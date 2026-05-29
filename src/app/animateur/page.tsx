@@ -104,7 +104,7 @@ export default async function AnimateurPage() {
   const { data: rdvsEnAttente } = await supabase
     .from("rendez_vous")
     .select(`id, type, statut, date_souhaitee, heure_souhaitee, objet, message, lieu,
-      magasins(id, nom, enseigne, ville),
+      magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville),
       rendez_vous_invites(magasin_id, magasins(nom, enseigne))`)
     .in("statut", ["demande", "reporte"])
     .order("date_souhaitee", { ascending: true })

@@ -32,7 +32,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
     .from("rendez_vous")
     .select(`
       *,
-      magasins(id, nom, enseigne, ville, region, contact_telephone),
+      magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville, region, contact_telephone),
       rendez_vous_invites(
         magasin_id,
         magasins(id, nom, enseigne, ville, contact_telephone)
