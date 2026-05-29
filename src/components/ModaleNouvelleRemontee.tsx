@@ -46,7 +46,8 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
 
     setLoading(false);
     if (error) {
-      setToast("Erreur lors de l'envoi. Réessaie.");
+      console.error("[Remontee] erreur insert:", error);
+      setToast(`Erreur : ${error.message ?? error.code ?? JSON.stringify(error)}`);
       return;
     }
     setToast("Remontée envoyée !");

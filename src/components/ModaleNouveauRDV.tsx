@@ -26,6 +26,7 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
   const [recherche, setRecherche] = useState("");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
+  const [erreur, setErreur] = useState<string | null>(null);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -65,9 +66,12 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
 
     if (error || !rdv) {
       setLoading(false);
-      setToast("Erreur lors de la demande. Réessaie.");
+      const msg = error?.message ?? error?.code ?? JSON.stringify(error) ?? "Erreur inconnue";
+      console.error("[RDV] erreur insert rendez_vous:", error);
+      setErreur(`Erreur : ${msg}`);
       return;
     }
+    setErreur(null);
 
     if (invites.length > 0) {
       await supabase.from("rendez_vous_invites").insert(
@@ -178,6 +182,12 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
                   </label>
                 ))}
               </div>
+            </div>
+          )}
+
+          {erreur && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-xs font-mono break-all">
+              {erreur}
             </div>
           )}
 
