@@ -4,7 +4,7 @@ import PersistRole from "@/components/PersistRole";
 import BoutonChangerMagasin from "@/components/BoutonChangerMagasin";
 import BoutonChangerRole from "@/components/BoutonChangerRole";
 import ActionsMembre from "@/components/ActionsMembre";
-import CardNews from "@/components/CardNews";
+import HeroNews from "@/components/HeroNews";
 import type { NewsItem } from "@/components/CardNews";
 
 // ─── Météo ────────────────────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     supabase.from("remontees").select("id, titre, gravite, statut, created_at").eq("magasin_id", id).not("statut", "in", "(traitee,archivee)").order("created_at", { ascending: false }).limit(5),
     supabase.from("magasins").select("id, nom, enseigne").eq("statut", "actif").neq("id", id).order("nom"),
     supabase.from("rendez_vous").select("id, type, date_souhaitee, heure_souhaitee, objet, statut").eq("magasin_id", id).neq("statut", "fait").gte("date_souhaitee", today).order("date_souhaitee", { ascending: true }).limit(5).then(r => ({ data: r.data, error: r.error })),
-    supabase.from("news").select("id, titre, contenu, image_url, type, auteur, epinglee, date_publication").eq("publie", true).order("epinglee", { ascending: false }).order("date_publication", { ascending: false }).limit(2).then(r => ({ data: r.data, error: r.error })),
+    supabase.from("news").select("id, titre, contenu, image_url, type, auteur, epinglee, publie, date_publication").eq("publie", true).order("epinglee", { ascending: false }).order("date_publication", { ascending: false }).limit(1).then(r => ({ data: r.data, error: r.error })),
   ]);
 
   if (!magasin) notFound();
@@ -275,14 +275,12 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
         {(newsData ?? []).length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Actualités du réseau</h2>
+              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Actualité du réseau</h2>
               <Link href="/news" className="text-xs font-medium text-blue-600 hover:underline">
                 Toutes →
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {(newsData as NewsItem[]).map((n) => <CardNews key={n.id} news={n} />)}
-            </div>
+            <HeroNews news={(newsData as NewsItem[])[0]} />
           </div>
         )}
 
