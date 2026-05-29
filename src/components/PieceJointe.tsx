@@ -3,20 +3,38 @@ type Props = {
   nom?: string;
 };
 
-function getType(url: string): "image" | "pdf" | "video" | "audio" | "autre" {
-  const ext = url.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
-  if (["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(ext)) return "image";
-  if (ext === "pdf") return "pdf";
-  if (["mp4", "mov", "webm"].includes(ext)) return "video";
-  if (["mp3", "m4a", "wav", "ogg"].includes(ext)) return "audio";
+function detecterType(url: string): "image" | "pdf" | "video" | "audio" | "autre" {
+  const clean = url.split("?")[0].split("#")[0].toLowerCase();
+
+  // 1. Extension explicite
+  if (/\.(jpe?g|png|webp|gif|heic|heif|avif|svg|bmp)$/.test(clean)) return "image";
+  if (/\.pdf$/.test(clean)) return "pdf";
+  if (/\.(mp4|mov|webm|m4v)$/.test(clean)) return "video";
+  if (/\.(mp3|m4a|wav|ogg|aac)$/.test(clean)) return "audio";
+
+  // 2. Hosts d'images connus
+  if (/images\.unsplash\.com|i\.imgur\.com|images\.pexels\.com|res\.cloudinary\.com\/.*\/image|cdn\.pixabay\.com\/photo/.test(clean)) return "image";
+
+  // 3. Supabase Storage → bucket name
+  const matchSupabase = clean.match(/\/storage\/v1\/object\/public\/([^/]+)\//);
+  if (matchSupabase) {
+    const bucket = matchSupabase[1];
+    if (/photo|image|news/.test(bucket)) return "image";
+    if (/audio/.test(bucket)) return "audio";
+    if (/video/.test(bucket)) return "video";
+  }
+
+  // 4. Mots-clés dans le path
+  if (/\/photo|\/image|\/img/.test(clean)) return "image";
+
   return "autre";
 }
 
 export default function PieceJointe({ url, nom }: Props) {
   if (!url) return null;
 
-  const type = getType(url);
-  const nomFichier = nom ?? url.split("/").pop() ?? "fichier";
+  const type = detecterType(url);
+  const nomFichier = decodeURIComponent(url.split("/").pop()?.split("?")[0] ?? "fichier");
 
   return (
     <div>
@@ -25,21 +43,28 @@ export default function PieceJointe({ url, nom }: Props) {
       </p>
 
       {type === "image" && (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="block cursor-zoom-in">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={url}
-            alt={nomFichier}
-            className="max-w-full rounded-xl border border-slate-200 shadow-sm object-contain"
-            style={{ maxHeight: 500 }}
-            onError={(e) => {
-              (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute("hidden");
-            }}
-          />
+        <div>
+          <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt={nom ?? "Pièce jointe"}
+              loading="lazy"
+              className="w-full max-h-[500px] object-contain rounded-xl border border-slate-200 shadow-sm cursor-zoom-in bg-slate-50"
+            />
+          </a>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-2 text-xs text-slate-500 hover:text-slate-900 transition-colors"
+          >
+            Ouvrir en plein écran ↗
+          </a>
           <p className="hidden text-xs text-amber-600 mt-1 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             ⚠️ Si la pièce jointe ne s&apos;affiche pas, vérifie que le bucket Supabase &quot;photos-remontees&quot; est en Public.
           </p>
-        </a>
+        </div>
       )}
 
       {type === "pdf" && (
