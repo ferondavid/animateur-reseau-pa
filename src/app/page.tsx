@@ -1,9 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import BoundaryRedirect from "@/components/BoundaryRedirect";
 import LandingCards from "@/components/LandingCards";
-import HeroNews from "@/components/HeroNews";
 import CardNews from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
+import Link from "next/link";
+
+const TYPE_BADGE: Record<string, string> = {
+  info: "bg-blue-100 text-blue-800", evenement: "bg-purple-100 text-purple-800",
+  alerte: "bg-red-100 text-red-800", temoignage: "bg-emerald-100 text-emerald-800",
+};
+const TYPE_LABEL: Record<string, string> = {
+  info: "📢 Info", evenement: "🎉 Événement", alerte: "⚠️ Alerte", temoignage: "💬 Témoignage",
+};
+const GRADIENT: Record<string, string> = {
+  info: "bg-gradient-to-br from-blue-400 to-blue-600",
+  evenement: "bg-gradient-to-br from-purple-400 to-purple-600",
+  alerte: "bg-gradient-to-br from-red-400 to-red-600",
+  temoignage: "bg-gradient-to-br from-emerald-400 to-emerald-600",
+};
 
 export default async function Landing() {
   const supabase = await createClient();
@@ -24,7 +38,7 @@ export default async function Landing() {
       <BoundaryRedirect />
       <main className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 pb-16">
 
-        {/* 1. Header + choix de rôle */}
+        {/* Choix de rôle */}
         <div className="max-w-4xl mx-auto px-6 md:px-10 pt-16 pb-4 flex flex-col items-center gap-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-slate-900 mb-3">Animateur Réseau PA</h1>
@@ -33,18 +47,67 @@ export default async function Landing() {
           <LandingCards />
         </div>
 
-        {/* 2. Hero news — contenu intégral, pleine largeur */}
+        {/* Hero news — première news seule, pleine largeur, contenu complet */}
         {newsPrincipale && (
           <div className="w-full max-w-5xl mx-auto px-6 md:px-10 mt-16 mb-12">
             <p className="text-center text-xs font-semibold text-slate-400 uppercase tracking-widest mb-6">
               Actualités du réseau
             </p>
-            <HeroNews news={newsPrincipale} />
+
+            {/* Card hero inline — pas de CardNews, pas de line-clamp */}
+            <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
+              {/* Image gauche */}
+              <div className="relative aspect-[16/10] md:aspect-auto md:h-full min-h-[220px]">
+                {newsPrincipale.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={newsPrincipale.image_url}
+                    alt={newsPrincipale.titre}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className={`absolute inset-0 w-full h-full ${GRADIENT[newsPrincipale.type] ?? "bg-gradient-to-br from-slate-400 to-slate-600"}`} />
+                )}
+                {newsPrincipale.epinglee && (
+                  <div className="absolute top-4 left-4 bg-amber-400 text-amber-950 px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
+                    📌 Épinglée
+                  </div>
+                )}
+                <div className={`absolute top-4 right-4 text-xs font-bold px-3 py-1.5 rounded-full shadow-md ${TYPE_BADGE[newsPrincipale.type] ?? "bg-slate-100 text-slate-700"}`}>
+                  {TYPE_LABEL[newsPrincipale.type] ?? newsPrincipale.type}
+                </div>
+              </div>
+
+              {/* Contenu droite — tout visible, pas de line-clamp */}
+              <div className="p-6 md:p-10 flex flex-col">
+                <p className="text-sm text-slate-500">
+                  {new Date(newsPrincipale.date_publication).toLocaleDateString("fr-FR", {
+                    weekday: "long", day: "numeric", month: "long", year: "numeric",
+                  })}
+                  {newsPrincipale.auteur ? ` · par ${newsPrincipale.auteur}` : ""}
+                </p>
+                <h2 className="mt-3 text-2xl md:text-3xl font-bold text-slate-900 leading-tight">
+                  {newsPrincipale.titre}
+                </h2>
+                <div className="mt-5 mb-5 h-px bg-slate-100" />
+                <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap flex-1">
+                  {newsPrincipale.contenu}
+                </p>
+                <div className="mt-6 flex items-center justify-between">
+                  <p className="text-xs text-slate-400">
+                    Publiée le {new Date(newsPrincipale.date_publication).toLocaleDateString("fr-FR")}
+                  </p>
+                  <Link href={`/news/${newsPrincipale.id}`} className="text-xs font-medium text-blue-600 hover:underline">
+                    Lien permanent →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Mini-cards secondaires */}
             {newsSecondaires.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                {newsSecondaires.map((n) => (
-                  <CardNews key={n.id} news={n} />
-                ))}
+                {newsSecondaires.map((n) => <CardNews key={n.id} news={n} />)}
               </div>
             )}
           </div>
