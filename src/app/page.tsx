@@ -35,7 +35,7 @@ export default async function Landing() {
 
         {/* 2. Hero news — contenu intégral, pleine largeur */}
         {newsPrincipale && (
-          <section className="w-full max-w-6xl mx-auto px-6 md:px-10 mt-16 mb-12">
+          <div className="w-full max-w-5xl mx-auto px-6 md:px-10 mt-16 mb-12">
             <p className="text-center text-xs font-semibold text-slate-400 uppercase tracking-widest mb-6">
               Actualités du réseau
             </p>
@@ -47,7 +47,7 @@ export default async function Landing() {
                 ))}
               </div>
             )}
-          </section>
+          </div>
         )}
 
       </main>
