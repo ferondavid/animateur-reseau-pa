@@ -8,59 +8,62 @@ type Props = { magasinId: string; onClose: () => void };
 
 export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [succes, setSucces] = useState(false);
   const [fichier, setFichier] = useState<File | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
-    const form = new FormData(e.currentTarget);
-    const supabase = createClient();
+    setErreur(null);
+    setBusy(true);
 
-    let photo_url: string | null = null;
+    try {
+      const form = new FormData(e.currentTarget);
+      const supabase = createClient();
 
-    if (fichier) {
-      const chemin = `magasin_${magasinId}/${Date.now()}_${fichier.name}`;
-      const { data: uploaded, error: upErr } = await supabase.storage
-        .from("photos-remontees")
-        .upload(chemin, fichier, { upsert: false });
-      if (upErr) {
-        // Upload raté → on continue sans photo et on prévient
-        console.error("[Remontee] upload storage échoué:", JSON.stringify(upErr));
-        setToast(`⚠️ Fichier non joint (bucket inaccessible) : ${upErr.message}. La remontée sera envoyée sans pièce jointe.`);
-        await new Promise((r) => setTimeout(r, 2500));
-        setToast("");
-      } else if (uploaded) {
+      let photoUrl: string | null = null;
+
+      if (fichier) {
+        const ext = fichier.name.split(".").pop() ?? "bin";
+        const path = `magasin_${magasinId}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("photos-remontees")
+          .upload(path, fichier, { upsert: false, contentType: fichier.type });
+
+        if (upErr) throw new Error(`Upload : ${upErr.message}`);
+
         const { data: pub } = supabase.storage
           .from("photos-remontees")
-          .getPublicUrl(uploaded.path);
-        photo_url = pub.publicUrl;
+          .getPublicUrl(path);
+        photoUrl = pub.publicUrl;
+        console.log("[REMONTEE] photo uploadée :", photoUrl);
       }
-    }
 
-    const { error } = await supabase.from("remontees").insert({
-      magasin_id: magasinId,
-      titre: form.get("titre") as string,
-      description: form.get("description") as string,
-      type: form.get("type") as string,
-      gravite: form.get("gravite") as string,
-      statut: "nouvelle",
-      source: "membre",
-      photo_url,
-    });
+      const { error: insErr } = await supabase.from("remontees").insert({
+        magasin_id: magasinId,
+        type: form.get("type") as string,
+        titre: form.get("titre") as string,
+        description: form.get("description") as string,
+        gravite: form.get("gravite") as string,
+        statut: "nouvelle",
+        source: "membre",
+        photo_url: photoUrl,
+      });
 
-    setLoading(false);
-    if (error) {
-      console.error("[Remontee] erreur insert:", error);
-      setToast(`Erreur : ${error.message ?? error.code ?? JSON.stringify(error)}`);
-      return;
+      if (insErr) throw new Error(`Insert : ${insErr.message}`);
+
+      setSucces(true);
+      setTimeout(() => {
+        onClose();
+        router.refresh();
+      }, 1200);
+    } catch (err) {
+      console.error("[REMONTEE] erreur:", err);
+      setErreur(err instanceof Error ? err.message : JSON.stringify(err));
+    } finally {
+      setBusy(false);
     }
-    setToast("Remontée envoyée !");
-    setTimeout(() => {
-      onClose();
-      router.refresh();
-    }, 1200);
   }
 
   return (
@@ -71,16 +74,22 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-xl leading-none">×</button>
         </div>
 
-        {toast && (
-          <div className={`rounded-xl px-4 py-2 text-sm font-medium ${toast.includes("Erreur") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
-            {toast}
+        {succes && (
+          <div className="rounded-xl px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700">
+            Remontée envoyée ✓
+          </div>
+        )}
+
+        {erreur && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-xs font-mono break-all">
+            ❌ {erreur}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
-            <select name="type" required defaultValue="" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <select name="type" required defaultValue="" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-400">
               <option value="" disabled>— Choisir —</option>
               <option value="commerciale">Commerciale</option>
               <option value="sav_technique">SAV / Technique</option>
@@ -92,17 +101,20 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Titre *</label>
-            <input name="titre" required type="text" placeholder="Résumé en une ligne" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            <input name="titre" required type="text" placeholder="Résumé en une ligne"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400" />
           </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Description *</label>
-            <textarea name="description" required rows={3} placeholder="Décrivez la situation…" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 resize-y" />
+            <textarea name="description" required rows={3} placeholder="Décrivez la situation…"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 resize-y" />
           </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Gravité</label>
-            <select name="gravite" defaultValue="normale" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <select name="gravite" defaultValue="normale"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-400">
               <option value="normale">Normale</option>
               <option value="attention">Attention</option>
               <option value="urgente">Urgente</option>
@@ -111,6 +123,9 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
 
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Photo ou document (optionnel)</label>
+            {fichier && (
+              <p className="text-xs text-slate-500 mb-1">📎 {fichier.name} ({(fichier.size / 1024).toFixed(0)} Ko)</p>
+            )}
             <input
               type="file"
               accept="image/*,.pdf,.doc,.docx"
@@ -120,11 +135,13 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition-colors">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition-colors">
               Annuler
             </button>
-            <button type="submit" disabled={loading} className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-sm font-semibold transition-colors">
-              {loading ? "Envoi…" : "Envoyer"}
+            <button type="submit" disabled={busy}
+              className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-sm font-semibold transition-colors">
+              {busy ? "Envoi…" : "Envoyer"}
             </button>
           </div>
         </form>
