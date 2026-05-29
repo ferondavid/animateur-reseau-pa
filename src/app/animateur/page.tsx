@@ -188,6 +188,12 @@ export default async function AnimateurPage() {
           <div className="flex items-center gap-3 shrink-0">
             <BoutonChangerRole />
             <Link
+              href="/animateur/news"
+              className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-medium hover:border-slate-400 hover:bg-slate-50 transition-colors inline-flex items-center gap-2"
+            >
+              📰 Gestion des news
+            </Link>
+            <Link
               href="/pilotage"
               className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
             >
