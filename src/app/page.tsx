@@ -49,14 +49,14 @@ export default async function Landing() {
 
         {/* Hero news — même style que la page détail /news/[id] */}
         {newsPrincipale && (
-          <div className="w-full max-w-2xl mx-auto px-6 md:px-10 mt-16 mb-12">
+          <div className="w-full max-w-xl mx-auto px-6 md:px-10 mt-16 mb-12">
             <p className="text-center text-xs font-semibold text-slate-400 uppercase tracking-widest mb-6">
               Actualités du réseau
             </p>
 
             <div className="space-y-6">
               {/* Image / dégradé */}
-              <div className="rounded-2xl overflow-hidden h-48">
+              <div className="rounded-2xl overflow-hidden h-40">
                 {newsPrincipale.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -80,7 +80,7 @@ export default async function Landing() {
                   </span>
                   {newsPrincipale.epinglee && <span className="ml-1">📌 Épinglée</span>}
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900">{newsPrincipale.titre}</h2>
+                <h2 className="text-xl font-bold text-slate-900">{newsPrincipale.titre}</h2>
                 <div className="text-slate-700 leading-relaxed whitespace-pre-wrap">
                   {newsPrincipale.contenu}
                 </div>
