@@ -65,7 +65,7 @@ export default async function Home() {
       .not("note_business", "is", null),
     supabase
       .from("magasins")
-      .select("id, nom, enseigne, ville, region, latitude, longitude")
+      .select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone")
       .not("latitude", "is", null)
       .order("nom"),
     supabase
