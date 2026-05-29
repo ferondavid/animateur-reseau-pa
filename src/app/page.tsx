@@ -41,7 +41,7 @@ export default async function Landing() {
         {/* Choix de rôle */}
         <div className="max-w-4xl mx-auto px-6 md:px-10 pt-16 pb-4 flex flex-col items-center gap-8">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-slate-900 mb-3">Animateur Réseau PA</h1>
+            <h1 className="text-4xl font-bold text-slate-900 mb-3">Animation réseau Piscinistes Associés</h1>
             <p className="text-lg text-slate-500">Choisissez votre profil</p>
           </div>
           <LandingCards />

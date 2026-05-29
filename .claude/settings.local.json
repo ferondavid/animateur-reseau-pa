@@ -1,0 +1,10 @@
+﻿{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": [
+      "../01_supabase",
+      "../02_data",
+      "../04_docs"
+    ]
+  }
+}

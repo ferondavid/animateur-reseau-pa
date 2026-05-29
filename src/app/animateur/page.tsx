@@ -179,7 +179,7 @@ export default async function AnimateurPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">
-              Animateur Réseau PA
+              Animation réseau Piscinistes Associés
             </h1>
             <p className="text-slate-500 mt-1">
               Pilotage et suivi de votre réseau de magasins

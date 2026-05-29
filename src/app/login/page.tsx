@@ -23,7 +23,7 @@ export default async function Home() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-semibold text-slate-900">
-            Animateur Réseau PA
+            Animation réseau Piscinistes Associés
           </h1>
           <form action={logout}>
             <button className="text-sm text-slate-600 hover:text-slate-900">
