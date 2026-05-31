@@ -135,6 +135,19 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           )}
         </div>
 
+        {/* News réseau — juste sous la météo */}
+        {(newsData ?? []).length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Actualité du réseau</h2>
+              <Link href="/news" className="text-xs font-medium text-blue-600 hover:underline">
+                Toutes →
+              </Link>
+            </div>
+            <HeroNews news={(newsData as NewsItem[])[0]} />
+          </div>
+        )}
+
         {/* Actions rapides */}
         <div>
           <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Actions rapides</h2>
@@ -269,19 +282,6 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
                 <div>{sparkNotes.length} visite{sparkNotes.length > 1 ? "s" : ""}</div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* News réseau */}
-        {(newsData ?? []).length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Actualité du réseau</h2>
-              <Link href="/news" className="text-xs font-medium text-blue-600 hover:underline">
-                Toutes →
-              </Link>
-            </div>
-            <HeroNews news={(newsData as NewsItem[])[0]} />
           </div>
         )}
 
