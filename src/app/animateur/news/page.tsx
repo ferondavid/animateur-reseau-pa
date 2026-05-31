@@ -6,6 +6,8 @@ import { togglePublication, toggleEpingle } from "./actions";
 import BoutonSupprimerNews from "@/components/BoutonSupprimerNews";
 import { getGradient } from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
+import { getParametreNumber } from "@/lib/parametres";
+import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
 
 const TYPE_BADGE: Record<string, string> = {
   info: "bg-blue-100 text-blue-700",
@@ -19,11 +21,14 @@ const TYPE_LABEL: Record<string, string> = {
 
 export default async function AdminNewsPage() {
   const supabase = await createClient();
-  const { data: newsList } = await supabase
-    .from("news")
-    .select("*")
-    .order("epinglee", { ascending: false })
-    .order("date_publication", { ascending: false });
+  const [{ data: newsList }, nbNewsActuel] = await Promise.all([
+    supabase
+      .from("news")
+      .select("*")
+      .order("epinglee", { ascending: false })
+      .order("date_publication", { ascending: false }),
+    getParametreNumber("nb_news_fiche_membre", 1),
+  ]);
 
   const liste = (newsList ?? []) as NewsItem[];
 
@@ -41,6 +46,12 @@ export default async function AdminNewsPage() {
           >
             + Nouvelle news
           </Link>
+        </div>
+
+        {/* Paramètres d'affichage */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <p className="text-sm font-medium text-slate-700 mb-2">Nombre de news affichées sur les fiches membre</p>
+          <SelectNbNewsFiche valeurInitiale={nbNewsActuel} />
         </div>
 
         {liste.length === 0 ? (

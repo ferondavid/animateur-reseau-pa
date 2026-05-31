@@ -9,6 +9,15 @@ function revalidAll(id?: string) {
   if (id) revalidatePath(`/news/${id}`);
 }
 
+export async function updateParametreNbNews(nouvelleValeur: number) {
+  const supabase = await createClient();
+  await supabase
+    .from("parametres")
+    .upsert({ cle: "nb_news_fiche_membre", valeur: String(nouvelleValeur), updated_at: new Date().toISOString() });
+  revalidatePath("/membre/[id]", "page");
+  revalidatePath("/animateur/news");
+}
+
 export async function supprimerNews(id: string) {
   const supabase = await createClient();
   await supabase.from("news").delete().eq("id", id);

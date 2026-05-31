@@ -6,7 +6,10 @@ import BoutonChangerRole from "@/components/BoutonChangerRole";
 import ActionsMembre from "@/components/ActionsMembre";
 import Link from "next/link";
 import HeroNews from "@/components/HeroNews";
+import CardNews from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
+import CAEvolution from "@/components/CAEvolution";
+import { getParametreNumber } from "@/lib/parametres";
 
 // ─── Météo ────────────────────────────────────────────────────────────────────
 
@@ -80,6 +83,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
   const animateurTel = process.env.NEXT_PUBLIC_ANIMATEUR_TEL ?? "+33600000000";
+  const nbNews = await getParametreNumber("nb_news_fiche_membre", 1);
 
   const [
     { data: magasin },
@@ -98,7 +102,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     supabase.from("remontees").select("id, titre, gravite, statut, created_at").eq("magasin_id", id).not("statut", "in", "(traitee,archivee)").order("created_at", { ascending: false }).limit(5),
     supabase.from("magasins").select("id, nom, enseigne").eq("statut", "actif").neq("id", id).order("nom"),
     supabase.from("rendez_vous").select("id, type, date_souhaitee, heure_souhaitee, objet, statut").eq("magasin_id", id).neq("statut", "fait").gte("date_souhaitee", today).order("date_souhaitee", { ascending: true }).limit(5).then(r => ({ data: r.data, error: r.error })),
-    supabase.from("news").select("id, titre, contenu, image_url, type, auteur, epinglee, publie, date_publication").eq("publie", true).order("epinglee", { ascending: false }).order("date_publication", { ascending: false }).limit(1).then(r => ({ data: r.data, error: r.error })),
+    supabase.from("news").select("id, titre, contenu, image_url, type, auteur, epinglee, publie, date_publication").eq("publie", true).order("epinglee", { ascending: false }).order("date_publication", { ascending: false }).limit(nbNews).then(r => ({ data: r.data, error: r.error })),
   ]);
 
   if (!magasin) notFound();
@@ -135,7 +139,10 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           )}
         </div>
 
-        {/* News réseau — juste sous la météo */}
+        {/* CA annuel — juste sous la météo */}
+        <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
+
+        {/* News réseau */}
         {(newsData ?? []).length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -145,6 +152,13 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
               </Link>
             </div>
             <HeroNews news={(newsData as NewsItem[])[0]} />
+            {nbNews > 1 && (newsData as NewsItem[]).length > 1 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {(newsData as NewsItem[]).slice(1).map((n) => (
+                  <CardNews key={n.id} news={n} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
