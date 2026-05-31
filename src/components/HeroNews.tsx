@@ -27,7 +27,7 @@ export default function HeroNews({ news }: { news: NewsItem }) {
     <article className="w-full bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-200">
 
       {/* Image pleine largeur */}
-      <div className={`relative w-full h-56 md:h-64 lg:h-80 ${!news.image_url ? gradient(news.type) : ""}`}>
+      <div className={`relative w-full h-32 md:h-40 lg:h-48 ${!news.image_url ? gradient(news.type) : ""}`}>
         {news.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
