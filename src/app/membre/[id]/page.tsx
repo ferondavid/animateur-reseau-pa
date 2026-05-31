@@ -83,6 +83,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
   const animateurTel = process.env.NEXT_PUBLIC_ANIMATEUR_TEL ?? "+33600000000";
+  const animateurEmail = process.env.NEXT_PUBLIC_ANIMATEUR_EMAIL ?? "animateur@piscinistes-associes.fr";
   const nbNews = await getParametreNumber("nb_news_fiche_membre", 1);
 
   const [
@@ -168,6 +169,8 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           <ActionsMembre
             magasinId={id}
             animateurTel={animateurTel}
+            animateurEmail={animateurEmail}
+            magasinNom={nomAffiche}
             autresMagasins={(autresMagasins ?? []) as { id: string; nom: string; enseigne: string | null }[]}
           />
         </div>
