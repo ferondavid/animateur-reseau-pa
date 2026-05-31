@@ -27,7 +27,7 @@ export default function HeroNews({ news }: { news: NewsItem }) {
     <article className="w-full bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-200">
 
       {/* Image pleine largeur */}
-      <div className={`relative w-full h-80 md:h-96 lg:h-[28rem] ${!news.image_url ? gradient(news.type) : ""}`}>
+      <div className={`relative w-full h-56 md:h-64 lg:h-80 ${!news.image_url ? gradient(news.type) : ""}`}>
         {news.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -47,21 +47,21 @@ export default function HeroNews({ news }: { news: NewsItem }) {
       </div>
 
       {/* Texte en dessous */}
-      <div className="p-8 md:p-12">
+      <div className="p-6 md:p-8">
         <p className="text-sm text-slate-500">
           {new Date(news.date_publication).toLocaleDateString("fr-FR", {
             weekday: "long", day: "numeric", month: "long", year: "numeric",
           })}
           {news.auteur ? ` · par ${news.auteur}` : ""}
         </p>
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mt-3">
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight mt-2">
           {news.titre}
         </h1>
-        <div className="h-px bg-slate-100 my-5" />
+        <div className="h-px bg-slate-100 my-3" />
         <div className="whitespace-pre-wrap text-slate-700 leading-relaxed text-base">
           {news.contenu}
         </div>
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-4 flex items-center justify-between">
           <p className="text-xs text-slate-400">
             Publiée le {new Date(news.date_publication).toLocaleDateString("fr-FR")}
           </p>
