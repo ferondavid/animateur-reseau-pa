@@ -26,13 +26,13 @@ SELECT
   mo.m,
   se.seg,
   ROUND(
-    CASE
+    (CASE
       WHEN se.seg = 'piscine_coque' AND mo.m BETWEEN 4 AND 8 THEN 10000 + random() * 10000
       WHEN se.seg = 'spa'           AND mo.m BETWEEN 9 AND 12 THEN 9000  + random() * 8000
       WHEN se.seg = 'chimie'                                   THEN 4000  + random() * 6000
       WHEN se.seg = 'materiel'                                 THEN 6000  + random() * 8000
       ELSE                                                          4000  + random() * 8000
-    END,
+    END)::numeric,
     2
   )
 FROM magasins_actifs ma
