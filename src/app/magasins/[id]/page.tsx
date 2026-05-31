@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import BoutonSupprimer from "./BoutonSupprimer";
+import CAEvolution from "@/components/CAEvolution";
 
 const statutStyles: Record<string, string> = {
   actif: "bg-green-100 text-green-800",
@@ -141,6 +142,9 @@ export default async function MagasinDetailPage({
         </div>
 
         <div className="space-y-4">
+          {/* CA — bloc CA évolution en haut */}
+          <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
+
           {/* Card : Informations générales */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
