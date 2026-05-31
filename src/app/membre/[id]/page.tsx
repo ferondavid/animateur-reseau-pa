@@ -10,6 +10,7 @@ import CardNews from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
 import CAEvolution from "@/components/CAEvolution";
 import { getParametreNumber } from "@/lib/parametres";
+import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 
 // ─── Météo ────────────────────────────────────────────────────────────────────
 
@@ -307,6 +308,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
       {/* Barre de nav sticky */}
       <div className="fixed bottom-4 left-0 right-0 flex justify-center z-40 px-4">
         <div className="flex items-center gap-3 bg-white rounded-2xl shadow-xl border border-slate-200 px-5 py-3">
+          <BoutonInstallerPWA />
           <BoutonChangerMagasin />
           <BoutonChangerRole />
         </div>

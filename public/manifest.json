@@ -1,0 +1,25 @@
+{
+  "name": "Animation réseau Piscinistes Associés",
+  "short_name": "Animation PA",
+  "description": "Outil de pilotage et de collaboration du réseau Piscinistes Associés",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e293b",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/icon",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

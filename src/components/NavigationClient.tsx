@@ -29,7 +29,7 @@ export default function NavigationClient({
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-1 rounded-2xl bg-slate-100 border border-slate-200/60 shadow-sm p-1.5 overflow-x-auto">
+    <nav className="flex items-center gap-1 rounded-2xl bg-slate-100/80 border border-slate-200/60 shadow-sm p-1.5 overflow-x-auto scrollbar-hide whitespace-nowrap max-w-fit mx-auto">
       {liens.map((l) => {
         const actif = estActif(l.href, pathname);
         const badge =
@@ -43,15 +43,15 @@ export default function NavigationClient({
           <Link
             key={l.href}
             href={l.href}
-            className={`relative shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+            className={`relative shrink-0 px-3.5 py-1.5 rounded-xl text-sm transition-all duration-150 whitespace-nowrap ${
               actif
-                ? "bg-white shadow-sm text-slate-900"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                ? "bg-white shadow-sm text-slate-900 font-semibold ring-1 ring-slate-200/50"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/50 font-medium"
             }`}
           >
             {l.label}
             {badge !== null && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1 leading-none">
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none shadow-sm">
                 {badge > 99 ? "99+" : badge}
               </span>
             )}

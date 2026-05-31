@@ -3,6 +3,7 @@ import CarteWrapper from "@/components/CarteWrapper";
 import Navigation from "@/components/Navigation";
 import PersistRole from "@/components/PersistRole";
 import BoutonChangerRole from "@/components/BoutonChangerRole";
+import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 import CardRDVDemande from "@/components/CardRDVDemande";
 import type { RDVDemande } from "@/components/CardRDVDemande";
 import Link from "next/link";
@@ -185,7 +186,8 @@ export default async function AnimateurPage() {
               Pilotage et suivi de votre réseau de magasins
             </p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 flex-wrap justify-end">
+            <BoutonInstallerPWA />
             <BoutonChangerRole />
             <Link
               href="/animateur/news"

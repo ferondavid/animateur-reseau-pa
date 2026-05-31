@@ -1,4 +1,5 @@
 import FormulaireLogin from "@/components/FormulaireLogin";
+import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 
 const FEATURES = [
   {
@@ -93,6 +94,9 @@ export default function LoginPage() {
             })}
           </div>
         </section>
+        <div className="flex justify-center mt-10">
+          <BoutonInstallerPWA />
+        </div>
       </div>
     </main>
   );
