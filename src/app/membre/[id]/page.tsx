@@ -83,9 +83,9 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     supabase.from("visites").select("id, date_realisee, note_confiance, note_business, objectif, points_cles").eq("magasin_id", id).eq("statut", "realisee").order("date_realisee", { ascending: false }).limit(10),
     supabase.from("actions").select("id, titre, niveau_urgence, statut, deadline").eq("magasin_id", id).in("statut", ["ouverte", "en_cours"]).order("niveau_urgence", { ascending: false }),
     supabase.from("evaluations_visite").select("q6_satisfaction_globale, created_at").eq("magasin_id", id).order("created_at", { ascending: false }).limit(5),
-    supabase.from("remontees").select("id, titre, gravite, statut, created_at").eq("magasin_id", id).not("statut", "in", "(traitee,archivee)").order("created_at", { ascending: false }).limit(5),
+    supabase.from("remontees").select("id, titre, gravite, statut, created_at, description, photo_url").eq("magasin_id", id).not("statut", "in", "(traitee,archivee)").order("created_at", { ascending: false }).limit(5),
     supabase.from("magasins").select("id, nom, enseigne").eq("statut", "actif").neq("id", id).order("nom"),
-    supabase.from("rendez_vous").select("id, type, date_souhaitee, heure_souhaitee, objet, statut").eq("magasin_id", id).neq("statut", "fait").gte("date_souhaitee", today).order("date_souhaitee", { ascending: true }).limit(5).then(r => ({ data: r.data, error: r.error })),
+    supabase.from("rendez_vous").select("id, type, date_souhaitee, heure_souhaitee, objet, statut, message, lieu").eq("magasin_id", id).neq("statut", "fait").gte("date_souhaitee", today).order("date_souhaitee", { ascending: true }).limit(5).then(r => ({ data: r.data, error: r.error })),
     supabase.from("news").select("id, titre, contenu, image_url, type, auteur, epinglee, publie, date_publication").eq("publie", true).order("epinglee", { ascending: false }).order("date_publication", { ascending: false }).limit(nbNews).then(r => ({ data: r.data, error: r.error })),
     supabase.from("rendez_vous").select("id, type, date_souhaitee, heure_souhaitee, objet, message").eq("magasin_id", id).eq("demandeur_type", "animateur").eq("statut", "demande").order("date_souhaitee", { ascending: true }).then(r => ({ data: r.data, error: r.error })),
     supabase.from("visites").select("id, date_prevue, objectif").eq("magasin_id", id).eq("statut", "planifiee").eq("accepte_par_membre", false).gte("date_prevue", today).order("date_prevue", { ascending: true }).then(r => ({ data: r.data, error: r.error })),
@@ -147,8 +147,8 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Votre activité</h2>
           <TabsMembre
             actions={(actions ?? []) as { id: string; titre: string; niveau_urgence: number; statut: string; deadline: string | null }[]}
-            rdvs={(rdvData ?? []) as { id: string; type: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; statut: string }[]}
-            remontees={(remontees ?? []).map((r) => ({ id: r.id, titre: r.titre, gravite: r.gravite, statut: r.statut }))}
+            rdvs={(rdvData ?? []) as { id: string; type: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; statut: string; message: string | null; lieu: string | null }[]}
+            remontees={(remontees ?? []) as { id: string; titre: string; gravite: string; statut: string; created_at: string; description: string | null; photo_url: string | null }[]}
             visites={trois}
           />
         </div>
