@@ -6,8 +6,10 @@ import BoutonChangerRole from "@/components/BoutonChangerRole";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 import CardRDVDemande from "@/components/CardRDVDemande";
 import type { RDVDemande } from "@/components/CardRDVDemande";
+import CardGCalEvent from "@/components/CardGCalEvent";
 import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
+import { fetchGCalEvents } from "@/lib/gcal";
 
 function premierJourMois(d: Date): string {
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
@@ -172,6 +174,8 @@ export default async function AnimateurPage() {
         ).toFixed(1)
       : null;
 
+  const { events: gcalEvents, label: gcalLabel, error: gcalError } = await fetchGCalEvents(30);
+
   return (
     <main className="min-h-screen bg-slate-50 p-8">
       <PersistRole role="animateur" />
@@ -189,6 +193,12 @@ export default async function AnimateurPage() {
           <div className="flex items-center gap-3 shrink-0 flex-wrap justify-end">
             <BoutonInstallerPWA />
             <BoutonChangerRole />
+            <Link
+              href="/animateur/parametres"
+              className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-medium hover:border-slate-400 hover:bg-slate-50 transition-colors"
+            >
+              ⚙️ Paramètres
+            </Link>
             <Link
               href="/animateur/news"
               className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-medium hover:border-slate-400 hover:bg-slate-50 transition-colors inline-flex items-center gap-2"
@@ -402,6 +412,28 @@ export default async function AnimateurPage() {
             </div>
           );
         })()}
+
+        {/* Agenda GCal — masqué si URL non configurée ou aucun événement */}
+        {!gcalError && gcalEvents.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                📆 {gcalLabel}
+              </h2>
+              <Link
+                href="/animateur/parametres"
+                className="text-sm text-slate-400 hover:text-slate-700 transition-colors"
+              >
+                Configurer l&apos;agenda →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {gcalEvents.slice(0, 8).map((e) => (
+                <CardGCalEvent key={e.uid} event={e} />
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </main>
