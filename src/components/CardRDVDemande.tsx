@@ -9,6 +9,7 @@ export type RDVDemande = {
   id: string;
   type: "physique" | "tel" | "visio";
   statut: string;
+  demandeur_type?: string;
   date_souhaitee: string;
   heure_souhaitee: string | null;
   objet: string;
@@ -70,9 +71,24 @@ export default function CardRDVDemande({ rdv }: { rdv: RDVDemande }) {
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${type.cls}`}>
             {type.emoji} {type.label}
           </span>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${rdv.statut === "reporte" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
-            {rdv.statut === "reporte" ? "🔵 Reporté" : "🟡 Demandé"}
-          </span>
+          {rdv.demandeur_type === "animateur" && rdv.statut === "demande" ? (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              ⏳ En attente du magasin
+            </span>
+          ) : rdv.statut === "reporte" ? (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+              🔄 Contre-proposition
+            </span>
+          ) : (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              🟡 Demandé
+            </span>
+          )}
+          {rdv.demandeur_type === "animateur" ? (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">📤 De vous</span>
+          ) : (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">📥 Du magasin</span>
+          )}
           {urgent && (
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚡ Urgent</span>
           )}
@@ -98,26 +114,31 @@ export default function CardRDVDemande({ rdv }: { rdv: RDVDemande }) {
         {/* Footer boutons */}
         <div className="px-3 pb-3 flex flex-col gap-2">
           <div className="flex gap-2">
-            <button
-              onClick={handleConfirmer}
-              disabled={loading !== null}
-              className="flex-1 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white text-xs font-semibold transition-colors"
-            >
-              {loading === "confirmer" ? "…" : "✓ Confirmer"}
-            </button>
-            <button
-              onClick={() => setReporter(true)}
-              disabled={loading !== null}
-              className="flex-1 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-xs font-semibold transition-colors"
-            >
-              ↻ Reporter
-            </button>
+            {/* Si c'est une demande animateur en attente du membre → pas de "Confirmer" */}
+            {!(rdv.demandeur_type === "animateur" && rdv.statut === "demande") && (
+              <button
+                onClick={handleConfirmer}
+                disabled={loading !== null}
+                className="flex-1 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white text-xs font-semibold transition-colors"
+              >
+                {loading === "confirmer" ? "…" : "✓ Confirmer"}
+              </button>
+            )}
+            {!(rdv.demandeur_type === "animateur" && rdv.statut === "demande") && (
+              <button
+                onClick={() => setReporter(true)}
+                disabled={loading !== null}
+                className="flex-1 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-xs font-semibold transition-colors"
+              >
+                ↻ Reporter
+              </button>
+            )}
             <button
               onClick={handleAnnuler}
               disabled={loading !== null}
               className="flex-1 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 disabled:opacity-60 text-slate-700 text-xs font-semibold transition-colors"
             >
-              {loading === "annuler" ? "…" : "✕"}
+              {loading === "annuler" ? "…" : "✕ Annuler"}
             </button>
           </div>
           <Link

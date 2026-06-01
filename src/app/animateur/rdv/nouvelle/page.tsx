@@ -2,7 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { creerRDVAnimateur } from "../actions";
 
-export default async function NouvelleRDVPage() {
+export default async function NouvelleRDVPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ magasin?: string }>;
+}) {
+  const { magasin: preselectedMagasin } = await searchParams;
   const supabase = await createClient();
   const { data: magasins } = await supabase
     .from("magasins")
@@ -26,7 +31,7 @@ export default async function NouvelleRDVPage() {
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Magasin *</label>
-              <select name="magasin_id" required defaultValue="" className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900">
+              <select name="magasin_id" required defaultValue={preselectedMagasin ?? ""} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900">
                 <option value="" disabled>— Sélectionner —</option>
                 {(magasins ?? []).map((m) => (
                   <option key={m.id} value={m.id}>

@@ -108,7 +108,7 @@ export default async function AnimateurPage() {
   const [{ data: rdvsEnAttente }, { data: rdvsConfirmes }] = await Promise.all([
     supabase
       .from("rendez_vous")
-      .select(`id, type, statut, date_souhaitee, heure_souhaitee, objet, message, lieu,
+      .select(`id, type, statut, demandeur_type, date_souhaitee, heure_souhaitee, objet, message, lieu,
         magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville),
         rendez_vous_invites(magasin_id, magasins(nom, enseigne))`)
       .in("statut", ["demande", "reporte"])
@@ -134,6 +134,8 @@ export default async function AnimateurPage() {
   });
   const rdvsAffich = rdvsSorted.slice(0, 6);
   const rdvsTotal = rdvsSorted.length;
+  const rdvsDuTerrain = rdvsAffich.filter(r => (r as unknown as { demandeur_type?: string }).demandeur_type !== "animateur");
+  const rdvsAnimAttente = rdvsAffich.filter(r => (r as unknown as { demandeur_type?: string }).demandeur_type === "animateur");
 
   const magasinsList = magasins ?? [];
   const risqueMap = calculerRisqueMagasins(
@@ -241,10 +243,31 @@ export default async function AnimateurPage() {
               Aucune demande de RDV en attente 👍
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(rdvsAffich as unknown as RDVDemande[]).map((r) => (
-                <CardRDVDemande key={r.id} rdv={r} />
-              ))}
+            <div className="space-y-4">
+              {rdvsDuTerrain.length > 0 && (
+                <div>
+                  {rdvsAnimAttente.length > 0 && (
+                    <p className="text-xs font-semibold text-slate-400 mb-2">📥 Demandes du terrain</p>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {(rdvsDuTerrain as unknown as RDVDemande[]).map((r) => (
+                      <CardRDVDemande key={r.id} rdv={r} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {rdvsAnimAttente.length > 0 && (
+                <div>
+                  {rdvsDuTerrain.length > 0 && (
+                    <p className="text-xs font-semibold text-slate-400 mb-2">⏳ Vos demandes en attente de validation</p>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {(rdvsAnimAttente as unknown as RDVDemande[]).map((r) => (
+                      <CardRDVDemande key={r.id} rdv={r} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

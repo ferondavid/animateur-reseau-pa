@@ -133,6 +133,12 @@ export default async function MagasinDetailPage({
           </div>
           <div className="flex items-center gap-2 mt-6 flex-wrap">
             <Link
+              href={`/animateur/rdv/nouvelle?magasin=${id}`}
+              className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold transition-colors"
+            >
+              📅 Proposer un RDV
+            </Link>
+            <Link
               href={`/magasins/${id}/modifier`}
               className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
             >

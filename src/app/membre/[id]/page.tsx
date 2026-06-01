@@ -11,6 +11,7 @@ import type { NewsItem } from "@/components/CardNews";
 import CAEvolution from "@/components/CAEvolution";
 import { getParametreNumber } from "@/lib/parametres";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
+import CarteDemandeAnimateur, { type RDVEnAttente, type VisiteEnAttente } from "@/components/CarteDemandeAnimateur";
 
 // ─── Météo ────────────────────────────────────────────────────────────────────
 
@@ -96,6 +97,8 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     { data: autresMagasins },
     { data: rdvData },
     { data: newsData },
+    { data: rdvDemandesAnim },
+    { data: visitesEnAttente },
   ] = await Promise.all([
     supabase.from("magasins").select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone").eq("id", id).single(),
     supabase.from("visites").select("id, date_realisee, note_confiance, note_business, objectif, points_cles").eq("magasin_id", id).eq("statut", "realisee").order("date_realisee", { ascending: false }).limit(10),
@@ -105,6 +108,8 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     supabase.from("magasins").select("id, nom, enseigne").eq("statut", "actif").neq("id", id).order("nom"),
     supabase.from("rendez_vous").select("id, type, date_souhaitee, heure_souhaitee, objet, statut").eq("magasin_id", id).neq("statut", "fait").gte("date_souhaitee", today).order("date_souhaitee", { ascending: true }).limit(5).then(r => ({ data: r.data, error: r.error })),
     supabase.from("news").select("id, titre, contenu, image_url, type, auteur, epinglee, publie, date_publication").eq("publie", true).order("epinglee", { ascending: false }).order("date_publication", { ascending: false }).limit(nbNews).then(r => ({ data: r.data, error: r.error })),
+    supabase.from("rendez_vous").select("id, type, date_souhaitee, heure_souhaitee, objet, message").eq("magasin_id", id).eq("demandeur_type", "animateur").eq("statut", "demande").order("date_souhaitee", { ascending: true }).then(r => ({ data: r.data, error: r.error })),
+    supabase.from("visites").select("id, date_prevue, objectif").eq("magasin_id", id).eq("statut", "planifiee").eq("accepte_par_membre", false).gte("date_prevue", today).order("date_prevue", { ascending: true }).then(r => ({ data: r.data, error: r.error })),
   ]);
 
   if (!magasin) notFound();
@@ -175,6 +180,31 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             autresMagasins={(autresMagasins ?? []) as { id: string; nom: string; enseigne: string | null }[]}
           />
         </div>
+
+        {/* Demandes de l'animateur */}
+        {((rdvDemandesAnim ?? []).length > 0 || (visitesEnAttente ?? []).length > 0) && (() => {
+          const nbTotal = (rdvDemandesAnim ?? []).length + (visitesEnAttente ?? []).length;
+          const demandes = [
+            ...(rdvDemandesAnim ?? []).map(r => ({ kind: "rdv" as const, ...r })),
+            ...(visitesEnAttente ?? []).map(v => ({ kind: "visite" as const, ...v })),
+          ];
+          return (
+            <div>
+              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                📥 Demandes de l&apos;animateur ({nbTotal})
+              </h2>
+              <div className="space-y-3">
+                {demandes.map((d) => (
+                  <CarteDemandeAnimateur
+                    key={`${d.kind}-${d.id}`}
+                    demande={d as RDVEnAttente | VisiteEnAttente}
+                    magasinId={id}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Indicateurs */}
         <div id="indicateurs">

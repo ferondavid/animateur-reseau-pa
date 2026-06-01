@@ -59,7 +59,7 @@ export async function creerRDVAnimateur(formData: FormData) {
       message: (formData.get("message") as string) || null,
       lieu: (formData.get("lieu") as string) || null,
       lien_visio: (formData.get("lien_visio") as string) || null,
-      statut: "confirme",
+      statut: "demande",
       demandeur_type: "animateur",
     })
     .select("id")
