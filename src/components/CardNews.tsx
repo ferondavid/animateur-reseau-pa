@@ -46,7 +46,39 @@ function tempsRelatif(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("fr-FR");
 }
 
-export default function CardNews({ news }: { news: NewsItem }) {
+export default function CardNews({ news, compact = false }: { news: NewsItem; compact?: boolean }) {
+  if (compact) {
+    // Variante horizontale mini : image carrée 80x80 à gauche + texte à droite
+    return (
+      <Link
+        href={`/news/${news.id}`}
+        className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex gap-3 hover:border-slate-300 transition-colors p-2"
+      >
+        <div className="relative shrink-0 w-20 h-20 rounded-lg overflow-hidden">
+          {news.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={news.image_url} alt={news.titre} className="w-full h-full object-cover" />
+          ) : (
+            <div className={`w-full h-full ${getGradient(news.type)}`} />
+          )}
+        </div>
+        <div className="flex-1 min-w-0 py-0.5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${TYPE_BADGE[news.type]}`}>
+                {TYPE_LABEL[news.type]}
+              </span>
+              <span className="text-[10px] text-slate-400">{tempsRelatif(news.date_publication)}</span>
+              {news.epinglee && <span className="text-[10px]">📌</span>}
+            </div>
+            <h3 className="text-sm font-semibold text-slate-900 leading-snug line-clamp-2">{news.titre}</h3>
+          </div>
+          <p className="text-xs text-slate-500 line-clamp-1">{news.contenu}</p>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
       {/* Image ou dégradé */}
