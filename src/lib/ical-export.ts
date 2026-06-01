@@ -72,30 +72,42 @@ export type VisiteExport = {
   magasins?: { nom: string; enseigne: string | null } | null;
 };
 
-// ─── RDV type labels ──────────────────────────────────────────────────────────
+// ─── Labels & statuts RDV ─────────────────────────────────────────────────────
 
-const RDV_LABEL: Record<string, string> = {
-  physique: "physique",
-  tel: "tél",
-  visio: "visio",
+const RDV_SUMMARY_PREFIX: Record<string, string> = {
+  physique: "🏪 [Phys]",
+  tel:      "📞 [Tél]",
+  visio:    "💻 [Visio]",
+};
+
+const RDV_TYPE_LABEL: Record<string, string> = {
+  physique: "RDV physique",
+  tel:      "RDV téléphone",
+  visio:    "RDV visio",
 };
 
 const RDV_STATUS: Record<string, string> = {
   confirme: "CONFIRMED",
-  demande: "TENTATIVE",
-  reporte: "TENTATIVE",
+  demande:  "TENTATIVE",
+  reporte:  "TENTATIVE",
 };
 
 // ─── Builder principal ────────────────────────────────────────────────────────
 
-export function buildICalAnimateur(rdvs: RDVExport[], visites: VisiteExport[]): string {
+export function buildICalAnimateur(
+  rdvs: RDVExport[],
+  visites: VisiteExport[],
+  calName = "Anim PA · Tout (RDV + visites)",
+  appleColor = "#1E293B",
+): string {
   const stamp = dtNow();
   const lines: string[] = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//Animation reseau PA//FR",
-    "X-WR-CALNAME:RDV Animation PA",
+    `X-WR-CALNAME:${calName}`,
     "X-WR-TIMEZONE:Europe/Paris",
+    `X-APPLE-CALENDAR-COLOR:${appleColor}`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
   ];
@@ -103,11 +115,15 @@ export function buildICalAnimateur(rdvs: RDVExport[], visites: VisiteExport[]): 
   for (const r of rdvs) {
     const mag = r.magasins;
     const nomMag = mag ? (mag.enseigne ? `${mag.enseigne} — ${mag.nom}` : mag.nom) : "?";
-    const typeLabel = RDV_LABEL[r.type] ?? r.type;
+    const prefix = RDV_SUMMARY_PREFIX[r.type] ?? "📅";
+    const typeLabel = RDV_TYPE_LABEL[r.type] ?? r.type;
     const url = `${BASE_URL}/animateur/rdv/${r.id}`;
 
-    const descParts = [`Magasin : ${nomMag}${mag?.ville ? ` (${mag.ville})` : ""}`];
-    descParts.push(`Type : ${typeLabel}`, `Statut : ${r.statut}`);
+    const descParts = [
+      `Type : ${typeLabel}`,
+      `Magasin : ${nomMag}${mag?.ville ? ` (${mag.ville})` : ""}`,
+      `Statut : ${r.statut}`,
+    ];
     if (r.message) descParts.push("", `Message : ${r.message}`);
     descParts.push("", `Voir : ${url}`);
 
@@ -117,7 +133,7 @@ export function buildICalAnimateur(rdvs: RDVExport[], visites: VisiteExport[]): 
       `DTSTAMP:${stamp}`,
       dtStart(r.date_souhaitee, r.heure_souhaitee),
       dtEnd(r.date_souhaitee, r.heure_souhaitee, 60),
-      fold(`SUMMARY:${esc(`[RDV ${typeLabel}] ${r.objet} — ${nomMag}`)}`),
+      fold(`SUMMARY:${esc(`${prefix} ${r.objet} — ${nomMag}`)}`),
       fold(`DESCRIPTION:${esc(descParts.join("\n"))}`),
       ...(r.lieu ? [fold(`LOCATION:${esc(r.lieu)}`)] : []),
       fold(`URL:${url}`),
@@ -131,9 +147,14 @@ export function buildICalAnimateur(rdvs: RDVExport[], visites: VisiteExport[]): 
     const nomMag = mag ? (mag.enseigne ? `${mag.enseigne} — ${mag.nom}` : mag.nom) : "?";
     const url = `${BASE_URL}/visites/${v.id}`;
 
-    const descParts = [`Magasin : ${nomMag}`];
+    const descParts = [
+      `Type : Visite planifiée`,
+      `Magasin : ${nomMag}`,
+    ];
     if (v.objectif) descParts.push("", `Objectif : ${v.objectif}`);
     descParts.push("", `Voir : ${url}`);
+
+    const summaryTitre = v.objectif ? `${v.objectif} — ${nomMag}` : nomMag;
 
     lines.push(
       "BEGIN:VEVENT",
@@ -145,7 +166,7 @@ export function buildICalAnimateur(rdvs: RDVExport[], visites: VisiteExport[]): 
         d.setUTCDate(d.getUTCDate() + 1);
         return d.toISOString().slice(0, 10).replace(/-/g, "");
       })()}`,
-      fold(`SUMMARY:${esc(`[Visite] ${nomMag}`)}`),
+      fold(`SUMMARY:${esc(`🚗 [Visite] ${summaryTitre}`)}`),
       fold(`DESCRIPTION:${esc(descParts.join("\n"))}`),
       fold(`URL:${url}`),
       "STATUS:CONFIRMED",
