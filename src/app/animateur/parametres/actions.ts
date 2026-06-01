@@ -4,6 +4,17 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sync as icalSync } from "node-ical";
 
+export async function regenererTokenExport(): Promise<{ ok: boolean; token?: string }> {
+  const supabase = await createClient();
+  const nouveauToken = crypto.randomUUID();
+  await supabase.from("parametres").upsert(
+    { cle: "gcal_export_token", valeur: nouveauToken, updated_at: new Date().toISOString() },
+    { onConflict: "cle" }
+  );
+  revalidatePath("/animateur/parametres");
+  return { ok: true, token: nouveauToken };
+}
+
 export async function updateGCalParametres(url: string, label: string) {
   const supabase = await createClient();
   await supabase.from("parametres").upsert(

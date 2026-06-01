@@ -4,13 +4,15 @@ import { getParametre, getParametreNumber } from "@/lib/parametres";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import FormulaireGCal from "./FormulaireGCal";
+import ExportCalendar from "./ExportCalendar";
 import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
 
 export default async function ParametresPage() {
-  const [gcalUrl, gcalLabel, nbNews] = await Promise.all([
+  const [gcalUrl, gcalLabel, nbNews, exportToken] = await Promise.all([
     getParametre("gcal_ical_url", ""),
     getParametre("gcal_label", "Mon agenda Google"),
     getParametreNumber("nb_news_fiche_membre", 1),
+    getParametre("gcal_export_token", ""),
   ]);
 
   return (
@@ -54,6 +56,18 @@ export default async function ParametresPage() {
               ⚠️ Ne partagez jamais cette URL : elle donne accès en lecture à votre agenda. Vous pouvez la régénérer depuis Google Calendar si elle a fuité.
             </div>
           </div>
+        </div>
+
+        {/* Export iCal → Google Calendar */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">📤 Exporter les RDV vers Google Calendar</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Abonnez Google Calendar à ce feed pour voir tous les RDV et visites planifiés de l&apos;app dans votre agenda.
+              Mis à jour toutes les 12 à 24h (limitation Google).
+            </p>
+          </div>
+          <ExportCalendar tokenInitial={exportToken} />
         </div>
 
         {/* Affichage news fiche membre */}
