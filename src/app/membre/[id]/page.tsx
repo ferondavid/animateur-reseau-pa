@@ -5,13 +5,13 @@ import BoutonChangerMagasin from "@/components/BoutonChangerMagasin";
 import BoutonChangerRole from "@/components/BoutonChangerRole";
 import ActionsMembre from "@/components/ActionsMembre";
 import Link from "next/link";
-import HeroNews from "@/components/HeroNews";
 import CardNews from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
 import CAEvolution from "@/components/CAEvolution";
 import { getParametreNumber } from "@/lib/parametres";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 import CarteDemandeAnimateur, { type RDVEnAttente, type VisiteEnAttente } from "@/components/CarteDemandeAnimateur";
+import TabsMembre from "@/components/TabsMembre";
 
 // ─── Météo ────────────────────────────────────────────────────────────────────
 
@@ -43,40 +43,19 @@ async function fetchMeteo(lat: number, lng: number): Promise<MeteoData | null> {
 
 function Sparkline({ notes }: { notes: number[] }) {
   if (notes.length < 2) return null;
-  const W = 140, H = 48, pad = 6;
+  const W = 140, H = 40, pad = 4;
   const points = notes.map((n, i) => [
     pad + (i / (notes.length - 1)) * (W - 2 * pad),
     H - pad - ((n - 1) / 4) * (H - 2 * pad),
   ] as [number, number]);
   const d = points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
   return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="overflow-visible">
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} className="h-10 overflow-visible">
       <path d={d} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {points.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3" fill="#3b82f6" />)}
+      {points.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="2.5" fill="#3b82f6" />)}
     </svg>
   );
 }
-
-// ─── Badges ───────────────────────────────────────────────────────────────────
-
-const RDV_TYPE_ICON: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
-const RDV_STATUT_BADGE: Record<string, string> = {
-  demande: "bg-amber-100 text-amber-700",
-  confirme: "bg-emerald-100 text-emerald-700",
-  reporte: "bg-slate-100 text-slate-600",
-  annule: "bg-red-100 text-red-600",
-};
-const URGENCE_COLOR: Record<number, string> = {
-  1: "bg-slate-100 text-slate-600",
-  2: "bg-amber-100 text-amber-700",
-  3: "bg-red-100 text-red-700",
-};
-const URGENCE_LABEL: Record<number, string> = { 1: "Info", 2: "Important", 3: "Urgent" };
-const GRAVITE_BADGE: Record<string, string> = {
-  normale: "bg-slate-100 text-slate-600",
-  attention: "bg-amber-100 text-amber-700",
-  urgente: "bg-red-100 text-red-700",
-};
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -126,52 +105,36 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
   const moySat = moy((evaluations ?? []).map(e => e.q6_satisfaction_globale).filter(Boolean) as number[]);
   const sparkNotes = [...dernieresVisites].reverse().map(v => v.note_confiance).filter(Boolean) as number[];
   const nomAffiche = magasin.enseigne ?? magasin.nom;
+  const newsList = (newsData ?? []) as NewsItem[];
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6 md:p-10 pb-24">
+    <main className="min-h-screen bg-slate-50 p-4 md:p-8 pb-28">
       <PersistRole role="membre" magasinId={id} />
-      <div className="max-w-3xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-5">
 
-        {/* Header météo */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h1 className="text-2xl font-bold text-slate-900">
-            {meteo ? `${meteo.emoji} ` : ""}Bonne journée à {nomAffiche}&nbsp;!
-          </h1>
-          <p className="text-slate-500 mt-1 text-sm">
-            {magasin.nom !== nomAffiche ? `${magasin.nom} · ` : ""}
-            {magasin.ville}{magasin.region ? ` · ${magasin.region}` : ""}
-          </p>
+        {/* ── HEADER COMPACT ─────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-4 flex items-center gap-4">
           {meteo && (
-            <p className="mt-1.5 text-slate-700 text-sm font-medium">{meteo.temp}°C — {meteo.libelle}</p>
+            <div className="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="text-center leading-tight">
+                <div className="text-2xl leading-none">{meteo.emoji}</div>
+                <div className="text-[10px] font-semibold text-slate-600 mt-0.5">{meteo.temp}°C</div>
+              </div>
+            </div>
           )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg md:text-xl font-bold text-slate-900 truncate">
+              Bonne journée à {nomAffiche}&nbsp;!
+            </h1>
+            <p className="text-xs text-slate-500 truncate">
+              {magasin.ville}{magasin.region ? ` · ${magasin.region}` : ""}
+              {meteo ? ` · ${meteo.libelle}` : ""}
+            </p>
+          </div>
         </div>
 
-        {/* CA annuel — juste sous la météo */}
-        <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
-
-        {/* News réseau */}
-        {(newsData ?? []).length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Actualité du réseau</h2>
-              <Link href="/news" className="text-xs font-medium text-blue-600 hover:underline">
-                Toutes →
-              </Link>
-            </div>
-            <HeroNews news={(newsData as NewsItem[])[0]} />
-            {nbNews > 1 && (newsData as NewsItem[]).length > 1 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {(newsData as NewsItem[]).slice(1).map((n) => (
-                  <CardNews key={n.id} news={n} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Actions rapides */}
+        {/* ── ACTIONS RAPIDES ─────────────────────────────────────── */}
         <div>
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Actions rapides</h2>
           <ActionsMembre
             magasinId={id}
             animateurTel={animateurTel}
@@ -181,7 +144,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           />
         </div>
 
-        {/* Demandes de l'animateur */}
+        {/* ── DEMANDES DE L'ANIMATEUR (si présent) ────────────────── */}
         {((rdvDemandesAnim ?? []).length > 0 || (visitesEnAttente ?? []).length > 0) && (() => {
           const nbTotal = (rdvDemandesAnim ?? []).length + (visitesEnAttente ?? []).length;
           const demandes = [
@@ -189,11 +152,12 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             ...(visitesEnAttente ?? []).map(v => ({ kind: "visite" as const, ...v })),
           ];
           return (
-            <div>
-              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                📥 Demandes de l&apos;animateur ({nbTotal})
+            <div className="bg-amber-50 border-l-4 border-amber-400 rounded-2xl border border-amber-200 p-4 space-y-3">
+              <h2 className="text-xs font-semibold text-amber-900 uppercase tracking-wide flex items-center gap-2">
+                📥 Demandes de l&apos;animateur
+                <span className="bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full text-[10px] font-bold">{nbTotal}</span>
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {demandes.map((d) => (
                   <CarteDemandeAnimateur
                     key={`${d.kind}-${d.id}`}
@@ -206,138 +170,89 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           );
         })()}
 
-        {/* Indicateurs */}
-        <div id="indicateurs">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Vos indicateurs</h2>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { label: "Confiance moy.", val: moyCfn, sub: "3 dernières visites" },
-              { label: "Business moy.", val: moyBiz, sub: "3 dernières visites" },
-              { label: "Satisfaction", val: moySat, sub: "évaluations reçues" },
-            ].map(({ label, val, sub }) => (
-              <div key={label} className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 text-center">
-                <div className="text-2xl font-bold text-slate-900">{val ? `${val}/5` : "—"}</div>
-                <div className="text-xs text-slate-500 mt-1">{label}</div>
-                <div className="text-xs text-slate-400">{sub}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* ── GRID DENSE : INDICATEURS / CA / NEWS ───────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-        {/* Dernières visites */}
-        <div>
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Vos dernières visites</h2>
-          {trois.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-400 text-sm shadow-sm">Aucune visite enregistrée.</div>
-          ) : (
-            <div className="space-y-3">
-              {trois.map((v) => (
-                <div key={v.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-start gap-4">
-                  <div className="shrink-0 text-slate-400 text-sm w-24">
-                    {v.date_realisee ? new Date(v.date_realisee).toLocaleDateString("fr-FR") : "—"}
+          {/* ── COLONNE GAUCHE : KPIs + CA + Sparkline ───────────── */}
+          <div className="space-y-5">
+
+            {/* KPIs */}
+            <div id="indicateurs">
+              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Vos indicateurs</h2>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Confiance", val: moyCfn, color: "text-blue-600" },
+                  { label: "Business", val: moyBiz, color: "text-emerald-600" },
+                  { label: "Satisfaction", val: moySat, color: "text-purple-600" },
+                ].map(({ label, val, color }) => (
+                  <div key={label} className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 text-center">
+                    <div className={`text-xl font-bold ${val ? color : "text-slate-400"}`}>{val ? `${val}` : "—"}</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wide mt-0.5">/ 5</div>
+                    <div className="text-[11px] font-medium text-slate-600 mt-1">{label}</div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 truncate">{v.objectif ?? "Pas d'objectif renseigné"}</p>
-                    {v.points_cles && <p className="text-xs text-slate-400 mt-0.5 truncate">{v.points_cles}</p>}
-                  </div>
-                  <div className="shrink-0 flex gap-3 text-xs text-slate-500">
-                    {v.note_confiance != null && <span>Conf. <strong className="text-slate-700">{v.note_confiance}/5</strong></span>}
-                    {v.note_business != null && <span>Biz. <strong className="text-slate-700">{v.note_business}/5</strong></span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Actions en cours */}
-        <div>
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Vos actions en cours</h2>
-          {(actions ?? []).length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-8 text-center shadow-sm">
-              <p className="text-slate-400 text-sm">Rien en cours — tout est à jour ✓</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {(actions ?? []).map((a) => (
-                <div key={a.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-3">
-                  <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${URGENCE_COLOR[a.niveau_urgence] ?? "bg-slate-100 text-slate-600"}`}>
-                    {URGENCE_LABEL[a.niveau_urgence] ?? "—"}
-                  </span>
-                  <span className="flex-1 text-sm text-slate-800">{a.titre}</span>
-                  {a.deadline && <span className="shrink-0 text-xs text-slate-400">{new Date(a.deadline).toLocaleDateString("fr-FR")}</span>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Remontées actives */}
-        {(remontees ?? []).length > 0 && (
-          <div>
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Vos remontées en cours</h2>
-            <div className="space-y-2">
-              {(remontees ?? []).map((r) => (
-                <div key={r.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-3">
-                  <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${GRAVITE_BADGE[r.gravite] ?? "bg-slate-100 text-slate-600"}`}>
-                    {r.gravite.charAt(0).toUpperCase() + r.gravite.slice(1)}
-                  </span>
-                  <span className="flex-1 text-sm text-slate-800 truncate">{r.titre}</span>
-                  <span className="shrink-0 text-xs text-slate-400">{r.statut}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Prochains RDV */}
-        <div>
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Vos prochains RDV</h2>
-          {(rdvData ?? []).length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-8 text-center shadow-sm">
-              <p className="text-slate-400 text-sm">Aucun RDV programmé</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {(rdvData ?? []).map((r: { id: string; type: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; statut: string }) => (
-                <div key={r.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-3">
-                  <span className="text-xl shrink-0">{RDV_TYPE_ICON[r.type] ?? "📅"}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">{r.objet}</p>
-                    <p className="text-xs text-slate-400">
-                      {new Date(r.date_souhaitee).toLocaleDateString("fr-FR")}
-                      {r.heure_souhaitee ? ` à ${r.heure_souhaitee.slice(0, 5)}` : ""}
-                    </p>
-                  </div>
-                  <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${RDV_STATUT_BADGE[r.statut] ?? "bg-slate-100 text-slate-600"}`}>
-                    {r.statut.charAt(0).toUpperCase() + r.statut.slice(1)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Évolution sparkline */}
-        {sparkNotes.length >= 2 && (
-          <div>
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Évolution — Confiance</h2>
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-6">
-              <Sparkline notes={sparkNotes} />
-              <div className="text-xs text-slate-400 space-y-1">
-                <div>Min : <strong className="text-slate-700">{Math.min(...sparkNotes)}/5</strong></div>
-                <div>Max : <strong className="text-slate-700">{Math.max(...sparkNotes)}/5</strong></div>
-                <div>{sparkNotes.length} visite{sparkNotes.length > 1 ? "s" : ""}</div>
+                ))}
               </div>
             </div>
+
+            {/* CA */}
+            <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
+
+            {/* Sparkline */}
+            {sparkNotes.length >= 2 && (
+              <div>
+                <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Évolution Confiance</h2>
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <Sparkline notes={sparkNotes} />
+                  </div>
+                  <div className="shrink-0 text-[11px] text-slate-400 space-y-0.5 leading-tight">
+                    <div>Min <strong className="text-slate-700">{Math.min(...sparkNotes)}</strong></div>
+                    <div>Max <strong className="text-slate-700">{Math.max(...sparkNotes)}</strong></div>
+                    <div>{sparkNotes.length} visites</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
-        )}
+
+          {/* ── COLONNE DROITE : NEWS COMPACTES ──────────────────── */}
+          <div>
+            {newsList.length > 0 && (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Actualités du réseau</h2>
+                  <Link href="/news" className="text-xs font-medium text-blue-600 hover:underline">
+                    Toutes →
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {newsList.map((n) => (
+                    <CardNews key={n.id} news={n} />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+        </div>
+
+        {/* ── TABS UNIFIÉS ───────────────────────────────────────── */}
+        <div>
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Votre activité</h2>
+          <TabsMembre
+            actions={(actions ?? []) as { id: string; titre: string; niveau_urgence: number; statut: string; deadline: string | null }[]}
+            rdvs={(rdvData ?? []) as { id: string; type: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; statut: string }[]}
+            remontees={(remontees ?? []).map((r) => ({ id: r.id, titre: r.titre, gravite: r.gravite, statut: r.statut }))}
+            visites={trois}
+          />
+        </div>
 
       </div>
 
-      {/* Barre de nav sticky */}
+      {/* ── BARRE DE NAV STICKY ─────────────────────────────────── */}
       <div className="fixed bottom-4 left-0 right-0 flex justify-center z-40 px-4">
-        <div className="flex items-center gap-3 bg-white rounded-2xl shadow-xl border border-slate-200 px-5 py-3">
+        <div className="flex items-center gap-2 bg-white rounded-2xl shadow-xl border border-slate-200 px-4 py-2.5">
           <BoutonInstallerPWA />
           <BoutonChangerMagasin />
           <BoutonChangerRole />
