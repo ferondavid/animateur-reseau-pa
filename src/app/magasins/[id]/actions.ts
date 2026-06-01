@@ -38,5 +38,23 @@ export async function deleteMagasin(formData: FormData) {
   await supabase.from("magasins").delete().eq("id", id);
 
   revalidatePath("/magasins");
+  revalidatePath("/animateur");
+  redirect("/magasins");
+}
+
+export async function updateStatutMagasin(id: string, statut: "actif" | "pause" | "inactif") {
+  const supabase = await createClient();
+  await supabase.from("magasins").update({ statut }).eq("id", id);
+  revalidatePath("/magasins");
+  revalidatePath(`/magasins/${id}`);
+  revalidatePath("/animateur");
+}
+
+export async function archiverMagasin(id: string) {
+  const supabase = await createClient();
+  await supabase.from("magasins").update({ statut: "inactif" }).eq("id", id);
+  revalidatePath("/magasins");
+  revalidatePath(`/magasins/${id}`);
+  revalidatePath("/animateur");
   redirect("/magasins");
 }

@@ -73,6 +73,7 @@ export default async function AnimateurPage() {
     supabase
       .from("magasins")
       .select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone")
+      .eq("statut", "actif")
       .not("latitude", "is", null)
       .order("nom"),
     supabase

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import BoutonSupprimer from "./BoutonSupprimer";
+import BoutonStatutMagasin from "@/components/BoutonStatutMagasin";
 import CAEvolution from "@/components/CAEvolution";
 
 const statutStyles: Record<string, string> = {
@@ -130,13 +131,14 @@ export default async function MagasinDetailPage({
               <p className="text-slate-500 text-sm mt-0.5">{m.enseigne}</p>
             )}
           </div>
-          <div className="flex items-center gap-2 mt-6">
+          <div className="flex items-center gap-2 mt-6 flex-wrap">
             <Link
               href={`/magasins/${id}/modifier`}
               className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
             >
               Modifier
             </Link>
+            <BoutonStatutMagasin id={id} statut={m.statut} />
             <BoutonSupprimer id={id} />
           </div>
         </div>
