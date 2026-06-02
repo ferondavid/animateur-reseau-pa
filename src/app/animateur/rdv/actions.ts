@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 function revalider() {
   revalidatePath("/animateur");
@@ -48,7 +49,7 @@ export async function creerRDVAnimateur(formData: FormData) {
   const invitesRaw = formData.get("invites") as string;
   const invites: string[] = invitesRaw ? JSON.parse(invitesRaw) : [];
 
-  const { data: rdv } = await supabase
+  const { data: rdv, error } = await supabase
     .from("rendez_vous")
     .insert({
       magasin_id: formData.get("magasin_id") as string,
@@ -65,10 +66,15 @@ export async function creerRDVAnimateur(formData: FormData) {
     .select("id")
     .single();
 
+  if (error) {
+    redirect("/animateur/rdv/nouvelle?error=" + encodeURIComponent(error.message));
+  }
+
   if (rdv && invites.length > 0) {
     await supabase.from("rendez_vous_invites").insert(
       invites.map((mid) => ({ rendez_vous_id: rdv.id, magasin_id: mid }))
     );
   }
   revalider();
+  redirect("/animateur/rdv?ok=1");
 }

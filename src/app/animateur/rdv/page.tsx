@@ -20,9 +20,9 @@ const RDV_SELECT = `id, type, statut, date_souhaitee, heure_souhaitee, objet, me
 export default async function RDVAdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; magasin?: string }>;
+  searchParams: Promise<{ tab?: string; magasin?: string; ok?: string; error?: string }>;
 }) {
-  const { tab = "attente", magasin } = await searchParams;
+  const { tab = "attente", magasin, ok, error: errMsg } = await searchParams;
   const activeTab = TABS.find((t) => t.key === tab) ?? TABS[0];
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
@@ -57,6 +57,18 @@ export default async function RDVAdminPage({
   return (
     <main className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-6xl mx-auto space-y-6">
+        {ok && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+            <span className="text-lg">✓</span>
+            <span>Demande de RDV envoyée au magasin avec succès.</span>
+          </div>
+        )}
+        {errMsg && (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+            <span className="text-lg">⚠️</span>
+            <span>Erreur lors de la création du RDV : {errMsg}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">Rendez-vous</h1>
