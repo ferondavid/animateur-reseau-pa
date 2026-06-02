@@ -1,7 +1,3 @@
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY ?? "");
-
 export async function envoyerInvitationRDV({
   destinataires,
   sujet,
@@ -20,25 +16,42 @@ export async function envoyerInvitationRDV({
     return { ok: false, skipped: true };
   }
 
-  try {
-    const result = await resend.emails.send({
-      from: process.env.RESEND_FROM ?? "onboarding@resend.dev",
-      to: destinataires,
-      subject: sujet,
-      html: htmlBody,
-      attachments: [
-        {
-          filename: icsFilename,
-          content: Buffer.from(icsContent).toString("base64"),
-        },
-      ],
-      headers: {
-        "Content-Class": "urn:content-classes:calendarmessage",
+  const payload = {
+    from: process.env.RESEND_FROM ?? "onboarding@resend.dev",
+    to: destinataires,
+    subject: sujet,
+    html: htmlBody,
+    attachments: [
+      {
+        filename: icsFilename,
+        content: Buffer.from(icsContent).toString("base64"),
       },
+    ],
+    headers: {
+      "Content-Class": "urn:content-classes:calendarmessage",
+    },
+  };
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
-    return { ok: true, id: result.data?.id };
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("[EMAIL] erreur Resend API :", res.status, err);
+      return { ok: false, status: res.status, error: err };
+    }
+
+    const data = (await res.json()) as { id?: string };
+    return { ok: true, id: data.id };
   } catch (err) {
-    console.error("[EMAIL] erreur Resend :", err);
+    console.error("[EMAIL] erreur réseau :", err);
     return { ok: false, error: err };
   }
 }

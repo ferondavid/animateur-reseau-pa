@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["node-ical", "resend"],
+  serverExternalPackages: ["node-ical"],
   async headers() {
     return [
       {
