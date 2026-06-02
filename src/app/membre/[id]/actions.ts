@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { notifierConfirmationRDV } from "@/lib/notif-rdv";
 
 function revalider(magasinId: string) {
   revalidatePath(`/membre/${magasinId}`);
@@ -13,6 +14,11 @@ export async function accepterRDVMembre(rdvId: string, magasinId: string) {
   const supabase = await createClient();
   await supabase.from("rendez_vous").update({ statut: "confirme" }).eq("id", rdvId);
   revalider(magasinId);
+  try {
+    await notifierConfirmationRDV(rdvId);
+  } catch (err) {
+    console.error("[NOTIF-RDV] échec email acceptation membre :", err);
+  }
 }
 
 export async function refuserRDVMembre(rdvId: string, magasinId: string, raison?: string) {

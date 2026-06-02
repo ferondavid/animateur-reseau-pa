@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { notifierConfirmationRDV } from "@/lib/notif-rdv";
 
 function revalider() {
   revalidatePath("/animateur");
@@ -16,10 +17,24 @@ export async function confirmerRDV(id: string, lienVisio?: string) {
     .update({ statut: "confirme", ...(lienVisio ? { lien_visio: lienVisio } : {}) })
     .eq("id", id);
   revalider();
+  try {
+    await notifierConfirmationRDV(id);
+  } catch (err) {
+    console.error("[NOTIF-RDV] échec email confirmation :", err);
+  }
 }
 
 export async function reporterRDV(id: string, nouvelleDate: string, nouvelleHeure?: string, raison?: string) {
   const supabase = await createClient();
+
+  const { data: rdvActuel } = await supabase
+    .from("rendez_vous")
+    .select("statut")
+    .eq("id", id)
+    .single();
+
+  const etaitConfirme = rdvActuel?.statut === "confirme";
+
   await supabase
     .from("rendez_vous")
     .update({
@@ -30,6 +45,14 @@ export async function reporterRDV(id: string, nouvelleDate: string, nouvelleHeur
     })
     .eq("id", id);
   revalider();
+
+  if (etaitConfirme) {
+    try {
+      await notifierConfirmationRDV(id);
+    } catch (err) {
+      console.error("[NOTIF-RDV] échec email report :", err);
+    }
+  }
 }
 
 export async function annulerRDV(id: string) {
