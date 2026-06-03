@@ -72,7 +72,7 @@ export default async function AnimateurPage() {
       .not("note_business", "is", null),
     supabase
       .from("magasins")
-      .select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone")
+      .select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone, niveau")
       .eq("statut", "actif")
       .not("latitude", "is", null)
       .order("nom"),
@@ -139,7 +139,7 @@ export default async function AnimateurPage() {
 
   const magasinsList = magasins ?? [];
   const risqueMap = calculerRisqueMagasins(
-    magasinsList.map((m) => m.id),
+    magasinsList.map((m) => ({ id: m.id, niveau: (m as unknown as { niveau?: string }).niveau ?? "standard" })),
     visitesPourRisque ?? [],
     remonteesUrgentesActives ?? []
   );
@@ -152,6 +152,39 @@ export default async function AnimateurPage() {
         : undefined,
     };
   });
+
+  // Magasins prioritaires à revisiter selon leur niveau de criticité
+  // Stratégique : seuil 60 jours · Observation : seuil 30 jours · Standard : 90 jours (rare)
+  const seuilParNiveau: Record<string, number> = { strategique: 60, observation: 30, standard: 90 };
+  type MagasinDB = { id: string; nom: string; enseigne?: string | null; ville?: string | null; niveau?: string | null };
+  const magasinsPrioritaires = magasinsList
+    .filter((m) => {
+      const niveau = (m as MagasinDB).niveau ?? "standard";
+      const r = risqueMap.get(m.id);
+      if (niveau === "standard") return false; // on garde le focus sur les non-standards
+      const seuil = seuilParNiveau[niveau] ?? 90;
+      return r?.joursSansVisite === null || (r?.joursSansVisite ?? 0) > seuil;
+    })
+    .map((m) => {
+      const niveau = (m as MagasinDB).niveau ?? "standard";
+      const r = risqueMap.get(m.id);
+      return {
+        id: m.id,
+        nom: (m as MagasinDB).nom,
+        enseigne: (m as MagasinDB).enseigne,
+        ville: (m as MagasinDB).ville,
+        niveau,
+        joursSansVisite: r?.joursSansVisite ?? null,
+      };
+    })
+    .sort((a, b) => {
+      // Stratégique en premier, puis observation, puis par jours décroissants
+      if (a.niveau === "strategique" && b.niveau !== "strategique") return -1;
+      if (b.niveau === "strategique" && a.niveau !== "strategique") return 1;
+      const ja = a.joursSansVisite ?? 9999;
+      const jb = b.joursSansVisite ?? 9999;
+      return jb - ja;
+    });
 
   const moyConfiance =
     notesConfiance && notesConfiance.length > 0
@@ -271,6 +304,62 @@ export default async function AnimateurPage() {
             </div>
           )}
         </div>
+
+        {/* Magasins prioritaires à revisiter (stratégiques + observation hors seuil) */}
+        {magasinsPrioritaires.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                🎯 Magasins prioritaires à revisiter
+                <span className="ml-2 text-xs font-bold text-slate-900 bg-slate-200 rounded-full px-2 py-0.5">
+                  {magasinsPrioritaires.length}
+                </span>
+              </h2>
+              <Link href="/magasins" className="text-sm text-blue-600 hover:underline font-medium">
+                Voir tous les magasins →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {magasinsPrioritaires.slice(0, 6).map((m) => {
+                const isStrategique = m.niveau === "strategique";
+                const seuil = seuilParNiveau[m.niveau] ?? 90;
+                const j = m.joursSansVisite;
+                return (
+                  <Link
+                    key={m.id}
+                    href={`/magasins/${m.id}`}
+                    className={`block rounded-xl border-l-4 ${isStrategique ? "border-l-amber-400 bg-amber-50 border-amber-200" : "border-l-blue-400 bg-blue-50 border-blue-200"} border p-4 hover:shadow-md transition-shadow`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isStrategique ? "bg-amber-200 text-amber-800" : "bg-blue-200 text-blue-800"}`}>
+                        {isStrategique ? "⭐ Stratégique" : "🔍 Observation"}
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-900 truncate">
+                      {m.enseigne ? `${m.enseigne} — ${m.nom}` : m.nom}
+                    </p>
+                    {m.ville && <p className="text-xs text-slate-500">{m.ville}</p>}
+                    <p className="text-xs text-slate-600 mt-2">
+                      {j === null ? (
+                        <span className="font-medium text-red-700">⚠️ Jamais visité</span>
+                      ) : (
+                        <>
+                          <span className="font-medium text-slate-800">{j} jours</span> sans visite
+                          <span className="text-slate-400"> (seuil {seuil}j)</span>
+                        </>
+                      )}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+            {magasinsPrioritaires.length > 6 && (
+              <p className="text-xs text-slate-400 mt-2 text-center">
+                + {magasinsPrioritaires.length - 6} autres magasins prioritaires
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Métriques */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
