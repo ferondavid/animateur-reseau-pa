@@ -331,14 +331,8 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        {/* ── 8. HISTORIQUE D'ACTIVITÉ (filtrable par période + type) ── */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">📜 Historique d&apos;activité</h2>
-            <span className="text-[10px] text-slate-400">12 derniers mois</span>
-          </div>
-          <HistoriqueMembre evts={historique} />
-        </div>
+        {/* ── 8. HISTORIQUE D'ACTIVITÉ (collapsible, filtrable par période + type) ── */}
+        <HistoriqueMembre evts={historique} />
 
       </div>
 
