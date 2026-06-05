@@ -15,3 +15,10 @@ export async function getParametreNumber(cle: string, defaut: number): Promise<n
   const n = parseInt(v, 10);
   return isNaN(n) ? defaut : n;
 }
+
+export async function updateParametre(cle: string, valeur: string): Promise<void> {
+  const supabase = await createClient();
+  await supabase
+    .from("parametres")
+    .upsert({ cle, valeur, updated_at: new Date().toISOString() }, { onConflict: "cle" });
+}

@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sync as icalSync } from "node-ical";
+import { getParametre, updateParametre } from "@/lib/parametres";
+import { envoyerEmail } from "@/lib/email";
 
 export async function regenererTokenExport(): Promise<{ ok: boolean; token?: string }> {
   const supabase = await createClient();
@@ -41,4 +43,37 @@ export async function testGCal(url: string): Promise<{ ok: boolean; nbEvents?: n
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erreur inconnue" };
   }
+}
+
+// ── Notifications email ──────────────────────────────────────────────────────
+
+export async function updateParametreEmail(formData: FormData) {
+  const email = String(formData.get("animateur_email") ?? "").trim();
+  await updateParametre("animateur_email", email);
+  revalidatePath("/animateur/parametres");
+}
+
+export async function toggleNotif(cle: string, valeur: boolean) {
+  await updateParametre(cle, valeur ? "true" : "false");
+  revalidatePath("/animateur/parametres");
+}
+
+export async function testerEmailNotif(): Promise<{ ok: boolean; error?: string; id?: string }> {
+  const email = await getParametre("animateur_email", "");
+  if (!email) return { ok: false, error: "Aucun email configuré dans les paramètres" };
+  if (!process.env.RESEND_API_KEY) return { ok: false, error: "RESEND_API_KEY manquant dans Vercel" };
+
+  const result = await envoyerEmail({
+    destinataires: [email],
+    sujet: "✓ Test notification — Animation Réseau PA",
+    htmlBody: `<div style="font-family:Arial,sans-serif;max-width:540px;padding:24px;color:#1e293b">
+      <h2 style="margin:0 0 12px">✓ Test réussi</h2>
+      <p style="color:#475569">Si vous recevez ce message, vos notifications email fonctionnent correctement.</p>
+      <p style="color:#94a3b8;font-size:12px;margin-top:24px">Animation Réseau PA</p>
+    </div>`,
+  });
+
+  if (result.ok) return { ok: true, id: result.id };
+  const errMsg = result.error instanceof Error ? result.error.message : String(result.error ?? "Erreur inconnue");
+  return { ok: false, error: errMsg };
 }

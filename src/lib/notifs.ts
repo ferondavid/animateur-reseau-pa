@@ -1,9 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 import { envoyerEmail } from "./email";
 import { genererInvitationIcs } from "./ical-invite";
+import { getParametre } from "./parametres";
 
-const ANIMATEUR_EMAIL = process.env.ANIMATEUR_EMAIL ?? "animateur@piscinistes-associes.fr";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://animateur-reseau-pa.vercel.app";
+
+async function emailAnimateur(): Promise<string> {
+  return await getParametre("animateur_email", "");
+}
+
+async function notifActive(cle: string): Promise<boolean> {
+  const v = await getParametre(cle, "true");
+  return v === "true" || v === "1";
+}
 
 function htmlLayout(titre: string, body: string, ctaUrl?: string, ctaLabel?: string): string {
   const cta =
@@ -27,6 +36,10 @@ function htmlLayout(titre: string, body: string, ctaUrl?: string, ctaLabel?: str
 // ── 1. REMONTÉE URGENTE ──────────────────────────────────────────────────────
 
 export async function notifierRemonteeUrgente(remonteeId: string): Promise<void> {
+  if (!(await notifActive("notif_remontee_urgente"))) return;
+  const animEmail = await emailAnimateur();
+  if (!animEmail) return;
+
   const supabase = await createClient();
   const { data: r } = await supabase
     .from("remontees")
@@ -53,7 +66,7 @@ export async function notifierRemonteeUrgente(remonteeId: string): Promise<void>
   );
 
   const result = await envoyerEmail({
-    destinataires: [ANIMATEUR_EMAIL],
+    destinataires: [animEmail],
     sujet: `🚨 [URGENT] ${r.titre as string} — ${enseigne}`,
     htmlBody: html,
   });
@@ -63,6 +76,10 @@ export async function notifierRemonteeUrgente(remonteeId: string): Promise<void>
 // ── 2. NOUVEAU RDV DEMANDÉ PAR UN MAGASIN ───────────────────────────────────
 
 export async function notifierNouveauRDVMagasin(rdvId: string): Promise<void> {
+  if (!(await notifActive("notif_rdv_demande"))) return;
+  const animEmail = await emailAnimateur();
+  if (!animEmail) return;
+
   const supabase = await createClient();
   const { data: r } = await supabase
     .from("rendez_vous")
@@ -104,7 +121,7 @@ export async function notifierNouveauRDVMagasin(rdvId: string): Promise<void> {
   );
 
   const result = await envoyerEmail({
-    destinataires: [ANIMATEUR_EMAIL],
+    destinataires: [animEmail],
     sujet: `📅 Nouvelle demande de RDV — ${enseigne}`,
     htmlBody: html,
   });
@@ -114,6 +131,9 @@ export async function notifierNouveauRDVMagasin(rdvId: string): Promise<void> {
 // ── 3. RDV CONFIRMÉ → EMAIL + INVITATION .ICS ───────────────────────────────
 
 export async function notifierConfirmationRDV(rdvId: string): Promise<void> {
+  if (!(await notifActive("notif_rdv_confirme"))) return;
+  const animEmail = await emailAnimateur();
+
   const supabase = await createClient();
   const { data: r } = await supabase
     .from("rendez_vous")
@@ -170,7 +190,8 @@ export async function notifierConfirmationRDV(rdvId: string): Promise<void> {
   descParts.push(""); descParts.push(`Voir dans l'app : ${APP_URL}/animateur/rdv/${r.id}`);
   const description = descParts.join("\n");
 
-  const destinataires = [ANIMATEUR_EMAIL, mag?.contact_email].filter((e): e is string => !!e);
+  const destinataires = [animEmail, mag?.contact_email].filter((e): e is string => !!e);
+  if (destinataires.length === 0) return;
 
   const icsContent = genererInvitationIcs({
     uid: `rdv-${r.id}@animateur-reseau-pa.vercel.app`,
@@ -179,14 +200,14 @@ export async function notifierConfirmationRDV(rdvId: string): Promise<void> {
     debut,
     fin,
     lieu,
-    organisateurEmail: ANIMATEUR_EMAIL,
+    organisateurEmail: animEmail || "animateur@piscinistes-associes.fr",
     organisateurNom: "Animateur Réseau PA",
     inviteEmails: destinataires,
     url: `${APP_URL}/animateur/rdv/${r.id}`,
   });
 
-  const [y, m, d] = dateStr.split("-");
-  const dateLisible = `${d}/${m}/${y}`;
+  const [y, mth, dy] = dateStr.split("-");
+  const dateLisible = `${dy}/${mth}/${y}`;
   const heureLisible = heureStr ? heureStr.slice(0, 5) : null;
 
   const html = htmlLayout(

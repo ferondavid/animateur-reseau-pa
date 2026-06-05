@@ -6,13 +6,19 @@ import Navigation from "@/components/Navigation";
 import FormulaireGCal from "./FormulaireGCal";
 import ExportCalendar from "./ExportCalendar";
 import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
+import NotifEmail from "./NotifEmail";
 
 export default async function ParametresPage() {
-  const [gcalUrl, gcalLabel, nbNews, exportToken] = await Promise.all([
+  const [gcalUrl, gcalLabel, nbNews, exportToken,
+    animEmail, notifRemontee, notifRdvDemande, notifRdvConfirme] = await Promise.all([
     getParametre("gcal_ical_url", ""),
     getParametre("gcal_label", "Mon agenda Google"),
     getParametreNumber("nb_news_fiche_membre", 1),
     getParametre("gcal_export_token", ""),
+    getParametre("animateur_email", ""),
+    getParametre("notif_remontee_urgente", "true"),
+    getParametre("notif_rdv_demande", "true"),
+    getParametre("notif_rdv_confirme", "true"),
   ]);
 
   return (
@@ -68,6 +74,25 @@ export default async function ParametresPage() {
             </p>
           </div>
           <ExportCalendar tokenInitial={exportToken} />
+        </div>
+
+        {/* Notifications email */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">📧 Notifications email</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Reçois une alerte instantanée pour les événements importants.
+              L&apos;adresse est modifiable sans redéploiement.
+            </p>
+          </div>
+          <NotifEmail
+            emailInitial={animEmail}
+            notifsInitiales={{
+              notif_remontee_urgente: notifRemontee !== "false",
+              notif_rdv_demande:      notifRdvDemande !== "false",
+              notif_rdv_confirme:     notifRdvConfirme !== "false",
+            }}
+          />
         </div>
 
         {/* Affichage news fiche membre */}
