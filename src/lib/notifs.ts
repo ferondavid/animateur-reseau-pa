@@ -36,7 +36,7 @@ export async function notifierRemonteeUrgente(remonteeId: string): Promise<void>
 
   if (!r || r.gravite !== "urgente") return;
 
-  const mag = r.magasins as { nom: string; enseigne?: string | null; ville?: string | null } | null;
+  const mag = r.magasins as unknown as { nom: string; enseigne?: string | null; ville?: string | null } | null;
   const enseigne = mag?.enseigne || mag?.nom || "Magasin";
 
   const html = htmlLayout(
@@ -74,7 +74,7 @@ export async function notifierNouveauRDVMagasin(rdvId: string): Promise<void> {
 
   if (!r || r.demandeur_type !== "magasin") return;
 
-  const mag = r.magasins as { nom: string; enseigne?: string | null; ville?: string | null } | null;
+  const mag = r.magasins as unknown as { nom: string; enseigne?: string | null; ville?: string | null } | null;
   const enseigne = mag?.enseigne || mag?.nom || "Magasin";
 
   const dateStr = r.date_souhaitee as string;
@@ -125,7 +125,7 @@ export async function notifierConfirmationRDV(rdvId: string): Promise<void> {
 
   if (!r) return;
 
-  const mag = r.magasins as {
+  const mag = r.magasins as unknown as {
     nom: string;
     enseigne?: string | null;
     ville?: string | null;
