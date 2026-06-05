@@ -61,8 +61,8 @@ function moisLabel(s: string): string {
   return new Date(s).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 }
 
-export default function HistoriqueMembre({ evts }: { evts: EvtHistorique[] }) {
-  const [ouvert, setOuvert] = useState<boolean>(false);
+export default function HistoriqueMembre({ evts, embedded = false }: { evts: EvtHistorique[]; embedded?: boolean }) {
+  const [ouvert, setOuvert] = useState<boolean>(embedded);
   const [periode, setPeriode] = useState<Periode>("trimestre");
   const [type, setType] = useState<TypeFiltre>("tous");
 
@@ -108,40 +108,42 @@ export default function HistoriqueMembre({ evts }: { evts: EvtHistorique[] }) {
   }, [filtres]);
 
   return (
-    <div className="space-y-3">
-      {/* Header cliquable : ouvre/ferme l'historique */}
-      <button
-        type="button"
-        onClick={() => setOuvert((v) => !v)}
-        className="w-full flex items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 hover:bg-slate-50 transition-colors shadow-sm"
-        aria-expanded={ouvert}
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="text-lg">📜</span>
-          <div className="text-left">
-            <p className="text-sm font-semibold text-slate-900 leading-tight">
-              Historique d&apos;activité
-            </p>
-            <p className="text-xs text-slate-500 leading-tight">
-              {evts.length} événement{evts.length > 1 ? "s" : ""} sur 12 mois
-              {!ouvert && " · cliquer pour ouvrir"}
-            </p>
-          </div>
-        </div>
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`shrink-0 text-slate-400 transition-transform ${ouvert ? "rotate-180" : ""}`}
+    <div className={embedded ? "" : "space-y-3"}>
+      {/* Header cliquable : ouvre/ferme l'historique (caché en mode embedded) */}
+      {!embedded && (
+        <button
+          type="button"
+          onClick={() => setOuvert((v) => !v)}
+          className="w-full flex items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 hover:bg-slate-50 transition-colors shadow-sm"
+          aria-expanded={ouvert}
         >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-lg">📜</span>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-slate-900 leading-tight">
+                Historique d&apos;activité
+              </p>
+              <p className="text-xs text-slate-500 leading-tight">
+                {evts.length} événement{evts.length > 1 ? "s" : ""} sur 12 mois
+                {!ouvert && " · cliquer pour ouvrir"}
+              </p>
+            </div>
+          </div>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`shrink-0 text-slate-400 transition-transform ${ouvert ? "rotate-180" : ""}`}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      )}
 
       {!ouvert ? null : (
       <div className="space-y-4">

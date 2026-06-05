@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import HistoriqueMembre, { type EvtHistorique } from "./HistoriqueMembre";
 
-type Tab = "actions" | "rdv" | "remontees" | "visites";
+type Tab = "actions" | "rdv" | "remontees" | "visites" | "historique";
 
 export type ActionItem = {
   id: string;
@@ -169,9 +170,10 @@ type Props = {
   rdvs: RDVItem[];
   remontees: RemonteeItem[];
   visites: VisiteItem[];
+  historique?: EvtHistorique[];
 };
 
-export default function TabsMembre({ actions, rdvs, remontees, visites }: Props) {
+export default function TabsMembre({ actions, rdvs, remontees, visites, historique = [] }: Props) {
   const defaultTab: Tab =
     actions.length > 0 ? "actions" :
     rdvs.length > 0 ? "rdv" :
@@ -191,10 +193,11 @@ export default function TabsMembre({ actions, rdvs, remontees, visites }: Props)
   };
 
   const tabs: { id: Tab; label: string; icon: string; count: number }[] = [
-    { id: "actions",   label: "Actions",   icon: "📋", count: actions.length },
-    { id: "rdv",       label: "RDV",       icon: "📅", count: rdvs.length },
-    { id: "remontees", label: "Remontées", icon: "📢", count: remontees.length },
-    { id: "visites",   label: "Visites",   icon: "🚗", count: visites.length },
+    { id: "actions",    label: "Actions",    icon: "📋", count: actions.length },
+    { id: "rdv",        label: "RDV",        icon: "📅", count: rdvs.length },
+    { id: "remontees",  label: "Remontées",  icon: "📢", count: remontees.length },
+    { id: "visites",    label: "Visites",    icon: "🚗", count: visites.length },
+    { id: "historique", label: "Historique", icon: "📜", count: historique.length },
   ];
 
   return (
@@ -401,6 +404,12 @@ export default function TabsMembre({ actions, rdvs, remontees, visites }: Props)
               })}
             </div>
           )
+        )}
+
+        {/* ── HISTORIQUE ──────────────────────────────────────── */}
+        {tab === "historique" && (
+          historique.length === 0 ? <Empty msg="Aucune activité sur les 12 derniers mois" />
+          : <HistoriqueMembre evts={historique} embedded />
         )}
       </div>
     </div>

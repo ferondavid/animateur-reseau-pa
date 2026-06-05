@@ -12,7 +12,7 @@ import { getParametreNumber } from "@/lib/parametres";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 import CarteDemandeAnimateur, { type RDVEnAttente, type VisiteEnAttente } from "@/components/CarteDemandeAnimateur";
 import TabsMembre from "@/components/TabsMembre";
-import HistoriqueMembre, { type EvtHistorique } from "@/components/HistoriqueMembre";
+import { type EvtHistorique } from "@/components/HistoriqueMembre";
 
 // ─── Météo ────────────────────────────────────────────────────────────────────
 
@@ -247,6 +247,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             rdvs={(rdvData ?? []) as { id: string; type: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; statut: string; message: string | null; lieu: string | null; demandeur_type: string; created_at: string }[]}
             remontees={(remontees ?? []) as { id: string; titre: string; gravite: string; statut: string; created_at: string; description: string | null; photo_url: string | null; source: string | null; type: string | null }[]}
             visites={trois}
+            historique={historique}
           />
         </div>
 
@@ -331,8 +332,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        {/* ── 8. HISTORIQUE D'ACTIVITÉ (collapsible, filtrable par période + type) ── */}
-        <HistoriqueMembre evts={historique} />
+        {/* L'historique est désormais intégré dans le tab "Historique" de Votre activité ci-dessus */}
 
       </div>
 
