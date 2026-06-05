@@ -40,18 +40,30 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
         console.log("[REMONTEE] photo uploadée :", photoUrl);
       }
 
-      const { error: insErr } = await supabase.from("remontees").insert({
-        magasin_id: magasinId,
-        type: form.get("type") as string,
-        titre: form.get("titre") as string,
-        description: form.get("description") as string,
-        gravite: form.get("gravite") as string,
-        statut: "nouvelle",
-        source: "membre",
-        photo_url: photoUrl,
-      });
+      const { data: nouvelleRemontee, error: insErr } = await supabase
+        .from("remontees")
+        .insert({
+          magasin_id: magasinId,
+          type: form.get("type") as string,
+          titre: form.get("titre") as string,
+          description: form.get("description") as string,
+          gravite: form.get("gravite") as string,
+          statut: "nouvelle",
+          source: "membre",
+          photo_url: photoUrl,
+        })
+        .select("id")
+        .single();
 
       if (insErr) throw new Error(`Insert : ${insErr.message}`);
+
+      if (form.get("gravite") === "urgente" && nouvelleRemontee?.id) {
+        fetch("/api/notif/remontee-urgente", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: nouvelleRemontee.id }),
+        }).catch(() => {});
+      }
 
       setSucces(true);
       setTimeout(() => {

@@ -5,10 +5,10 @@ export type InviteInput = {
   debut: Date;
   fin: Date;
   lieu?: string;
-  organisateur: { email: string; nom: string };
-  invites: { email: string; nom: string }[];
+  organisateurEmail: string;
+  organisateurNom: string;
+  inviteEmails: string[];
   url?: string;
-  sequence?: number;
 };
 
 function esc(s: string): string {
@@ -35,7 +35,7 @@ function toIcalDate(d: Date): string {
   return d.toISOString().replace(/[-:.]/g, "").slice(0, 15) + "Z";
 }
 
-export function genererInvitation(input: InviteInput): string {
+export function genererInvitationIcs(input: InviteInput): string {
   const now = toIcalDate(new Date());
   const lines: string[] = [
     "BEGIN:VCALENDAR",
@@ -48,16 +48,16 @@ export function genererInvitation(input: InviteInput): string {
     `DTSTAMP:${now}`,
     `DTSTART:${toIcalDate(input.debut)}`,
     `DTEND:${toIcalDate(input.fin)}`,
-    `SEQUENCE:${input.sequence ?? 0}`,
+    "SEQUENCE:0",
     fold(`SUMMARY:${esc(input.titre)}`),
     fold(`DESCRIPTION:${esc(input.description)}`),
     ...(input.lieu ? [fold(`LOCATION:${esc(input.lieu)}`)] : []),
     ...(input.url ? [fold(`URL:${input.url}`)] : []),
     "STATUS:CONFIRMED",
-    fold(`ORGANIZER;CN=${esc(input.organisateur.nom)}:mailto:${input.organisateur.email}`),
-    ...input.invites.map((inv) =>
+    fold(`ORGANIZER;CN=${esc(input.organisateurNom)}:mailto:${input.organisateurEmail}`),
+    ...input.inviteEmails.map((email) =>
       fold(
-        `ATTENDEE;CN=${esc(inv.nom)};RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:${inv.email}`
+        `ATTENDEE;CN=${esc(email)};RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:${email}`
       )
     ),
     "END:VEVENT",

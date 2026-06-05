@@ -79,6 +79,13 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
       );
     }
 
+    // Notifier l'animateur (fire-and-forget)
+    fetch("/api/notif/rdv-demande", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: rdv.id }),
+    }).catch(() => {});
+
     setLoading(false);
     setToast("Demande de RDV envoyée !");
     setTimeout(() => {

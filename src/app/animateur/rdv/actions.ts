@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { notifierConfirmationRDV } from "@/lib/notif-rdv";
+import { notifierConfirmationRDV } from "@/lib/notifs";
 
 function revalider() {
   revalidatePath("/animateur");

@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { notifierConfirmationRDV } from "@/lib/notif-rdv";
+import { notifierConfirmationRDV } from "@/lib/notifs";
 
 function revalider(magasinId: string) {
   revalidatePath(`/membre/${magasinId}`);
