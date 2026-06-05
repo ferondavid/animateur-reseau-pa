@@ -12,6 +12,7 @@ import { getParametreNumber } from "@/lib/parametres";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 import CarteDemandeAnimateur, { type RDVEnAttente, type VisiteEnAttente } from "@/components/CarteDemandeAnimateur";
 import TabsMembre from "@/components/TabsMembre";
+import HistoriqueMembre, { type EvtHistorique } from "@/components/HistoriqueMembre";
 
 // ─── Météo ────────────────────────────────────────────────────────────────────
 
@@ -106,6 +107,102 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
   const sparkNotes = [...dernieresVisites].reverse().map(v => v.note_confiance).filter(Boolean) as number[];
   const nomAffiche = magasin.enseigne ?? magasin.nom;
   const newsList = (newsData ?? []) as NewsItem[];
+
+  // ── Historique complet (12 derniers mois, toutes activités) ───
+  const il12mois = new Date(Date.now() - 365 * 86_400_000).toISOString();
+  const [
+    { data: histVisites },
+    { data: histActions },
+    { data: histRemontees },
+    { data: histRDV },
+  ] = await Promise.all([
+    supabase.from("visites")
+      .select("id, statut, date_realisee, date_prevue, objectif, note_confiance, note_business")
+      .eq("magasin_id", id)
+      .or(`date_realisee.gte.${il12mois.slice(0,10)},date_prevue.gte.${il12mois.slice(0,10)}`)
+      .order("date_realisee", { ascending: false, nullsFirst: false }),
+    supabase.from("actions")
+      .select("id, titre, statut, niveau_urgence, deadline, created_at")
+      .eq("magasin_id", id)
+      .gte("created_at", il12mois)
+      .order("created_at", { ascending: false }),
+    supabase.from("remontees")
+      .select("id, titre, gravite, statut, source, type, created_at")
+      .eq("magasin_id", id)
+      .gte("created_at", il12mois)
+      .order("created_at", { ascending: false }),
+    supabase.from("rendez_vous")
+      .select("id, type, statut, date_souhaitee, heure_souhaitee, objet, demandeur_type, created_at")
+      .eq("magasin_id", id)
+      .gte("created_at", il12mois)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const historique: EvtHistorique[] = [];
+
+  for (const v of histVisites ?? []) {
+    const date = v.date_realisee || v.date_prevue;
+    if (!date) continue;
+    const visite = v as { id: string; statut: string; date_realisee: string | null; date_prevue: string | null; objectif: string | null; note_confiance: number | null; note_business: number | null };
+    const isReal = visite.statut === "realisee";
+    historique.push({
+      id: visite.id,
+      type: "visite",
+      date,
+      titre: visite.objectif || (isReal ? "Visite réalisée" : "Visite planifiée"),
+      detail: isReal && (visite.note_confiance != null || visite.note_business != null)
+        ? `Notes : ${visite.note_confiance ?? "—"}/5 conf · ${visite.note_business ?? "—"}/5 biz`
+        : null,
+      meta: isReal ? "Réalisée" : visite.statut === "planifiee" ? "Planifiée" : visite.statut,
+      metaTon: isReal ? "ok" : visite.statut === "planifiee" ? "blue" : "slate",
+    });
+  }
+
+  for (const a of histActions ?? []) {
+    const action = a as { id: string; titre: string; statut: string; niveau_urgence: number; deadline: string | null; created_at: string };
+    const labelStatut = action.statut === "ouverte" ? "Ouverte" : action.statut === "en_cours" ? "En cours" : action.statut === "terminee" ? "Terminée" : action.statut;
+    const ton: EvtHistorique["metaTon"] = action.statut === "terminee" ? "ok" : action.niveau_urgence === 3 ? "red" : action.niveau_urgence === 2 ? "amber" : "slate";
+    historique.push({
+      id: action.id,
+      type: "action",
+      date: action.created_at,
+      titre: action.titre,
+      detail: action.deadline ? `Échéance ${new Date(action.deadline).toLocaleDateString("fr-FR")}` : null,
+      meta: labelStatut,
+      metaTon: ton,
+    });
+  }
+
+  for (const r of histRemontees ?? []) {
+    const remontee = r as { id: string; titre: string; gravite: string; statut: string; source: string | null; type: string | null; created_at: string };
+    const ton: EvtHistorique["metaTon"] = remontee.gravite === "urgente" ? "red" : remontee.gravite === "attention" ? "amber" : "slate";
+    historique.push({
+      id: remontee.id,
+      type: "remontee",
+      date: remontee.created_at,
+      titre: remontee.titre,
+      detail: remontee.type ? `Type ${remontee.type.replace("_", " ")}` : null,
+      meta: remontee.gravite.charAt(0).toUpperCase() + remontee.gravite.slice(1),
+      metaTon: ton,
+    });
+  }
+
+  for (const r of histRDV ?? []) {
+    const rdv = r as { id: string; type: string; statut: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; demandeur_type: string; created_at: string };
+    const typeIcons: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
+    const dateRDV = rdv.date_souhaitee;
+    const labelStatut = rdv.statut === "confirme" ? "Confirmé" : rdv.statut === "annule" ? "Annulé" : rdv.statut === "fait" ? "Fait" : rdv.statut === "reporte" ? "Reporté" : "Demandé";
+    const ton: EvtHistorique["metaTon"] = rdv.statut === "confirme" || rdv.statut === "fait" ? "ok" : rdv.statut === "annule" ? "red" : rdv.statut === "reporte" ? "amber" : "blue";
+    historique.push({
+      id: rdv.id,
+      type: "rdv",
+      date: dateRDV,
+      titre: `${typeIcons[rdv.type] ?? "📅"} ${rdv.objet}`,
+      detail: `${rdv.demandeur_type === "animateur" ? "Initié par animateur" : "Initié par magasin"}${rdv.heure_souhaitee ? ` · ${rdv.heure_souhaitee.slice(0, 5)}` : ""}`,
+      meta: labelStatut,
+      metaTon: ton,
+    });
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-8 pb-28">
@@ -233,6 +330,15 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             </div>
           </div>
         )}
+
+        {/* ── 8. HISTORIQUE D'ACTIVITÉ (filtrable par période + type) ── */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">📜 Historique d&apos;activité</h2>
+            <span className="text-[10px] text-slate-400">12 derniers mois</span>
+          </div>
+          <HistoriqueMembre evts={historique} />
+        </div>
 
       </div>
 
