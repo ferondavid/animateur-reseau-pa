@@ -117,22 +117,22 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     { data: histRDV },
   ] = await Promise.all([
     supabase.from("visites")
-      .select("id, statut, date_realisee, date_prevue, objectif, note_confiance, note_business")
+      .select("id, statut, date_realisee, date_prevue, objectif, points_cles, note_confiance, note_business")
       .eq("magasin_id", id)
       .or(`date_realisee.gte.${il12mois.slice(0,10)},date_prevue.gte.${il12mois.slice(0,10)}`)
       .order("date_realisee", { ascending: false, nullsFirst: false }),
     supabase.from("actions")
-      .select("id, titre, statut, niveau_urgence, deadline, created_at")
+      .select("id, titre, description, statut, niveau_urgence, deadline, created_at")
       .eq("magasin_id", id)
       .gte("created_at", il12mois)
       .order("created_at", { ascending: false }),
     supabase.from("remontees")
-      .select("id, titre, gravite, statut, source, type, created_at")
+      .select("id, titre, description, gravite, statut, source, type, photo_url, reponse_animateur, date_traitement, created_at")
       .eq("magasin_id", id)
       .gte("created_at", il12mois)
       .order("created_at", { ascending: false }),
     supabase.from("rendez_vous")
-      .select("id, type, statut, date_souhaitee, heure_souhaitee, objet, demandeur_type, created_at")
+      .select("id, type, statut, date_souhaitee, heure_souhaitee, objet, message, lieu, lien_visio, demandeur_type, created_at")
       .eq("magasin_id", id)
       .gte("created_at", il12mois)
       .order("created_at", { ascending: false }),
@@ -143,7 +143,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
   for (const v of histVisites ?? []) {
     const date = v.date_realisee || v.date_prevue;
     if (!date) continue;
-    const visite = v as { id: string; statut: string; date_realisee: string | null; date_prevue: string | null; objectif: string | null; note_confiance: number | null; note_business: number | null };
+    const visite = v as { id: string; statut: string; date_realisee: string | null; date_prevue: string | null; objectif: string | null; points_cles: string | null; note_confiance: number | null; note_business: number | null };
     const isReal = visite.statut === "realisee";
     historique.push({
       id: visite.id,
@@ -155,11 +155,17 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
         : null,
       meta: isReal ? "Réalisée" : visite.statut === "planifiee" ? "Planifiée" : visite.statut,
       metaTon: isReal ? "ok" : visite.statut === "planifiee" ? "blue" : "slate",
+      details: {
+        statut: isReal ? "Réalisée" : visite.statut === "planifiee" ? "Planifiée" : visite.statut,
+        noteConfiance: visite.note_confiance,
+        noteBusiness: visite.note_business,
+        pointsCles: visite.points_cles,
+      },
     });
   }
 
   for (const a of histActions ?? []) {
-    const action = a as { id: string; titre: string; statut: string; niveau_urgence: number; deadline: string | null; created_at: string };
+    const action = a as { id: string; titre: string; description: string | null; statut: string; niveau_urgence: number; deadline: string | null; created_at: string };
     const labelStatut = action.statut === "ouverte" ? "Ouverte" : action.statut === "en_cours" ? "En cours" : action.statut === "terminee" ? "Terminée" : action.statut;
     const ton: EvtHistorique["metaTon"] = action.statut === "terminee" ? "ok" : action.niveau_urgence === 3 ? "red" : action.niveau_urgence === 2 ? "amber" : "slate";
     historique.push({
@@ -170,11 +176,17 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
       detail: action.deadline ? `Échéance ${new Date(action.deadline).toLocaleDateString("fr-FR")}` : null,
       meta: labelStatut,
       metaTon: ton,
+      details: {
+        description: action.description,
+        statut: labelStatut,
+        urgence: action.niveau_urgence,
+        deadline: action.deadline,
+      },
     });
   }
 
   for (const r of histRemontees ?? []) {
-    const remontee = r as { id: string; titre: string; gravite: string; statut: string; source: string | null; type: string | null; created_at: string };
+    const remontee = r as { id: string; titre: string; description: string | null; gravite: string; statut: string; source: string | null; type: string | null; photo_url: string | null; reponse_animateur: string | null; date_traitement: string | null; created_at: string };
     const ton: EvtHistorique["metaTon"] = remontee.gravite === "urgente" ? "red" : remontee.gravite === "attention" ? "amber" : "slate";
     historique.push({
       id: remontee.id,
@@ -184,11 +196,21 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
       detail: remontee.type ? `Type ${remontee.type.replace("_", " ")}` : null,
       meta: remontee.gravite.charAt(0).toUpperCase() + remontee.gravite.slice(1),
       metaTon: ton,
+      details: {
+        description: remontee.description,
+        typeRemontee: remontee.type,
+        gravite: remontee.gravite,
+        statut: remontee.statut,
+        source: remontee.source,
+        photoUrl: remontee.photo_url,
+        reponseAnimateur: remontee.reponse_animateur,
+        dateTraitement: remontee.date_traitement,
+      },
     });
   }
 
   for (const r of histRDV ?? []) {
-    const rdv = r as { id: string; type: string; statut: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; demandeur_type: string; created_at: string };
+    const rdv = r as { id: string; type: string; statut: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; message: string | null; lieu: string | null; lien_visio: string | null; demandeur_type: string; created_at: string };
     const typeIcons: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
     const dateRDV = rdv.date_souhaitee;
     const labelStatut = rdv.statut === "confirme" ? "Confirmé" : rdv.statut === "annule" ? "Annulé" : rdv.statut === "fait" ? "Fait" : rdv.statut === "reporte" ? "Reporté" : "Demandé";
@@ -201,6 +223,15 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
       detail: `${rdv.demandeur_type === "animateur" ? "Initié par animateur" : "Initié par magasin"}${rdv.heure_souhaitee ? ` · ${rdv.heure_souhaitee.slice(0, 5)}` : ""}`,
       meta: labelStatut,
       metaTon: ton,
+      details: {
+        typeRdv: rdv.type,
+        statut: rdv.statut,
+        demandeurType: rdv.demandeur_type,
+        heureSouhaitee: rdv.heure_souhaitee,
+        lieu: rdv.lieu,
+        lienVisio: rdv.lien_visio,
+        message: rdv.message,
+      },
     });
   }
 
