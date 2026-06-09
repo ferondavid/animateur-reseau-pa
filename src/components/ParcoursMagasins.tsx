@@ -115,10 +115,12 @@ export default function ParcoursMagasins({
   magasins,
   configVE,
   openChargeMapOk,
+  prefillMagasinId,
 }: {
   magasins: Magasin[];
   configVE: ConfigVE;
   openChargeMapOk: boolean;
+  prefillMagasinId?: string;
 }) {
   const [selectionIds, setSelectionIds] = useState<Set<string>>(new Set());
   const [departTexte, setDepartTexte] = useState("");
@@ -147,6 +149,14 @@ export default function ParcoursMagasins({
       const sel = localStorage.getItem(LS_SELECTION);
       if (sel) setSelectionIds(new Set(JSON.parse(sel) as string[]));
     } catch { /* ignore */ }
+    if (prefillMagasinId) {
+      setSelectionIds((prev) => {
+        const next = new Set(prev);
+        next.add(prefillMagasinId);
+        return next;
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleSel = (id: string) => {

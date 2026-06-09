@@ -8,11 +8,13 @@ import ExportCalendar from "./ExportCalendar";
 import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
 import NotifEmail from "./NotifEmail";
 import VehiculeElectrique from "./VehiculeElectrique";
+import AdresseDepart from "./AdresseDepart";
 
 export default async function ParametresPage() {
   const [gcalUrl, gcalLabel, nbNews, exportToken,
     animEmail, notifRemontee, notifRdvDemande, notifRdvConfirme,
     veActif, autonomieKm, seuilPct, ciblePct, chargeDepartPct, tempsRechargeMin,
+    adresseDepart, latDepart, lngDepart,
   ] = await Promise.all([
     getParametre("gcal_ical_url", ""),
     getParametre("gcal_label", "Mon agenda Google"),
@@ -28,6 +30,9 @@ export default async function ParametresPage() {
     getParametreNumber("cible_recharge_pct", 80),
     getParametreNumber("charge_depart_pct", 100),
     getParametreNumber("temps_recharge_min", 25),
+    getParametre("adresse_depart_habituel", ""),
+    getParametre("lat_depart_habituel", ""),
+    getParametre("lng_depart_habituel", ""),
   ]);
 
   return (
@@ -83,6 +88,21 @@ export default async function ParametresPage() {
             </p>
           </div>
           <ExportCalendar tokenInitial={exportToken} />
+        </div>
+
+        {/* Point de départ habituel */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">🏠 Point de départ habituel</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Ton adresse de domicile ou bureau, utilisée pour calculer les heures de départ et la charge batterie.
+            </p>
+          </div>
+          <AdresseDepart
+            adresseInitiale={adresseDepart}
+            latInitiale={latDepart}
+            lngInitiale={lngDepart}
+          />
         </div>
 
         {/* Véhicule électrique */}

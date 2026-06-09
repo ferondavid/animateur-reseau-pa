@@ -45,6 +45,22 @@ export async function testGCal(url: string): Promise<{ ok: boolean; nbEvents?: n
   }
 }
 
+// ── Point de départ habituel ─────────────────────────────────────────────────
+
+export async function updateAdresseDepart(adresse: string, lat: string, lng: string) {
+  const supabase = await createClient();
+  await supabase.from("parametres").upsert(
+    [
+      { cle: "adresse_depart_habituel", valeur: adresse, updated_at: new Date().toISOString() },
+      { cle: "lat_depart_habituel",     valeur: lat,     updated_at: new Date().toISOString() },
+      { cle: "lng_depart_habituel",     valeur: lng,     updated_at: new Date().toISOString() },
+    ],
+    { onConflict: "cle" }
+  );
+  revalidatePath("/animateur/parametres");
+  revalidatePath("/animateur");
+}
+
 // ── Véhicule électrique ──────────────────────────────────────────────────────
 
 export async function updateParametresVE(formData: FormData) {

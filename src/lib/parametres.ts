@@ -16,6 +16,12 @@ export async function getParametreNumber(cle: string, defaut: number): Promise<n
   return isNaN(n) ? defaut : n;
 }
 
+export async function getParametreFloat(cle: string, defaut: number): Promise<number> {
+  const v = await getParametre(cle, String(defaut));
+  const n = parseFloat(v);
+  return isNaN(n) ? defaut : n;
+}
+
 export async function updateParametre(cle: string, valeur: string): Promise<void> {
   const supabase = await createClient();
   await supabase

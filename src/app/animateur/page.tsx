@@ -10,6 +10,8 @@ import CardGCalEvent from "@/components/CardGCalEvent";
 import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
 import { fetchGCalEvents } from "@/lib/gcal";
+import { getParametre, getParametreNumber, getParametreFloat } from "@/lib/parametres";
+import { calculerPreparation } from "@/lib/preparation-rdv";
 
 function premierJourMois(d: Date): string {
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
@@ -124,6 +126,62 @@ export default async function AnimateurPage() {
       .order("date_souhaitee", { ascending: true })
       .limit(10),
   ]);
+
+  // ── Préparation J+1 ──────────────────────────────────────────────────────
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split("T")[0];
+
+  const [
+    { data: rdvsDemain },
+    latDep, lngDep, vitesseKmh, coefRoute, bufferMin, margeCharge,
+    veActifJ1, autonomieKmJ1, seuilPctJ1,
+  ] = await Promise.all([
+    supabase
+      .from("rendez_vous")
+      .select(
+        "id, type, objet, heure_souhaitee, magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville, latitude, longitude)"
+      )
+      .eq("statut", "confirme")
+      .eq("date_souhaitee", tomorrowStr),
+    getParametre("lat_depart_habituel", ""),
+    getParametre("lng_depart_habituel", ""),
+    getParametreFloat("vitesse_moyenne_kmh", 70),
+    getParametreFloat("coef_route_haversine", 1.3),
+    getParametreNumber("buffer_arrivee_min", 30),
+    getParametreNumber("marge_charge_pct", 15),
+    getParametre("vehicule_electrique", "false"),
+    getParametreNumber("autonomie_km", 300),
+    getParametreNumber("seuil_recharge_pct", 20),
+  ]);
+
+  const departOk = !!(latDep && lngDep);
+  const configCalcJ1 = {
+    vitesseMoyenneKmh: vitesseKmh,
+    coefRoute,
+    bufferMin,
+    margeChargePct: margeCharge,
+    autonomieKm: veActifJ1 === "true" ? autonomieKmJ1 : undefined,
+    seuilPct: veActifJ1 === "true" ? seuilPctJ1 : undefined,
+  };
+
+  type MagJ1 = { id: string; nom: string; enseigne: string | null; ville: string | null; latitude: number | null; longitude: number | null };
+  type RdvJ1Row = { id: string; type: string; objet: string; heure_souhaitee: string | null; magasins: MagJ1 | null };
+
+  const preparationsJ1 = departOk
+    ? ((rdvsDemain ?? []) as unknown as RdvJ1Row[])
+        .filter((r) => r.magasins?.latitude && r.magasins?.longitude)
+        .map((r) => ({
+          rdv: r,
+          mag: r.magasins!,
+          prep: calculerPreparation(
+            parseFloat(latDep), parseFloat(lngDep),
+            r.magasins!.latitude!, r.magasins!.longitude!,
+            r.heure_souhaitee?.slice(0, 5) ?? null,
+            configCalcJ1
+          ),
+        }))
+    : [];
 
   // Trier : urgents (dans 7j) en premier, puis par date
   const rdvsSorted = (rdvsEnAttente ?? []).sort((a, b) => {
@@ -258,6 +316,83 @@ export default async function AnimateurPage() {
 
         {/* Navigation */}
         <Navigation />
+
+        {/* ── Préparation pour demain ─────────────────────────────────── */}
+        <div>
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+            🌅 Préparation pour demain
+          </h2>
+
+          {(rdvsDemain ?? []).length === 0 ? (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-sm text-slate-500">
+              Pas de RDV confirmé prévu demain 😌
+            </div>
+          ) : !departOk ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-sm text-amber-700 flex items-center justify-between gap-3">
+              <span>
+                {(rdvsDemain ?? []).length} RDV demain — configure ton adresse de départ habituelle pour voir la préparation détaillée.
+              </span>
+              <Link href="/animateur/parametres" className="shrink-0 font-semibold underline">
+                Configurer →
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {preparationsJ1.map(({ rdv, mag, prep }) => {
+                const typeIcon: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
+                const nomMag = mag.enseigne ? `${mag.enseigne} — ${mag.nom}` : mag.nom;
+                return (
+                  <div key={rdv.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {rdv.heure_souhaitee ? rdv.heure_souhaitee.slice(0, 5) + " · " : ""}
+                          {typeIcon[rdv.type]} {nomMag}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">{rdv.objet}</p>
+                      </div>
+                      <Link
+                        href={`/animateur/parcours?prefill_magasin=${mag.id}`}
+                        className="shrink-0 text-xs font-semibold text-blue-600 hover:underline whitespace-nowrap"
+                      >
+                        Préparer ↗
+                      </Link>
+                    </div>
+
+                    <div className="space-y-1 text-sm text-slate-700">
+                      <p>
+                        🚗 {prep.heureDepart
+                          ? `Partir à ${prep.heureDepart}${prep.heureDepartVeille ? " (veille)" : ""} · `
+                          : "Heure RDV non précisée · "}
+                        {Math.round(prep.distanceKm)} km · {
+                          prep.dureeRouteMinutes < 60
+                            ? `${prep.dureeRouteMinutes} min`
+                            : `${Math.floor(prep.dureeRouteMinutes / 60)}h${prep.dureeRouteMinutes % 60 > 0 ? String(prep.dureeRouteMinutes % 60).padStart(2, "0") : ""}`
+                        } de route
+                      </p>
+                      {prep.chargeRecommandeePct > 0 && (
+                        <p>
+                          🔋 Charger ce soir jusqu&apos;à {prep.chargeRecommandeePct}%
+                          {prep.nbArretsEstime > 0 && ` · ${prep.nbArretsEstime} arrêt${prep.nbArretsEstime > 1 ? "s" : ""} borne prévu`}
+                        </p>
+                      )}
+                    </div>
+
+                    {prep.alertes.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {prep.alertes.map((a, i) => (
+                          <span key={i} className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                            ⚠️ {a}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* RDV en attente */}
         <div>

@@ -7,7 +7,12 @@ import Navigation from "@/components/Navigation";
 import ParcoursMagasins from "@/components/ParcoursMagasins";
 import type { ConfigVE } from "@/components/ParcoursMagasins";
 
-export default async function ParcoursPage() {
+export default async function ParcoursPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ prefill_magasin?: string }>;
+}) {
+  const { prefill_magasin } = await searchParams;
   const supabase = await createClient();
 
   const [
@@ -80,6 +85,7 @@ export default async function ParcoursPage() {
           }
           configVE={configVE}
           openChargeMapOk={apiKeyOk}
+          prefillMagasinId={prefill_magasin}
         />
       </div>
     </main>
