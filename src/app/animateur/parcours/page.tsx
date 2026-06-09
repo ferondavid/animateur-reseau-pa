@@ -43,6 +43,8 @@ export default async function ParcoursPage() {
     tempsRechargeMin,
   };
 
+  const apiKeyOk = !!process.env.OPENCHARGEMAP_API_KEY;
+
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -77,6 +79,7 @@ export default async function ParcoursPage() {
             }>
           }
           configVE={configVE}
+          openChargeMapOk={apiKeyOk}
         />
       </div>
     </main>

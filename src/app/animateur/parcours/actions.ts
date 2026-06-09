@@ -2,6 +2,21 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { Point, EtapeParcours } from "@/lib/itineraire";
+import type { ConfigVE } from "@/lib/bornes-recharge";
+import { insererArretsRecharge } from "@/lib/bornes-recharge";
+
+/**
+ * Server action : calcule les arrêts de recharge côté serveur
+ * (nécessaire pour accéder à process.env.OPENCHARGEMAP_API_KEY)
+ */
+export async function calculerArretsRecharge(
+  depart: Point,
+  etapes: EtapeParcours[],
+  config: ConfigVE
+): Promise<EtapeParcours[]> {
+  return insererArretsRecharge(depart, etapes, config);
+}
 
 export async function creerVisitesPlanifieesParcours(
   magasinIds: string[],

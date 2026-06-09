@@ -3,9 +3,11 @@
 import { useState, useEffect, useTransition } from "react";
 import type { Point, EtapeParcours, Parcours } from "@/lib/itineraire";
 import { calculerParcoursDeBase, construireParcours, haversineKm } from "@/lib/itineraire";
-import { insererArretsRecharge } from "@/lib/bornes-recharge";
 import CarteParcoursWrapper from "./CarteParcoursWrapper";
-import { creerVisitesPlanifieesParcours } from "@/app/animateur/parcours/actions";
+import {
+  creerVisitesPlanifieesParcours,
+  calculerArretsRecharge,
+} from "@/app/animateur/parcours/actions";
 
 type Magasin = {
   id: string;
@@ -112,9 +114,11 @@ const LS_SELECTION = "parcours_selection";
 export default function ParcoursMagasins({
   magasins,
   configVE,
+  openChargeMapOk,
 }: {
   magasins: Magasin[];
   configVE: ConfigVE;
+  openChargeMapOk: boolean;
 }) {
   const [selectionIds, setSelectionIds] = useState<Set<string>>(new Set());
   const [departTexte, setDepartTexte] = useState("");
@@ -198,7 +202,7 @@ export default function ParcoursMagasins({
       let etapes = calculerParcoursDeBase(departCoords, mags);
 
       if (configVE.active) {
-        etapes = await insererArretsRecharge(departCoords, etapes, {
+        etapes = await calculerArretsRecharge(departCoords, etapes, {
           ...configVE,
           chargeDepartPct: chargeDepart,
         });
@@ -276,6 +280,17 @@ export default function ParcoursMagasins({
             </p>
           )}
         </div>
+
+        {/* Banner clé manquante */}
+        {configVE.active && !openChargeMapOk && (
+          <div className="bg-orange-50 border border-orange-300 rounded-2xl p-4">
+            <p className="text-sm font-semibold text-orange-800">⚠️ Clé OpenChargeMap manquante</p>
+            <p className="text-xs text-orange-700 mt-1">
+              Les bornes de recharge ne pourront pas être trouvées automatiquement.
+              Ajoutez <code className="font-mono bg-orange-100 px-1 rounded">OPENCHARGEMAP_API_KEY</code> dans les variables d&apos;environnement Vercel.
+            </p>
+          </div>
+        )}
 
         {/* Banner VE */}
         {configVE.active && (
