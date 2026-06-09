@@ -242,6 +242,12 @@ export default async function AnimateurPage() {
               📰 Gestion des news
             </Link>
             <Link
+              href="/animateur/parcours"
+              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+            >
+              🚗 Préparer une tournée
+            </Link>
+            <Link
               href="/pilotage"
               className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
             >

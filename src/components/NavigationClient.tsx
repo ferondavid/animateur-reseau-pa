@@ -8,6 +8,7 @@ const liens = [
   { href: "/animateur", label: "Carte" },
   { href: "/magasins", label: "Magasins" },
   { href: "/visites", label: "Visites" },
+  { href: "/animateur/parcours", label: "🚗 Parcours" },
   { href: "/animateur/rdv", label: "RDV" },
   { href: "/actions-reseau", label: "Actions" },
   { href: "/remontees", label: "Remontées" },

@@ -7,10 +7,13 @@ import FormulaireGCal from "./FormulaireGCal";
 import ExportCalendar from "./ExportCalendar";
 import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
 import NotifEmail from "./NotifEmail";
+import VehiculeElectrique from "./VehiculeElectrique";
 
 export default async function ParametresPage() {
   const [gcalUrl, gcalLabel, nbNews, exportToken,
-    animEmail, notifRemontee, notifRdvDemande, notifRdvConfirme] = await Promise.all([
+    animEmail, notifRemontee, notifRdvDemande, notifRdvConfirme,
+    veActif, autonomieKm, seuilPct, ciblePct, chargeDepartPct, tempsRechargeMin,
+  ] = await Promise.all([
     getParametre("gcal_ical_url", ""),
     getParametre("gcal_label", "Mon agenda Google"),
     getParametreNumber("nb_news_fiche_membre", 1),
@@ -19,6 +22,12 @@ export default async function ParametresPage() {
     getParametre("notif_remontee_urgente", "true"),
     getParametre("notif_rdv_demande", "true"),
     getParametre("notif_rdv_confirme", "true"),
+    getParametre("vehicule_electrique", "false"),
+    getParametreNumber("autonomie_km", 300),
+    getParametreNumber("seuil_recharge_pct", 20),
+    getParametreNumber("cible_recharge_pct", 80),
+    getParametreNumber("charge_depart_pct", 100),
+    getParametreNumber("temps_recharge_min", 25),
   ]);
 
   return (
@@ -74,6 +83,24 @@ export default async function ParametresPage() {
             </p>
           </div>
           <ExportCalendar tokenInitial={exportToken} />
+        </div>
+
+        {/* Véhicule électrique */}
+        <div className="bg-white rounded-2xl border border-amber-200 shadow-sm p-6 space-y-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">⚡ Véhicule électrique</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Active cette option pour que l&apos;app insère automatiquement des arrêts de recharge dans tes parcours de visite.
+            </p>
+          </div>
+          <VehiculeElectrique
+            actif={veActif === "true"}
+            autonomieKm={autonomieKm}
+            seuilPct={seuilPct}
+            ciblePct={ciblePct}
+            chargeDepartPct={chargeDepartPct}
+            tempsRechargeMin={tempsRechargeMin}
+          />
         </div>
 
         {/* Notifications email */}

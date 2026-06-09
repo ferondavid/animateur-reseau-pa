@@ -45,6 +45,29 @@ export async function testGCal(url: string): Promise<{ ok: boolean; nbEvents?: n
   }
 }
 
+// ── Véhicule électrique ──────────────────────────────────────────────────────
+
+export async function updateParametresVE(formData: FormData) {
+  const pairs = [
+    ["vehicule_electrique", String(formData.get("vehicule_electrique") ?? "false")],
+    ["autonomie_km",        String(formData.get("autonomie_km") ?? "300")],
+    ["seuil_recharge_pct",  String(formData.get("seuil_recharge_pct") ?? "20")],
+    ["cible_recharge_pct",  String(formData.get("cible_recharge_pct") ?? "80")],
+    ["charge_depart_pct",   String(formData.get("charge_depart_pct") ?? "100")],
+    ["temps_recharge_min",  String(formData.get("temps_recharge_min") ?? "25")],
+  ] as [string, string][];
+
+  const supabase = await createClient();
+  await supabase
+    .from("parametres")
+    .upsert(
+      pairs.map(([cle, valeur]) => ({ cle, valeur, updated_at: new Date().toISOString() })),
+      { onConflict: "cle" }
+    );
+  revalidatePath("/animateur/parametres");
+  revalidatePath("/animateur/parcours");
+}
+
 // ── Notifications email ──────────────────────────────────────────────────────
 
 export async function updateParametreEmail(formData: FormData) {
