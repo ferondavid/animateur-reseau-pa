@@ -4,16 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const liens = [
-  { href: "/pilotage", label: "Pilotage" },
-  { href: "/animateur", label: "Carte" },
-  { href: "/magasins", label: "Magasins" },
-  { href: "/visites", label: "Visites" },
-  { href: "/animateur/parcours", label: "🚗 Parcours" },
-  { href: "/animateur/rdv", label: "RDV" },
-  { href: "/actions-reseau", label: "Actions" },
-  { href: "/remontees", label: "Remontées" },
-  { href: "/evaluations", label: "Évaluations" },
-  { href: "/animateur/news", label: "News" },
+  { href: "/animateur",         label: "Carte" },
+  { href: "/pilotage",          label: "Pilotage" },
+  { href: "/animateur/rdv",     label: "RDV" },
+  { href: "/animateur/parcours",label: "🚗 Parcours" },
+  { href: "/actions-reseau",    label: "Actions" },
+  { href: "/remontees",         label: "Remontées" },
+  { href: "/animateur/news",    label: "News" },
+  { href: "/evaluations",       label: "Évaluations" },
+  { href: "/magasins",          label: "Magasins" },
 ];
 
 function estActif(href: string, pathname: string): boolean {

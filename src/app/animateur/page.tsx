@@ -2,8 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import CarteWrapper from "@/components/CarteWrapper";
 import Navigation from "@/components/Navigation";
 import PersistRole from "@/components/PersistRole";
-import BoutonChangerRole from "@/components/BoutonChangerRole";
-import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
+import MenuAnimateur from "@/components/MenuAnimateur";
 import CardRDVDemande from "@/components/CardRDVDemande";
 import type { RDVDemande } from "@/components/CardRDVDemande";
 import CardGCalEvent from "@/components/CardGCalEvent";
@@ -284,33 +283,8 @@ export default async function AnimateurPage() {
               Pilotage et suivi de votre réseau de magasins
             </p>
           </div>
-          <div className="flex items-center gap-3 shrink-0 flex-wrap justify-end">
-            <BoutonInstallerPWA />
-            <BoutonChangerRole />
-            <Link
-              href="/animateur/parametres"
-              className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-medium hover:border-slate-400 hover:bg-slate-50 transition-colors"
-            >
-              ⚙️ Paramètres
-            </Link>
-            <Link
-              href="/animateur/news"
-              className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-medium hover:border-slate-400 hover:bg-slate-50 transition-colors inline-flex items-center gap-2"
-            >
-              📰 Gestion des news
-            </Link>
-            <Link
-              href="/animateur/parcours"
-              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
-            >
-              🚗 Préparer une tournée
-            </Link>
-            <Link
-              href="/pilotage"
-              className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
-            >
-              → Pilotage complet
-            </Link>
+          <div className="shrink-0">
+            <MenuAnimateur />
           </div>
         </div>
 
