@@ -119,6 +119,100 @@ export default async function ModifierMagasinPage({
             />
           </div>
 
+          {/* Infos animateur (confidentielles) */}
+          <div className="bg-amber-50 rounded-xl border-2 border-amber-200 p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-amber-900 uppercase tracking-wide inline-flex items-center gap-2">
+                🔒 Infos animateur
+              </h2>
+              <span className="text-[10px] font-semibold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
+                CONFIDENTIEL — Non visible côté membre
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Champ
+                label="Date de création (entreprise)"
+                name="date_creation_entreprise"
+                type="date"
+                defaultValue={m.date_creation_entreprise ?? ""}
+              />
+              <Champ
+                label="Nombre de collaborateurs"
+                name="nb_collaborateurs"
+                type="number"
+                defaultValue={m.nb_collaborateurs?.toString() ?? ""}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                Type d&apos;activité
+              </label>
+              <select
+                name="type_activite"
+                defaultValue={m.type_activite ?? ""}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="">— Non renseigné —</option>
+                <option value="integree">🏗️ Intégrée (atelier/SAV maison)</option>
+                <option value="sous_traitance">🔗 Sous-traitance</option>
+                <option value="mixte">⚖️ Mixte</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                Score de potentiel <span className="text-slate-400">(1 = faible · 5 = très fort)</span>
+              </label>
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <label key={n} className="flex-1">
+                    <input
+                      type="radio"
+                      name="score_potentiel"
+                      value={n.toString()}
+                      defaultChecked={m.score_potentiel === n}
+                      className="sr-only peer"
+                    />
+                    <span className="block text-center py-2 rounded-xl border-2 border-slate-200 bg-white peer-checked:border-amber-500 peer-checked:bg-amber-100 text-sm font-medium cursor-pointer transition-colors">
+                      {"⭐".repeat(n)}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                Tags <span className="text-slate-400">(séparés par des virgules)</span>
+              </label>
+              <input
+                type="text"
+                name="tags_animateur"
+                defaultValue={Array.isArray(m.tags_animateur) ? m.tags_animateur.join(", ") : ""}
+                placeholder="ambassadeur, moteur, à suivre, fragile…"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Exemples : <em>ambassadeur</em>, <em>moteur réseau</em>, <em>à suivre</em>, <em>fragile</em>, <em>nouveau</em>…
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                Notes confidentielles
+              </label>
+              <textarea
+                name="notes_animateur"
+                defaultValue={m.notes_animateur ?? ""}
+                rows={5}
+                placeholder="Contexte, dirigeant, points sensibles, historique relationnel… tout ce qui te sert mais que tu ne veux pas exposer au membre."
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+              />
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="flex items-center justify-end gap-3">
             <Link

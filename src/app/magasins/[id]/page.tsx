@@ -246,6 +246,84 @@ export default async function MagasinDetailPage({
             </div>
           )}
 
+          {/* Card : Infos animateur (confidentielles) — affichée seulement si au moins un champ est rempli */}
+          {(m.date_creation_entreprise || m.nb_collaborateurs || m.type_activite || m.score_potentiel || (Array.isArray(m.tags_animateur) && m.tags_animateur.length > 0) || m.notes_animateur) && (
+            <div className="bg-amber-50 rounded-xl border-2 border-amber-200 p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <h2 className="text-sm font-semibold text-amber-900 uppercase tracking-wide inline-flex items-center gap-2">
+                  🔒 Infos animateur
+                </h2>
+                <span className="text-[10px] font-semibold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
+                  CONFIDENTIEL — Non visible côté membre
+                </span>
+              </div>
+
+              {/* Tags */}
+              {Array.isArray(m.tags_animateur) && m.tags_animateur.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {m.tags_animateur.map((tag: string, i: number) => (
+                    <span key={i} className="bg-white border border-amber-300 text-amber-900 text-xs font-semibold px-2.5 py-1 rounded-full">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Grille d'infos */}
+              <dl className="grid grid-cols-2 gap-x-8 gap-y-4">
+                {m.date_creation_entreprise && (
+                  <div>
+                    <dt className="text-xs text-amber-700 mb-0.5">Date de création</dt>
+                    <dd className="text-slate-900">
+                      {new Date(m.date_creation_entreprise).toLocaleDateString("fr-FR")}
+                      {(() => {
+                        const annees = Math.floor((Date.now() - new Date(m.date_creation_entreprise).getTime()) / (365.25 * 86_400_000));
+                        return annees > 0 ? <span className="text-slate-400 text-sm ml-2">({annees} an{annees > 1 ? "s" : ""})</span> : null;
+                      })()}
+                    </dd>
+                  </div>
+                )}
+                {m.nb_collaborateurs != null && (
+                  <div>
+                    <dt className="text-xs text-amber-700 mb-0.5">Collaborateurs</dt>
+                    <dd className="text-slate-900">{m.nb_collaborateurs} personne{m.nb_collaborateurs > 1 ? "s" : ""}</dd>
+                  </div>
+                )}
+                {m.type_activite && (
+                  <div>
+                    <dt className="text-xs text-amber-700 mb-0.5">Type d&apos;activité</dt>
+                    <dd className="text-slate-900">
+                      {{
+                        integree: "🏗️ Intégrée (atelier/SAV maison)",
+                        sous_traitance: "🔗 Sous-traitance",
+                        mixte: "⚖️ Mixte",
+                      }[m.type_activite as string] ?? m.type_activite}
+                    </dd>
+                  </div>
+                )}
+                {m.score_potentiel != null && (
+                  <div>
+                    <dt className="text-xs text-amber-700 mb-0.5">Score potentiel</dt>
+                    <dd className="text-slate-900">
+                      <span className="text-base">{"⭐".repeat(m.score_potentiel)}</span>
+                      <span className="text-slate-400 text-sm ml-2">{m.score_potentiel}/5</span>
+                    </dd>
+                  </div>
+                )}
+              </dl>
+
+              {/* Notes confidentielles */}
+              {m.notes_animateur && (
+                <div className="pt-3 border-t border-amber-200">
+                  <dt className="text-xs text-amber-700 font-semibold uppercase tracking-wide mb-1.5">Notes confidentielles</dt>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed bg-white border border-amber-200 rounded-lg p-3">
+                    {m.notes_animateur}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Card : Visites */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
