@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 type Etat = "idle" | "ecoute" | "traitement" | "reponse" | "erreur";
 
@@ -41,13 +41,51 @@ export default function BoutonMicroVocal() {
   const [transcription, setTranscription] = useState("");
   const [reponse, setReponse] = useState("");
   const reconRef = useRef<SpeechRecognitionLike | null>(null);
+  const voixFRRef = useRef<SpeechSynthesisVoice | null>(null);
+  const deverroulleeMobileRef = useRef(false);
+
+  // Précharge les voix disponibles (Android Chrome les charge async)
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    function choisirVoixFR() {
+      const voix = window.speechSynthesis.getVoices();
+      // Priorité : voix Google fr-FR > toute voix fr-FR > toute voix fr-*
+      const meilleure =
+        voix.find(v => v.lang === "fr-FR" && /google/i.test(v.name)) ??
+        voix.find(v => v.lang === "fr-FR") ??
+        voix.find(v => v.lang.startsWith("fr"));
+      if (meilleure) voixFRRef.current = meilleure;
+    }
+    choisirVoixFR();
+    window.speechSynthesis.onvoiceschanged = choisirVoixFR;
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
+
+  /** Déverrouille l'audio sur mobile (iOS Safari notamment) avec une utterance vide */
+  function deverrouillerAudioMobile() {
+    if (deverroulleeMobileRef.current) return;
+    if (!("speechSynthesis" in window)) return;
+    try {
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0;
+      u.rate = 1;
+      window.speechSynthesis.speak(u);
+      deverroulleeMobileRef.current = true;
+    } catch {
+      // ignore
+    }
+  }
 
   function parler(texte: string) {
     if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
+    // Ne PAS cancel() avant : iOS coupe parfois la nouvelle utterance
     const u = new SpeechSynthesisUtterance(texte);
     u.lang = "fr-FR";
     u.rate = 1.05;
+    u.volume = 1;
+    if (voixFRRef.current) u.voice = voixFRRef.current;
     window.speechSynthesis.speak(u);
   }
 
@@ -121,6 +159,8 @@ export default function BoutonMicroVocal() {
   }
 
   function ouvrirEtEcouter() {
+    // Déverrouille l'audio mobile dès l'interaction utilisateur
+    deverrouillerAudioMobile();
     setOuverte(true);
     demarrerEcoute();
   }
@@ -217,9 +257,19 @@ export default function BoutonMicroVocal() {
             {/* Réponse */}
             {reponse && (
               <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 text-sm text-violet-900">
-                <p className="text-[10px] font-semibold text-violet-400 uppercase tracking-wide mb-1">
-                  Assistant
-                </p>
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="text-[10px] font-semibold text-violet-400 uppercase tracking-wide">
+                    Assistant
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => parler(reponse)}
+                    title="Réécouter"
+                    className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-violet-200 text-violet-700 hover:bg-violet-100 text-[10px] font-semibold"
+                  >
+                    🔊 Réécouter
+                  </button>
+                </div>
                 <p>{reponse}</p>
               </div>
             )}
