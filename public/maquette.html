@@ -4,219 +4,242 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Maquette — Nouvelle fiche membre</title>
+<title>Maquette — Fiche membre</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css" />
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #EDE9E1;
-    color: #2C2C2A;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 12px 60px;
-    -webkit-font-smoothing: antialiased;
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --ink:#241F33;
+    --muted:#8B8699;
+    --card:rgba(255,255,255,0.72);
+    --line:rgba(120,110,150,0.14);
   }
-  .banner {
-    max-width: 420px; width: 100%;
-    background: #534AB7; color: #fff;
-    border-radius: 16px; padding: 14px 18px; margin-bottom: 20px;
-    font-size: 13px; line-height: 1.5;
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:26px 14px 70px;
+    display:flex;flex-direction:column;align-items:center;
+    -webkit-font-smoothing:antialiased;
+    position:relative;overflow-x:hidden;
+    background:#F4F1FB;
   }
-  .banner b { font-weight: 600; }
-  .phone {
-    width: 100%; max-width: 420px;
-    background: #FBF9F5;
-    border-radius: 30px;
-    border: 1px solid rgba(0,0,0,0.08);
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+  .aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;}
+  .b1{width:340px;height:340px;background:#C8BEF7;top:-80px;left:-60px;animation:float1 14s ease-in-out infinite;}
+  .b2{width:300px;height:300px;background:#A9E4D4;top:120px;right:-90px;animation:float2 16s ease-in-out infinite;}
+  .b3{width:280px;height:280px;background:#F8C8D8;bottom:-60px;left:30px;animation:float1 18s ease-in-out infinite;}
+  @keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,30px)}}
+  @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,20px)}}
+
+  .wrap{position:relative;z-index:1;width:100%;max-width:430px;}
+  .banner{
+    background:rgba(255,255,255,0.6);backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,0.7);
+    border-radius:18px;padding:13px 18px;margin-bottom:18px;
+    font-size:12.5px;line-height:1.5;color:#5b5470;
   }
-  .pad { padding: 22px 18px 18px; }
+  .banner b{font-weight:700;color:var(--ink);}
 
-  .hero { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
-  .weather {
-    width:56px; height:56px; border-radius:18px; background:#E1F5EE;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; color:#0F6E56;
+  .card{
+    background:var(--card);backdrop-filter:blur(20px) saturate(140%);
+    -webkit-backdrop-filter:blur(20px) saturate(140%);
+    border:1px solid rgba(255,255,255,0.7);
+    border-radius:26px;
+    box-shadow:0 10px 40px -12px rgba(80,60,140,0.22);
+    overflow:hidden;
   }
-  .weather i { font-size:23px; }
-  .weather span { font-size:11px; font-weight:600; margin-top:1px; }
-  .hero h1 { font-size:18px; font-weight:600; }
-  .hero .loc { font-size:12px; color:#888780; margin-top:1px; }
-  .stars { display:flex; gap:2px; margin-top:4px; color:#EF9F27; font-size:14px; }
-  .stars .off { color:#D3D1C7; }
+  .reveal{opacity:0;transform:translateY(14px);animation:rise .6s cubic-bezier(.2,.7,.3,1) forwards;}
+  @keyframes rise{to{opacity:1;transform:none;}}
 
-  .quick { display:grid; grid-template-columns: repeat(4,1fr); gap:9px; margin-bottom:22px; }
-  .qa { border-radius:17px; padding:13px 4px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:transform .12s; border:none; }
-  .qa i { font-size:21px; }
-  .qa span { font-size:11px; font-weight:600; }
-  .qa:active { transform:scale(.92); }
+  .pad{padding:22px 18px 20px;}
 
-  .section-label { font-size:11px; font-weight:700; color:#B4B2A9; text-transform:uppercase; letter-spacing:0.07em; margin:6px 0 12px 3px; }
+  .hero{position:relative;border-radius:24px;padding:20px;margin-bottom:18px;overflow:hidden;
+    background:linear-gradient(135deg,#7C6BE8 0%,#9B7BE8 45%,#C98BD9 100%);
+    box-shadow:0 14px 40px -14px rgba(124,107,232,0.6);}
+  .hero::after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;
+    background:rgba(255,255,255,0.18);top:-50px;right:-30px;}
+  .hero-row{position:relative;display:flex;align-items:center;gap:14px;z-index:1;}
+  .wx{width:58px;height:58px;border-radius:18px;background:rgba(255,255,255,0.22);
+    backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
+  .wx i{font-size:24px;} .wx span{font-size:11px;font-weight:700;margin-top:1px;}
+  .hero h1{color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.3px;}
+  .hero .loc{color:rgba(255,255,255,0.82);font-size:12.5px;margin-top:2px;}
+  .hero .stars{display:flex;gap:3px;margin-top:5px;color:#FFE08A;font-size:14px;}
+  .hero .stars .off{color:rgba(255,255,255,0.4);}
+  .hero .greet{position:relative;z-index:1;color:rgba(255,255,255,0.9);font-size:13px;margin-top:14px;font-weight:500;}
 
-  .tile { border:1px solid; border-radius:18px; margin-bottom:11px; overflow:hidden; cursor:pointer; background:#fff; transition:border-color .2s; }
-  .tile-head { display:flex; align-items:center; justify-content:space-between; padding:14px; }
-  .tile-head .lead { display:flex; align-items:center; gap:11px; }
-  .tile-head .lead > i { font-size:20px; }
-  .tile-title { font-size:14px; font-weight:600; }
-  .tile-sub { font-size:12px; margin-top:1px; }
-  .big { font-size:19px; font-weight:600; margin-top:1px; }
-  .big small { font-size:11px; font-weight:400; color:#888780; }
-  .chev { font-size:18px; transition:transform .26s; color:#B4B2A9; }
-  .tile.open .chev { transform:rotate(180deg); }
-  .tile-body { max-height:0; overflow:hidden; transition:max-height .3s ease; }
-  .tile.open .tile-body { max-height:260px; }
-  .tile-body-inner { padding:0 14px 13px; }
+  .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+  .qa{border:none;border-radius:20px;padding:15px 4px;display:flex;flex-direction:column;align-items:center;gap:7px;
+    cursor:pointer;color:#fff;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;}
+  .qa i{font-size:22px;} .qa span{font-size:11px;font-weight:600;}
+  .qa:active{transform:scale(.9);}
+  .qa.g1{background:linear-gradient(140deg,#34C9A3,#1FA98A);box-shadow:0 8px 20px -8px rgba(31,169,138,.7);}
+  .qa.g2{background:linear-gradient(140deg,#5BA8F5,#3D7BE8);box-shadow:0 8px 20px -8px rgba(61,123,232,.7);}
+  .qa.g3{background:linear-gradient(140deg,#F79B72,#EC6B4E);box-shadow:0 8px 20px -8px rgba(236,107,78,.7);}
+  .qa.g4{background:linear-gradient(140deg,#B08BF0,#8A5FE0);box-shadow:0 8px 20px -8px rgba(138,95,224,.7);}
 
-  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
-  .grid2 .tile { margin-bottom:0; }
+  .label{font-size:11px;font-weight:700;color:#9A93AD;text-transform:uppercase;letter-spacing:0.09em;margin:4px 0 12px 4px;}
 
-  .row { display:flex; align-items:center; gap:11px; padding:10px 0; border-top:1px solid rgba(0,0,0,0.06); }
-  .row > i { font-size:19px; }
-  .row-t { font-size:13px; font-weight:600; }
-  .row-s { font-size:11px; color:#888780; }
-  .row-act { margin-left:auto; display:flex; gap:7px; }
-  .row-act button { width:30px; height:30px; border-radius:11px; border:none; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; }
-  .ok { background:#9FE1CB; color:#0F6E56; }
-  .no { background:#F4C0D1; color:#993556; }
+  .tile{border-radius:22px;margin-bottom:12px;overflow:hidden;cursor:pointer;
+    transition:transform .2s,box-shadow .25s;}
+  .tile:active{transform:scale(.985);}
+  .thead{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;}
+  .lead{display:flex;align-items:center;gap:12px;}
+  .ico{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .ttl{font-size:14px;font-weight:700;color:var(--ink);}
+  .sub{font-size:12px;margin-top:1px;}
+  .big{font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-top:1px;}
+  .big small{font-size:11px;font-weight:500;color:var(--muted);}
+  .chev{font-size:19px;transition:transform .3s cubic-bezier(.3,.7,.3,1);color:#B6B0C4;}
+  .tile.open .chev{transform:rotate(180deg);}
+  .body{max-height:0;overflow:hidden;transition:max-height .34s cubic-bezier(.3,.7,.3,1);}
+  .tile.open .body{max-height:280px;}
+  .bin{padding:0 16px 15px;}
 
-  .mini { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#5F5E5A; padding:7px 0; border-top:1px solid rgba(0,0,0,0.05); }
-  .mini b { font-weight:600; color:#2C2C2A; }
-  .mini i { font-size:13px; }
+  .demande{background:linear-gradient(135deg,#FFF3D6,#FFE8C2);border:1px solid rgba(240,180,90,0.4);}
+  .row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(180,130,40,0.18);}
+  .row .ri{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;font-size:18px;color:#A86A12;flex-shrink:0;}
+  .rt{font-size:13px;font-weight:700;color:#6B4410;}
+  .rs{font-size:11.5px;color:#A8843E;}
+  .ract{margin-left:auto;display:flex;gap:8px;}
+  .ract button{width:34px;height:34px;border-radius:12px;border:none;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:transform .12s;}
+  .ract button:active{transform:scale(.85);}
+  .ok{background:#3FCBA0;color:#fff;box-shadow:0 4px 12px -3px rgba(63,203,160,.7);}
+  .no{background:#F2A0B8;color:#fff;box-shadow:0 4px 12px -3px rgba(242,160,184,.6);}
 
-  .footer { display:flex; gap:9px; padding:14px 18px; background:#fff; border-top:1px solid rgba(0,0,0,0.06); }
-  .navbtn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:11px; border:1px solid rgba(0,0,0,0.12); background:#FBF9F5; border-radius:13px; font-size:12px; font-weight:600; color:#5F5E5A; cursor:pointer; }
-  .navbtn i { font-size:16px; }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid2 .tile{margin-bottom:0;background:var(--card);backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 26px -14px rgba(80,60,140,0.28);}
 
-  .note { max-width:420px; width:100%; margin-top:22px; font-size:12px; color:#7a7870; line-height:1.6; text-align:center; }
+  .mini{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#6F6982;padding:8px 0;border-top:1px solid var(--line);}
+  .mini b{font-weight:700;color:var(--ink);}
+  .mini i{font-size:13px;}
+
+  .footer{display:flex;gap:10px;padding:16px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,0.5);}
+  .nav{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;border:1px solid rgba(120,110,150,0.2);
+    background:rgba(255,255,255,0.7);border-radius:15px;font-size:12.5px;font-weight:700;color:#6F6982;cursor:pointer;transition:transform .12s;}
+  .nav:active{transform:scale(.96);}
+  .nav i{font-size:16px;}
+  .note{position:relative;z-index:1;max-width:430px;width:100%;margin-top:20px;font-size:12px;color:#8b85a0;line-height:1.6;text-align:center;}
 </style>
 </head>
 <body>
+  <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 
-  <div class="banner">
-    <b>Maquette — fiche membre revisitée</b><br/>
-    Touchez les tuiles pour les ouvrir. Tout est replié par défaut : l'écran reste calme, on déroule l'info au besoin.
-  </div>
+  <div class="wrap">
+    <div class="banner reveal" style="animation-delay:.02s"><b>Maquette premium — fiche membre</b><br/>Touchez les tuiles pour les déplier. Verre dépoli, dégradés doux, animations fluides.</div>
 
-  <div class="phone">
-    <div class="pad">
+    <div class="card reveal" style="animation-delay:.08s">
+      <div class="pad">
 
-      <div class="hero">
-        <div class="weather"><i class="ti ti-cloud"></i><span>22°</span></div>
-        <div style="flex:1; min-width:0;">
-          <h1>Aqua Démo Lyon</h1>
-          <div class="loc">Lyon · Auvergne-Rhône-Alpes</div>
-          <div class="stars"><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star off"></i></div>
+        <div class="hero">
+          <div class="hero-row">
+            <div class="wx"><i class="ti ti-cloud"></i><span>22°</span></div>
+            <div style="flex:1;min-width:0;">
+              <h1>Aqua Démo Lyon</h1>
+              <div class="loc">Lyon · Auvergne-Rhône-Alpes</div>
+              <div class="stars"><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star off"></i></div>
+            </div>
+          </div>
+          <div class="greet">Belle journée à vous ✨ — ensoleillé cet après-midi</div>
+        </div>
+
+        <div class="quick">
+          <button class="qa g1"><i class="ti ti-phone"></i><span>Contacter</span></button>
+          <button class="qa g2"><i class="ti ti-calendar-plus"></i><span>RDV</span></button>
+          <button class="qa g3"><i class="ti ti-speakerphone"></i><span>Remonter</span></button>
+          <button class="qa g4"><i class="ti ti-microphone"></i><span>Vocal</span></button>
+        </div>
+
+        <div class="tile demande">
+          <div class="thead">
+            <div class="lead">
+              <div class="ico" style="background:rgba(255,255,255,0.6);color:#A86A12;"><i class="ti ti-inbox"></i></div>
+              <div><div class="ttl" style="color:#6B4410;">Demandes de l'animateur</div><div class="sub" style="color:#A8843E;">2 en attente</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="background:#EF9F27;color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;box-shadow:0 4px 10px -3px rgba(239,159,39,.7);">2</span>
+              <i class="ti ti-chevron-down chev" style="color:#C58A2A;"></i>
+            </div>
+          </div>
+          <div class="body"><div class="bin">
+            <div class="row"><div class="ri"><i class="ti ti-building-store"></i></div><div><div class="rt">Visite hebdomadaire</div><div class="rs">mer. 10 juin · 10h00</div></div><div class="ract"><button class="ok"><i class="ti ti-check"></i></button><button class="no"><i class="ti ti-x"></i></button></div></div>
+            <div class="row"><div class="ri"><i class="ti ti-device-laptop"></i></div><div><div class="rt">Formation nouveautés</div><div class="rs">mar. 23 juin · 10h00</div></div><div class="ract"><button class="ok"><i class="ti ti-check"></i></button><button class="no"><i class="ti ti-x"></i></button></div></div>
+          </div></div>
+        </div>
+
+        <div class="label">Mes informations</div>
+
+        <div class="grid2">
+          <div class="tile">
+            <div class="thead" style="padding:14px;">
+              <div class="lead"><div class="ico" style="background:linear-gradient(135deg,#E4DDFB,#D3C7F7);color:#6B4FD8;"><i class="ti ti-chart-dots"></i></div>
+                <div><div class="ttl">Indicateurs</div><div class="big" style="color:#6B4FD8;"><span class="cnt" data-to="4.2">0</span><small>/5</small></div></div></div>
+              <i class="ti ti-chevron-down chev"></i>
+            </div>
+            <div class="body"><div class="bin">
+              <div class="mini"><span>Confiance</span><b>4,2</b></div><div class="mini"><span>Business</span><b>3,8</b></div><div class="mini"><span>Satisfaction</span><b>4,0</b></div>
+            </div></div>
+          </div>
+
+          <div class="tile">
+            <div class="thead" style="padding:14px;">
+              <div class="lead"><div class="ico" style="background:linear-gradient(135deg,#D2F2E7,#B5E9D5);color:#0F8C68;"><i class="ti ti-coin"></i></div>
+                <div><div class="ttl">Chiffre d'aff.</div><div class="big" style="color:#0F8C68;"><span class="cnt" data-to="580" data-suffix="k€">0</span></div></div></div>
+              <i class="ti ti-chevron-down chev"></i>
+            </div>
+            <div class="body"><div class="bin">
+              <div class="mini"><span>2026</span><b>580k€</b></div><div class="mini"><span>vs 2025</span><b style="color:#0F8C68;">+4%</b></div><div class="mini"><span>Spa</span><b>132k€</b></div>
+            </div></div>
+          </div>
+
+          <div class="tile">
+            <div class="thead" style="padding:14px;">
+              <div class="lead"><div class="ico" style="background:linear-gradient(135deg,#D9EAFB,#BFDBF7);color:#2D6FD0;"><i class="ti ti-history"></i></div>
+                <div><div class="ttl">Mon activité</div><div class="sub" style="color:var(--muted);">12 événements</div></div></div>
+              <i class="ti ti-chevron-down chev"></i>
+            </div>
+            <div class="body"><div class="bin">
+              <div class="mini"><span><i class="ti ti-car" style="color:#34C9A3;"></i> Visites</span><b>3</b></div><div class="mini"><span><i class="ti ti-calendar" style="color:#5BA8F5;"></i> RDV</span><b>4</b></div><div class="mini"><span><i class="ti ti-speakerphone" style="color:#F79B72;"></i> Remontées</span><b>2</b></div>
+            </div></div>
+          </div>
+
+          <div class="tile">
+            <div class="thead" style="padding:14px;">
+              <div class="lead"><div class="ico" style="background:linear-gradient(135deg,#F9DCE7,#F4C4D6;);color:#C04B72;"><i class="ti ti-news"></i></div>
+                <div><div class="ttl">Actualités</div><div class="sub" style="color:var(--muted);">3 nouvelles</div></div></div>
+              <i class="ti ti-chevron-down chev"></i>
+            </div>
+            <div class="body"><div class="bin">
+              <div class="mini"><span>Saison 2026</span><i class="ti ti-arrow-right" style="color:#B6B0C4;"></i></div><div class="mini"><span>Promo juin</span><i class="ti ti-arrow-right" style="color:#B6B0C4;"></i></div>
+            </div></div>
+          </div>
         </div>
       </div>
 
-      <div class="quick">
-        <button class="qa" style="background:#E1F5EE; color:#0F6E56;"><i class="ti ti-phone"></i><span>Contacter</span></button>
-        <button class="qa" style="background:#E6F1FB; color:#185FA5;"><i class="ti ti-calendar-plus"></i><span>RDV</span></button>
-        <button class="qa" style="background:#FAECE7; color:#993C1D;"><i class="ti ti-speakerphone"></i><span>Remonter</span></button>
-        <button class="qa" style="background:#EEEDFE; color:#534AB7;"><i class="ti ti-microphone"></i><span>Vocal</span></button>
-      </div>
-
-      <div class="tile" style="border-color:#FAC775; background:#FAEEDA;">
-        <div class="tile-head">
-          <div class="lead">
-            <i class="ti ti-inbox" style="color:#854F0B;"></i>
-            <div>
-              <div class="tile-title" style="color:#633806;">Demandes de l'animateur</div>
-              <div class="tile-sub" style="color:#BA7517;">2 en attente de réponse</div>
-            </div>
-          </div>
-          <div style="display:flex; align-items:center; gap:9px;">
-            <span style="background:#EF9F27; color:#412402; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px;">2</span>
-            <i class="ti ti-chevron-down chev" style="color:#BA7517;"></i>
-          </div>
-        </div>
-        <div class="tile-body"><div class="tile-body-inner">
-          <div class="row"><i class="ti ti-building-store" style="color:#854F0B;"></i><div><div class="row-t">Visite hebdomadaire</div><div class="row-s">mer. 10 juin · 10h00</div></div><div class="row-act"><button class="ok"><i class="ti ti-check"></i></button><button class="no"><i class="ti ti-x"></i></button></div></div>
-          <div class="row"><i class="ti ti-device-laptop" style="color:#854F0B;"></i><div><div class="row-t">Formation nouveautés</div><div class="row-s">mar. 23 juin · 10h00</div></div><div class="row-act"><button class="ok"><i class="ti ti-check"></i></button><button class="no"><i class="ti ti-x"></i></button></div></div>
-        </div></div>
-      </div>
-
-      <div class="section-label">Mes informations</div>
-
-      <div class="grid2">
-
-        <div class="tile" style="border-color:rgba(0,0,0,0.08);">
-          <div class="tile-head" style="padding:13px;">
-            <div class="lead">
-              <i class="ti ti-chart-dots" style="color:#534AB7;"></i>
-              <div><div class="tile-title">Indicateurs</div><div class="big" style="color:#534AB7;">4,2<small> /5</small></div></div>
-            </div>
-            <i class="ti ti-chevron-down chev"></i>
-          </div>
-          <div class="tile-body"><div class="tile-body-inner">
-            <div class="mini"><span>Confiance</span><b>4,2</b></div>
-            <div class="mini"><span>Business</span><b>3,8</b></div>
-            <div class="mini"><span>Satisfaction</span><b>4,0</b></div>
-          </div></div>
-        </div>
-
-        <div class="tile" style="border-color:rgba(0,0,0,0.08);">
-          <div class="tile-head" style="padding:13px;">
-            <div class="lead">
-              <i class="ti ti-coin" style="color:#0F6E56;"></i>
-              <div><div class="tile-title">Chiffre d'aff.</div><div class="big" style="color:#0F6E56;">580k€</div></div>
-            </div>
-            <i class="ti ti-chevron-down chev"></i>
-          </div>
-          <div class="tile-body"><div class="tile-body-inner">
-            <div class="mini"><span>2026</span><b>580k€</b></div>
-            <div class="mini"><span>vs 2025</span><b style="color:#0F6E56;">+4%</b></div>
-            <div class="mini"><span>Spa</span><b>132k€</b></div>
-          </div></div>
-        </div>
-
-        <div class="tile" style="border-color:rgba(0,0,0,0.08);">
-          <div class="tile-head" style="padding:13px;">
-            <div class="lead">
-              <i class="ti ti-history" style="color:#185FA5;"></i>
-              <div><div class="tile-title">Mon activité</div><div class="tile-sub" style="color:#888780;">12 événements</div></div>
-            </div>
-            <i class="ti ti-chevron-down chev"></i>
-          </div>
-          <div class="tile-body"><div class="tile-body-inner">
-            <div class="mini"><span><i class="ti ti-car" style="color:#5DCAA5;"></i> Visites</span><b>3</b></div>
-            <div class="mini"><span><i class="ti ti-calendar" style="color:#85B7EB;"></i> RDV</span><b>4</b></div>
-            <div class="mini"><span><i class="ti ti-speakerphone" style="color:#F0997B;"></i> Remontées</span><b>2</b></div>
-          </div></div>
-        </div>
-
-        <div class="tile" style="border-color:rgba(0,0,0,0.08);">
-          <div class="tile-head" style="padding:13px;">
-            <div class="lead">
-              <i class="ti ti-news" style="color:#993556;"></i>
-              <div><div class="tile-title">Actualités</div><div class="tile-sub" style="color:#888780;">3 nouvelles</div></div>
-            </div>
-            <i class="ti ti-chevron-down chev"></i>
-          </div>
-          <div class="tile-body"><div class="tile-body-inner">
-            <div class="mini"><span>Saison 2026</span><i class="ti ti-arrow-right" style="color:#B4B2A9;"></i></div>
-            <div class="mini"><span>Promo juin</span><i class="ti ti-arrow-right" style="color:#B4B2A9;"></i></div>
-          </div></div>
-        </div>
-
+      <div class="footer">
+        <button class="nav"><i class="ti ti-building-store"></i> Changer magasin</button>
+        <button class="nav"><i class="ti ti-logout"></i> Quitter</button>
       </div>
     </div>
 
-    <div class="footer">
-      <button class="navbtn"><i class="ti ti-building-store"></i> Changer magasin</button>
-      <button class="navbtn"><i class="ti ti-logout"></i> Quitter</button>
-    </div>
+    <p class="note">Maquette statique — sert à valider le style avant de coder.</p>
   </div>
-
-  <p class="note">Ceci est une maquette statique, pas l'app réelle. Sert uniquement à valider le style avant de coder.</p>
 
 <script>
   document.querySelectorAll('.tile').forEach(function(t){
-    t.querySelector('.tile-head').addEventListener('click', function(){ t.classList.toggle('open'); });
+    t.querySelector('.thead').addEventListener('click', function(){ t.classList.toggle('open'); });
   });
+  function animateCount(el){
+    var to=parseFloat(el.dataset.to), suf=el.dataset.suffix||"", dec=(to%1!==0)?1:0, start=performance.now(), dur=900;
+    function step(now){var p=Math.min((now-start)/dur,1), e=1-Math.pow(1-p,3), v=to*e;
+      el.textContent=(dec?v.toFixed(1).replace('.',','):Math.round(v))+suf;
+      if(p<1)requestAnimationFrame(step);}
+    requestAnimationFrame(step);
+  }
+  setTimeout(function(){document.querySelectorAll('.cnt').forEach(animateCount);},450);
 </script>
 </body>
 </html>
