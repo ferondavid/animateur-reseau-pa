@@ -33,9 +33,9 @@ const NIVEAU_BADGE_STYLE: Record<string, string> = {
   observation: "bg-blue-100 text-blue-700",
 };
 const NIVEAU_EMOJI: Record<string, string> = {
-  strategique: "⭐",
+  strategique: "★",
   standard: "",
-  observation: "🔍",
+  observation: "◎",
 };
 
 function normalizeTel(tel: string | null | undefined): string | null {
@@ -241,7 +241,7 @@ export default function Carte({ magasins }: { magasins: MagasinPin[] }) {
             <span>Standard <span className="text-slate-400 italic">(seuil 90j)</span></span>
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white text-[8px]">🔍</span>
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white text-[8px]">◎</span>
             <span>Observation <span className="text-slate-400 italic">(seuil 30j)</span></span>
           </span>
         </div>

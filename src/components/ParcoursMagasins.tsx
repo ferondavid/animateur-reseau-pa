@@ -8,6 +8,10 @@ import {
   creerVisitesPlanifieesParcours,
   calculerArretsRecharge,
 } from "@/app/animateur/parcours/actions";
+import {
+  MapPin, Compass, Map, CalendarPlus, RefreshCw, Zap,
+  Save, Clock, Check, X,
+} from "lucide-react";
 
 type Magasin = {
   id: string;
@@ -31,15 +35,15 @@ export type ConfigVE = {
 
 const NIVEAU_FILTRE = [
   { key: "tous",         label: "Tous" },
-  { key: "strategique", label: "⭐ Stratégique" },
+  { key: "strategique", label: "Stratégique" },
   { key: "standard",    label: "Standard" },
-  { key: "observation", label: "🔍 Observation" },
+  { key: "observation", label: "Observation" },
 ] as const;
 
 const NIVEAU_BADGE: Record<string, { label: string; cls: string }> = {
-  strategique: { label: "⭐ Stratégique", cls: "bg-amber-100 text-amber-800" },
+  strategique: { label: "Stratégique", cls: "bg-amber-100 text-amber-800" },
   standard:    { label: "Standard",       cls: "bg-slate-100 text-slate-600" },
-  observation: { label: "🔍 Observation", cls: "bg-blue-100 text-blue-700" },
+  observation: { label: "Observation", cls: "bg-blue-100 text-blue-700" },
 };
 
 function formatDist(km: number): string {
@@ -258,28 +262,30 @@ export default function ParcoursMagasins({
 
         {/* Départ */}
         <div className="pa-card p-4 space-y-3">
-          <h2 className="text-sm font-semibold text-slate-700">📍 Point de départ</h2>
+          <h2 className="text-sm font-semibold flex items-center gap-1.5" style={{ color: "var(--pa-ink)" }}><MapPin size={14} style={{ color: "#7C6BE8" }} />Point de départ</h2>
           <input
             type="text"
             value={departTexte}
             onChange={(e) => { setDepartTexte(e.target.value); setDepartCoords(null); setParcours(null); setGeocodeErr(null); }}
             onKeyDown={(e) => e.key === "Enter" && geocoder()}
             placeholder="12 rue de la République, 69002 Lyon"
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="pa-input"
           />
           <div className="flex gap-2 flex-wrap">
             <button onClick={geocoder} disabled={geocoding || !departTexte.trim()}
-              className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-700 disabled:opacity-50 transition-colors">
-              {geocoding ? "Recherche…" : "📍 Géocoder"}
+              className="pa-btn-primary px-3 py-1.5 rounded-lg text-xs flex items-center gap-1">
+              {geocoding ? "Recherche…" : <><MapPin size={11} /> Géocoder</>}
             </button>
             <button onClick={utiliserPosition}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 text-xs font-medium hover:bg-slate-50 transition-colors">
-              📍 Ma position
+              className="px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1"
+              style={{ borderColor: "rgba(124,107,232,0.25)", color: "var(--pa-muted)", background: "#fff" }}>
+              <MapPin size={11} /> Ma position
             </button>
             {departTexte && (
               <button onClick={() => { try { localStorage.setItem(LS_DEPART, departTexte); } catch { /* */ } }}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 text-xs hover:bg-slate-50 transition-colors">
-                💾 Mémoriser
+                className="px-3 py-1.5 rounded-lg border text-xs transition-colors flex items-center gap-1"
+                style={{ borderColor: "rgba(124,107,232,0.25)", color: "var(--pa-muted)", background: "#fff" }}>
+                <Save size={11} /> Mémoriser
               </button>
             )}
           </div>
@@ -306,7 +312,7 @@ export default function ParcoursMagasins({
         {configVE.active && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-amber-800">⚡ Véhicule électrique</p>
+              <p className="text-sm font-semibold flex items-center gap-1.5 text-amber-800"><Zap size={13} />Véhicule électrique</p>
               <a href="/animateur/parametres" className="text-xs text-amber-600 hover:underline">
                 Modifier →
               </a>
@@ -347,7 +353,7 @@ export default function ParcoursMagasins({
             value={filtreTexte}
             onChange={(e) => setFiltreTexte(e.target.value)}
             placeholder="Rechercher…"
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="pa-input"
           />
 
           <div className="flex gap-1.5 flex-wrap">
@@ -408,10 +414,10 @@ export default function ParcoursMagasins({
           </label>
 
           <button onClick={calculer} disabled={!peutCalculer || calculating}
-            className="w-full py-3 rounded-xl bg-slate-900 text-white font-semibold text-sm hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            className="pa-btn-primary w-full py-3 rounded-xl text-sm">
             {calculating
-              ? configVE.active ? "⚡ Calcul + recherche bornes…" : "Calcul en cours…"
-              : "🧭 Calculer l'itinéraire"}
+              ? configVE.active ? "Calcul + bornes…" : "Calcul en cours…"
+              : "Calculer l'itinéraire"}
           </button>
 
           {!departCoords && <p className="text-xs text-slate-400 text-center">Géocode un point de départ d'abord</p>}
@@ -435,25 +441,25 @@ export default function ParcoursMagasins({
             <div className={`grid gap-4 ${configVE.active && nbBornes > 0 ? "grid-cols-4" : "grid-cols-3"}`}>
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900">{distAffichee}</p>
-                <p className="text-xs text-slate-500 mt-0.5">🛣️ Distance</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--pa-muted)" }}>Distance</p>
               </div>
               <div className="text-center border-x border-slate-100">
                 <p className="text-2xl font-bold text-slate-900">{dureeRouteAffichee}</p>
-                <p className="text-xs text-slate-500 mt-0.5">⏱️ Temps route</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--pa-muted)" }}>Temps route</p>
               </div>
               {configVE.active && nbBornes > 0 && (
                 <div className="text-center border-r border-slate-100">
                   <p className="text-2xl font-bold text-amber-600">
                     {formatDuree(parcours.dureeArretsMinutes)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">⚡ Arrêts</p>
+                  <p className="text-xs mt-0.5 flex items-center justify-center gap-0.5" style={{ color: "var(--pa-muted)" }}><Zap size={10} />Arrêts</p>
                 </div>
               )}
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900">
                   {parcours.etapes.filter((e) => e.type === "magasin").length}
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">📍 Magasins</p>
+                <p className="text-xs mt-0.5 flex items-center justify-center gap-0.5" style={{ color: "var(--pa-muted)" }}><MapPin size={10} />Magasins</p>
               </div>
             </div>
             <p className="text-xs text-slate-400 text-center">
@@ -527,17 +533,18 @@ export default function ParcoursMagasins({
               {departCoords && (
                 <a href={genGoogleMapsUrl(departCoords, parcours.etapes, retourDepart)}
                   target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">
-                  🗺️ Ouvrir dans Google Maps
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors"
+                  style={{ background: "linear-gradient(135deg,#34C9A3,#1FA98A)", boxShadow: "0 6px 16px -6px rgba(31,169,138,.5)" }}>
+                  <Map size={14} /> Ouvrir dans Maps
                 </a>
               )}
               <button onClick={() => { setModalPlanif(true); setPlanifResult(null); }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
-                📅 Planifier les visites
+                className="pa-btn-primary flex items-center gap-2 px-4 py-2 rounded-xl text-sm">
+                <CalendarPlus size={14} /> Planifier les visites
               </button>
               <button onClick={() => setParcours(null)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
-                🔄 Recalculer
+                className="pa-btn-secondary flex items-center gap-2 px-4 py-2 rounded-xl text-sm">
+                <RefreshCw size={14} /> Recalculer
               </button>
             </div>
           </div>
@@ -546,11 +553,11 @@ export default function ParcoursMagasins({
 
       {/* ─── MODALE PLANIFIER ──────────────────────────────────────── */}
       {modalPlanif && parcours && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+        <div className="pa-modal-overlay">
+          <div className="pa-modal-content max-w-sm w-full p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-slate-900">📅 Planifier les visites</h3>
-              <button onClick={() => setModalPlanif(false)} className="text-slate-400 hover:text-slate-700 text-xl">×</button>
+              <h3 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--pa-ink)" }}><CalendarPlus size={16} style={{ color: "#7C6BE8" }} />Planifier les visites</h3>
+              <button onClick={() => setModalPlanif(false)} className="text-slate-400 hover:text-slate-700" aria-label="Fermer"><X size={16} /></button>
             </div>
             <p className="text-sm text-slate-500">
               {parcours.etapes.filter((e) => e.type === "magasin").length} visite{parcours.etapes.filter((e) => e.type === "magasin").length > 1 ? "s" : ""} créées, 1 par jour.
@@ -559,24 +566,24 @@ export default function ParcoursMagasins({
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Premier jour</label>
                 <input type="date" value={datePlanif} onChange={(e) => setDatePlanif(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="pa-input" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Objectif</label>
                 <input type="text" value={objectifPlanif} onChange={(e) => setObjectifPlanif(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="pa-input" />
               </div>
             </div>
             {planifResult && (
               planifResult.ok
                 ? <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700">
-                    ✓ {planifResult.nb} visite{(planifResult.nb ?? 0) > 1 ? "s" : ""} créée{(planifResult.nb ?? 0) > 1 ? "s" : ""}
+                    {planifResult.nb} visite{(planifResult.nb ?? 0) > 1 ? "s" : ""} créée{(planifResult.nb ?? 0) > 1 ? "s" : ""}
                   </div>
-                : <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">✗ {planifResult.error}</div>
+                : <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">{planifResult.error}</div>
             )}
             <div className="flex gap-3">
               <button onClick={() => setModalPlanif(false)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition-colors">
+                className="pa-btn-secondary flex-1 py-2.5 rounded-xl text-sm">
                 Annuler
               </button>
               <button
@@ -589,7 +596,7 @@ export default function ParcoursMagasins({
                   })
                 }
                 disabled={isPlanif || !datePlanif}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">
+                className="pa-btn-primary flex-1 py-2.5 rounded-xl text-sm">
                 {isPlanif ? "Création…" : "Créer les visites"}
               </button>
             </div>

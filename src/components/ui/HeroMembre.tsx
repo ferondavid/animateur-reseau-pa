@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, Store } from "lucide-react";
 
 interface HeroMembreProps {
   nomAffiche: string;
@@ -29,15 +29,11 @@ export default function HeroMembre({
   return (
     <div className="pa-hero mb-5">
       <div className="flex items-center gap-3">
-        {/* Météo */}
+        {/* Météo (emoji gardé car contenu API météo) */}
         {meteo ? (
           <div
             className="shrink-0 w-14 h-14 rounded-[18px] flex flex-col items-center justify-center gap-0.5"
-            style={{
-              background: "rgba(255,255,255,0.22)",
-              backdropFilter: "blur(6px)",
-              color: "#fff",
-            }}
+            style={{ background: "rgba(255,255,255,0.22)", backdropFilter: "blur(6px)", color: "#fff" }}
           >
             <span className="text-2xl leading-none">{meteo.emoji}</span>
             <span className="text-[11px] font-bold mt-0.5">{meteo.temp}°</span>
@@ -45,9 +41,9 @@ export default function HeroMembre({
         ) : (
           <div
             className="shrink-0 w-14 h-14 rounded-[18px] flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.18)", color: "#fff" }}
+            style={{ background: "rgba(255,255,255,0.18)", color: "rgba(255,255,255,0.9)" }}
           >
-            <span className="text-2xl">🏪</span>
+            <Store size={26} />
           </div>
         )}
 
