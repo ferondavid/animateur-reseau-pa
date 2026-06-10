@@ -307,7 +307,7 @@ export default function HistoriqueMembre({ evts, embedded = false }: { evts: Evt
                 onClick={() => setPeriode(p.key)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                   actif
-                    ? "bg-slate-900 text-white"
+                    ? "bg-violet-600 text-white"
                     : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >

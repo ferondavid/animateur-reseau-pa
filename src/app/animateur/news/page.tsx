@@ -42,7 +42,7 @@ export default async function AdminNewsPage() {
           </div>
           <Link
             href="/animateur/news/nouvelle"
-            className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors shadow-sm"
+            className="px-5 py-2.5 pa-btn-primary rounded-xl text-sm font-semibold"
           >
             + Nouvelle news
           </Link>
@@ -59,7 +59,7 @@ export default async function AdminNewsPage() {
             <p className="text-slate-400 text-sm">Aucune news pour l&apos;instant.</p>
             <Link
               href="/animateur/news/nouvelle"
-              className="inline-block px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors"
+              className="inline-block px-6 py-3 pa-btn-primary rounded-xl text-sm font-semibold"
             >
               Créer la première news →
             </Link>

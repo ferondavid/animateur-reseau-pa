@@ -57,33 +57,33 @@ export default async function NouvelleRDVPage({
 
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Objet *</label>
-              <input name="objet" required type="text" placeholder="Ex : Point trimestriel" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900" />
+              <input name="objet" required type="text" placeholder="Ex : Point trimestriel" className="pa-input" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">Date *</label>
-                <input name="date_souhaitee" required type="date" min={today} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900" />
+                <input name="date_souhaitee" required type="date" min={today} className="pa-input" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">Heure</label>
-                <input name="heure_souhaitee" type="time" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900" />
+                <input name="heure_souhaitee" type="time" className="pa-input" />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Lieu</label>
-              <input name="lieu" type="text" placeholder="Adresse ou 'Au magasin'" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900" />
+              <input name="lieu" type="text" placeholder="Adresse ou 'Au magasin'" className="pa-input" />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Lien visio</label>
-              <input name="lien_visio" type="url" placeholder="https://meet.google.com/..." className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900" />
+              <input name="lien_visio" type="url" placeholder="https://meet.google.com/..." className="pa-input" />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Message</label>
-              <textarea name="message" rows={3} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y" />
+              <textarea name="message" rows={3} className="pa-input resize-y" />
             </div>
 
             {/* Invités — champ caché, géré manuellement */}
@@ -94,7 +94,7 @@ export default async function NouvelleRDVPage({
             <Link href="/animateur/rdv" className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors">
               Annuler
             </Link>
-            <button type="submit" className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold transition-colors">
+            <button type="submit" className="px-5 py-2.5 rounded-xl pa-btn-primary text-white text-sm font-semibold transition-colors">
               Créer le RDV
             </button>
           </div>

@@ -118,7 +118,7 @@ function Tooltip({ text, children }: { text: string; children: React.ReactNode }
     <span className="group relative inline-flex items-center gap-1">
       {children}
       <IconInfo />
-      <span className="invisible group-hover:visible absolute bottom-full left-0 mb-1 px-2.5 py-1.5 bg-slate-900 text-white text-[11px] font-medium rounded-lg shadow-lg whitespace-nowrap z-50 pointer-events-none">
+      <span className="invisible group-hover:visible absolute bottom-full left-0 mb-1 px-2.5 py-1.5 text-[11px] font-medium rounded-xl shadow-lg whitespace-nowrap z-50 pointer-events-none" style={{ background: "rgba(36,31,51,0.9)", color: "#fff" }}>
         {text}
       </span>
     </span>
@@ -211,7 +211,7 @@ export default function TabsMembre({ actions, rdvs, remontees, visites, historiq
               type="button"
               onClick={() => setTab(t.id)}
               className={`flex-1 min-w-fit px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap inline-flex items-center justify-center gap-1.5 ${
-                active ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+                active ? "bg-violet-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
               <span>{t.icon}</span>

@@ -140,7 +140,7 @@ export default async function MagasinDetailPage({
             </Link>
             <Link
               href={`/magasins/${id}/modifier`}
-              className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
             >
               Modifier
             </Link>
@@ -332,7 +332,7 @@ export default async function MagasinDetailPage({
               </h2>
               <Link
                 href={`/visites/nouvelle?magasin_id=${id}`}
-                className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-700 transition-colors"
+                className="pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-medium"
               >
                 + Nouvelle visite
               </Link>
@@ -399,7 +399,7 @@ export default async function MagasinDetailPage({
               </h2>
               <Link
                 href={`/remontees/nouvelle?magasin_id=${id}`}
-                className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-700 transition-colors"
+                className="pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-medium"
               >
                 + Nouvelle remontée
               </Link>
@@ -458,7 +458,7 @@ export default async function MagasinDetailPage({
               </h2>
               <Link
                 href={`/actions-reseau/nouvelle?magasin_id=${id}`}
-                className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-700 transition-colors"
+                className="pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-medium"
               >
                 + Nouvelle action
               </Link>

@@ -80,7 +80,7 @@ export default async function RDVAdminPage({
           </div>
           <Link
             href="/animateur/rdv/nouvelle"
-            className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors shadow-sm"
+            className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold"
           >
             + Nouvelle demande
           </Link>
@@ -108,7 +108,7 @@ export default async function RDVAdminPage({
             <select
               name="magasin"
               defaultValue={magasin ?? ""}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
             >
               <option value="">Tous les magasins</option>
               {(magasins ?? []).map((m) => (

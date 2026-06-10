@@ -55,7 +55,7 @@ export default async function ModifierRemonteePage({
                 name="magasin_id"
                 required
                 defaultValue={r.magasin_id ?? ""}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="pa-input"
               >
                 <option value="">— Sélectionner un magasin —</option>
                 {(magasins ?? []).map((m) => (
@@ -76,7 +76,7 @@ export default async function ModifierRemonteePage({
                 name="type"
                 required
                 defaultValue={r.type ?? ""}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="pa-input"
               >
                 <option value="commerciale">Commerciale</option>
                 <option value="sav_technique">SAV / Technique</option>
@@ -95,7 +95,7 @@ export default async function ModifierRemonteePage({
                 name="titre"
                 required
                 defaultValue={r.titre ?? ""}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="pa-input"
               />
             </div>
 
@@ -108,7 +108,7 @@ export default async function ModifierRemonteePage({
                 required
                 rows={4}
                 defaultValue={r.description ?? ""}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y"
+                className="pa-input resize-y"
               />
             </div>
           </div>
@@ -145,7 +145,7 @@ export default async function ModifierRemonteePage({
             <select
               name="gravite"
               defaultValue={r.gravite ?? "normale"}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
             >
               <option value="normale">Normale</option>
               <option value="attention">Attention</option>
@@ -163,7 +163,7 @@ export default async function ModifierRemonteePage({
             </Link>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
             >
               Enregistrer
             </button>

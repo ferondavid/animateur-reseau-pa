@@ -12,11 +12,11 @@ interface Magasin {
 }
 
 const selectClass =
-  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900";
+  "pa-input";
 const inputClass =
-  "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900";
+  "pa-input";
 const textareaClass =
-  "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y";
+  "pa-input resize-y";
 const labelClass = "block text-xs font-medium text-slate-600 mb-1.5";
 
 export default function FormulaireVisite({
@@ -219,7 +219,7 @@ export default function FormulaireVisite({
         </Link>
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+          className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
         >
           Créer la visite
         </button>

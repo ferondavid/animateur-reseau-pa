@@ -58,7 +58,7 @@ export default function FiltresPilotage({ regions, magasins }: Props) {
     router.push(`${pathname}${qs ? "?" + qs : ""}`);
   }
 
-  const btnActif = "bg-slate-900 text-white";
+  const btnActif = "bg-violet-600 text-white";
   const btnInactif = "text-slate-600 hover:bg-slate-100";
 
   const btnActifViolet = "bg-violet-800 text-white";

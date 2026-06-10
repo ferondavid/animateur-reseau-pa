@@ -41,7 +41,7 @@ export default function FormulaireNouvelleAction({
               name="titre"
               required
               autoFocus
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
               placeholder="Titre de l'action"
             />
           </div>
@@ -53,7 +53,7 @@ export default function FormulaireNouvelleAction({
               name="description"
               rows={3}
               defaultValue={descriptionInitiale ?? ""}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y"
+              className="pa-input resize-y"
               placeholder="Description détaillée de l'action..."
             />
           </div>
@@ -73,7 +73,7 @@ export default function FormulaireNouvelleAction({
             <select
               name="niveau_urgence"
               defaultValue="2"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
             >
               <option value="1">1 — Info</option>
               <option value="2">2 — Important</option>
@@ -119,7 +119,7 @@ export default function FormulaireNouvelleAction({
               <select
                 name="magasin_id"
                 defaultValue={magasinIdInitial ?? ""}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="pa-input"
               >
                 <option value="">— Sélectionner un magasin —</option>
                 {magasins.map((m) => (
@@ -139,7 +139,7 @@ export default function FormulaireNouvelleAction({
             <input
               type="date"
               name="deadline"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
             />
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function FormulaireNouvelleAction({
         </a>
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+          className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
         >
           Créer l'action
         </button>

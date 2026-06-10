@@ -15,7 +15,7 @@ export default function BoutonCopierLien({ url }: { url: string }) {
     <div className="space-y-2">
       <button
         onClick={copier}
-        className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+        className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
       >
         {copie ? "✓ Lien copié !" : "Copier le lien d'évaluation"}
       </button>

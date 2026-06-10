@@ -104,7 +104,7 @@ export default async function RemonteesPage({
           </div>
           <Link
             href="/remontees/nouvelle"
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors shrink-0"
+            className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors shrink-0"
           >
             + Nouvelle remontée
           </Link>
@@ -123,7 +123,7 @@ export default async function RemonteesPage({
                 href={href}
                 className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   actif
-                    ? "bg-slate-900 text-white"
+                    ? "bg-violet-600 text-white"
                     : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >

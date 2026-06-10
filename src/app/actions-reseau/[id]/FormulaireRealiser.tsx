@@ -31,7 +31,7 @@ export default function FormulaireRealiser({ id }: { id: string }) {
           name="commentaire_realisation"
           rows={3}
           autoFocus
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y"
+          className="pa-input resize-y"
           placeholder="Que s'est-il passé ?"
         />
       </div>

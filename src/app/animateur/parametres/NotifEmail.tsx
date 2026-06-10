@@ -51,7 +51,7 @@ export default function NotifEmail({
               })
             }
             disabled={isPendingSave}
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+            className="pa-btn-primary px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 whitespace-nowrap"
           >
             {isPendingSave ? "Enregistrement…" : saveOk ? "✓ Enregistré" : "Enregistrer"}
           </button>

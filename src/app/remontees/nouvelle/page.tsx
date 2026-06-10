@@ -45,7 +45,7 @@ export default async function NouvelleRemonteePage({
                 name="magasin_id"
                 required
                 defaultValue={magasin_id ?? ""}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="pa-input"
               >
                 <option value="">— Sélectionner un magasin —</option>
                 {(magasins ?? []).map((m) => (
@@ -66,7 +66,7 @@ export default async function NouvelleRemonteePage({
                 name="type"
                 required
                 defaultValue=""
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="pa-input"
               >
                 <option value="" disabled>
                   — Choisir un type —
@@ -88,7 +88,7 @@ export default async function NouvelleRemonteePage({
                 name="titre"
                 required
                 autoFocus
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="pa-input"
                 placeholder="Résumé en une ligne"
               />
             </div>
@@ -101,7 +101,7 @@ export default async function NouvelleRemonteePage({
                 name="description"
                 required
                 rows={4}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y"
+                className="pa-input resize-y"
                 placeholder="Décrivez la situation en détail…"
               />
             </div>
@@ -115,7 +115,7 @@ export default async function NouvelleRemonteePage({
             <select
               name="gravite"
               defaultValue="normale"
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
             >
               <option value="normale">Normale</option>
               <option value="attention">Attention</option>
@@ -133,7 +133,7 @@ export default async function NouvelleRemonteePage({
             </Link>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
             >
               Enregistrer la remontée
             </button>

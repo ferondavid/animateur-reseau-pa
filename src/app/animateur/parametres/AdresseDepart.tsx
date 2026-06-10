@@ -83,7 +83,7 @@ export default function AdresseDepart({
           <button
             onClick={handleSave}
             disabled={isPending}
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 disabled:opacity-50 transition-colors"
+            className="pa-btn-primary px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50"
           >
             {isPending ? "Enregistrement…" : "Enregistrer"}
           </button>

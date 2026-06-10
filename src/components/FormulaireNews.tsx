@@ -261,7 +261,7 @@ export default function FormulaireNews({ mode, newsInitiale }: Props) {
         <button
           type="submit"
           disabled={busy}
-          className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors"
+          className="px-5 py-2.5 rounded-xl pa-btn-primary disabled:opacity-60 text-white text-sm font-semibold transition-colors"
         >
           {busy ? "Envoi…" : mode === "creer" ? "Publier" : "Enregistrer"}
         </button>

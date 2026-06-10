@@ -15,7 +15,7 @@ function Champ({
       <input
         type={type} name={name} defaultValue={defaultValue} required={required}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+        className="pa-input"
       />
       {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
     </div>
@@ -70,7 +70,7 @@ export default function NouveauMagasinPage() {
                 <select
                   name="niveau"
                   defaultValue="standard"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="pa-input"
                 >
                   <option value="strategique">Stratégique</option>
                   <option value="standard">Standard</option>
@@ -103,7 +103,7 @@ export default function NouveauMagasinPage() {
             </Link>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors"
+              className="px-5 py-2.5 pa-btn-primary rounded-xl text-sm font-semibold"
             >
               Créer le magasin
             </button>

@@ -69,7 +69,7 @@ export default async function MagasinsPage({
             <h1 className="text-2xl font-semibold text-slate-900">Magasins du réseau</h1>
             <Link
               href="/magasins/nouveau"
-              className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-colors"
+              className="px-5 py-2.5 pa-btn-primary rounded-xl text-sm font-semibold"
             >
               + Ajouter un magasin
             </Link>

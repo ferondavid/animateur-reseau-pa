@@ -48,7 +48,7 @@ export default function FormulaireModifierAction({ action, magasins }: Props) {
               name="titre"
               required
               defaultValue={action.titre}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
             />
           </div>
           <div>
@@ -59,7 +59,7 @@ export default function FormulaireModifierAction({ action, magasins }: Props) {
               name="description"
               rows={3}
               defaultValue={action.description ?? ""}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y"
+              className="pa-input resize-y"
             />
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function FormulaireModifierAction({ action, magasins }: Props) {
             <select
               name="niveau_urgence"
               defaultValue={String(action.niveau_urgence)}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
             >
               <option value="1">1 — Info</option>
               <option value="2">2 — Important</option>
@@ -124,7 +124,7 @@ export default function FormulaireModifierAction({ action, magasins }: Props) {
               <select
                 name="magasin_id"
                 defaultValue={action.magasin_id ?? ""}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="pa-input"
               >
                 <option value="">— Sélectionner un magasin —</option>
                 {magasins.map((m) => (
@@ -145,7 +145,7 @@ export default function FormulaireModifierAction({ action, magasins }: Props) {
               type="date"
               name="deadline"
               defaultValue={action.deadline ?? ""}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="pa-input"
             />
           </div>
         </div>
@@ -161,7 +161,7 @@ export default function FormulaireModifierAction({ action, magasins }: Props) {
         </a>
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+          className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
         >
           Enregistrer
         </button>

@@ -81,7 +81,7 @@ export default async function ModifierMagasinPage({
                 <select
                   name="statut"
                   defaultValue={m.statut ?? "actif"}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="pa-input"
                 >
                   <option value="actif">Actif</option>
                   <option value="pause">En pause</option>
@@ -95,7 +95,7 @@ export default async function ModifierMagasinPage({
                 <select
                   name="niveau"
                   defaultValue={m.niveau ?? "standard"}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="pa-input"
                 >
                   <option value="strategique">Stratégique</option>
                   <option value="standard">Standard</option>
@@ -115,7 +115,7 @@ export default async function ModifierMagasinPage({
               defaultValue={m.notes ?? ""}
               rows={5}
               placeholder="Observations, remarques…"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 resize-y"
+              className="pa-input resize-y"
             />
           </div>
 
@@ -223,7 +223,7 @@ export default async function ModifierMagasinPage({
             </Link>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
             >
               Enregistrer
             </button>
@@ -258,7 +258,7 @@ function Champ({
         name={name}
         defaultValue={defaultValue}
         required={required}
-        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+        className="pa-input"
       />
     </div>
   );

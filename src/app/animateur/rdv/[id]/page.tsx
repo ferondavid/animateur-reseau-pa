@@ -241,7 +241,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
             )}
             {isConfirme && (
               <form action={async () => { "use server"; await marquerFait(id); redirect("/animateur/rdv"); }}>
-                <button type="submit" className="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-900 text-white text-sm font-semibold shadow-sm transition-colors">
+                <button type="submit" className="pa-btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
                   ✓ Marquer comme fait
                 </button>
               </form>
