@@ -59,7 +59,7 @@ export default async function ParametresPage() {
 
           <FormulaireGCal urlInitiale={gcalUrl} labelInitial={gcalLabel} />
 
-          <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 text-sm text-slate-600 space-y-2">
+          <div className="pa-card p-4 text-sm space-y-2" style={{ color: "var(--pa-muted)" }}>
             <p className="font-semibold text-slate-700">Comment obtenir votre URL iCal privée :</p>
             <ol className="list-decimal list-inside space-y-1">
               <li>Ouvrez Google Calendar dans votre navigateur</li>
