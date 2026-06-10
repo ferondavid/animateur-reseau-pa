@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
     .replace(/\p{Diacritic}/gu, ""); // supprime accents
   const REGEX_NAV: Array<{ regex: RegExp; cible: string }> = [
     { regex: /\b(carte|map|cartographie|reseau)\b/, cible: "carte" },
+    { regex: /\b(accueil|dashboard|home)\b/, cible: "accueil" },
     { regex: /\b(pilotage|cockpit|tableau de bord)\b/, cible: "pilotage" },
     { regex: /\b(rendez ?vous|rdv|prochains? rdv|mes? rdv)\b/, cible: "rdv" },
     { regex: /\b(visites?|liste des visites)\b/, cible: "visites" },
@@ -127,7 +128,8 @@ export async function POST(req: NextRequest) {
     for (const { regex, cible } of REGEX_NAV) {
       if (regex.test(texteLower)) {
         const MAP_LABEL: Record<string, { url: string; label: string }> = {
-          carte:        { url: "/animateur",            label: "la carte du réseau" },
+          carte:        { url: "/animateur/carte",      label: "la carte du réseau" },
+          accueil:      { url: "/animateur",            label: "l'accueil" },
           agenda:       { url: "/animateur",            label: "l'agenda" },
           pilotage:     { url: "/pilotage",             label: "le pilotage" },
           rdv:          { url: "/animateur/rdv",        label: "les rendez-vous" },
