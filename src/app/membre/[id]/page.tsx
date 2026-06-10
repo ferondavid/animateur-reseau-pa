@@ -255,7 +255,6 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
               sousTitre={`${nbDemandes} en attente`}
               badge={nbDemandes}
               variantDemande
-              defaultOpen
             >
               <div className="space-y-2 pt-1">
                 {demandes.map((d) => (
