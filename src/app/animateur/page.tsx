@@ -264,7 +264,6 @@ export default async function AnimateurPage() {
                 ? "Pas de RDV confirmé"
                 : `${(rdvsDemain ?? []).length} RDV confirmé${(rdvsDemain ?? []).length > 1 ? "s" : ""}`
             }
-            defaultOpen
           >
             {(rdvsDemain ?? []).length === 0 ? (
               <p className="text-sm py-2" style={{ color: "var(--pa-muted)" }}>
@@ -352,7 +351,6 @@ export default async function AnimateurPage() {
               titre="Demandes de RDV à traiter"
               sousTitre={`${rdvsTotal} demande${rdvsTotal > 1 ? "s" : ""} en attente`}
               badge={rdvsTotal}
-              defaultOpen
             >
               <div className="space-y-4 pt-1">
                 {rdvsDuTerrain.length > 0 && (
@@ -477,7 +475,6 @@ export default async function AnimateurPage() {
             }
             titre="Prochaines visites planifiées"
             sousTitre={`${(prochainesVisites ?? []).length} visite${(prochainesVisites ?? []).length !== 1 ? "s" : ""} à venir`}
-            defaultOpen
           >
             {(prochainesVisites ?? []).length === 0 ? (
               <div className="text-center py-4">
@@ -519,25 +516,20 @@ export default async function AnimateurPage() {
 
         {/* ── Agenda unifié ───────────────────────────────────────── */}
         <div className="pa-reveal" style={{ animationDelay: ".38s" }}>
-          <div className="pa-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <IcoBox bg="linear-gradient(135deg,#E4DDFB,#D3C7F7)" color="#6B4FD8" Icon={Calendar} />
-                <div>
-                  <p className="text-sm font-bold" style={{ color: "var(--pa-ink)" }}>
-                    Mon agenda
-                    {agendaUnifie.length > 0 && (
-                      <span className="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full text-white" style={{ background: "#7C6BE8" }}>
-                        {agendaUnifie.length}
-                      </span>
-                    )}
-                  </p>
-                  {gcalError && (
-                    <p className="text-[10px] font-normal" style={{ color: "#B45309" }}>Google indisponible</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
+          <Tuile
+            icon={
+              <IcoBox bg="linear-gradient(135deg,#E4DDFB,#D3C7F7)" color="#6B4FD8" Icon={Calendar} />
+            }
+            titre="Mon agenda"
+            sousTitre={
+              gcalError
+                ? "Google indisponible"
+                : `${agendaUnifie.length} évènement${agendaUnifie.length > 1 ? "s" : ""} · 30 jours`
+            }
+            badge={agendaUnifie.length > 0 ? agendaUnifie.length : undefined}
+          >
+            <div className="pt-1">
+              <div className="flex items-center justify-end gap-3 mb-3">
                 <Link href="/animateur/rdv?tab=confirme" className="text-xs font-medium" style={{ color: "var(--pa-muted)" }}>
                   Tous les RDV →
                 </Link>
@@ -545,27 +537,27 @@ export default async function AnimateurPage() {
                   Configurer →
                 </Link>
               </div>
+
+              {agendaUnifie.length === 0 ? (
+                <div className="rounded-xl p-5 text-center text-sm" style={{ background: "rgba(255,255,255,0.5)", color: "var(--pa-muted)" }}>
+                  Aucun évènement à venir dans les 30 jours
+                  {gcalError && <div className="text-[11px] mt-1" style={{ color: "#B45309" }}>{gcalLabel} : {gcalError}</div>}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {agendaUnifie.slice(0, 12).map((e) => (
+                    <CardEvtAgenda key={e.id} evt={e} />
+                  ))}
+                </div>
+              )}
+
+              {agendaUnifie.length > 12 && (
+                <p className="text-xs text-center mt-3" style={{ color: "var(--pa-muted)" }}>
+                  + {agendaUnifie.length - 12} autres évènements dans les 30 prochains jours
+                </p>
+              )}
             </div>
-
-            {agendaUnifie.length === 0 ? (
-              <div className="rounded-xl p-5 text-center text-sm" style={{ background: "rgba(255,255,255,0.5)", color: "var(--pa-muted)" }}>
-                Aucun évènement à venir dans les 30 jours
-                {gcalError && <div className="text-[11px] mt-1" style={{ color: "#B45309" }}>{gcalLabel} : {gcalError}</div>}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {agendaUnifie.slice(0, 12).map((e) => (
-                  <CardEvtAgenda key={e.id} evt={e} />
-                ))}
-              </div>
-            )}
-
-            {agendaUnifie.length > 12 && (
-              <p className="text-xs text-center mt-3" style={{ color: "var(--pa-muted)" }}>
-                + {agendaUnifie.length - 12} autres évènements dans les 30 prochains jours
-              </p>
-            )}
-          </div>
+          </Tuile>
         </div>
 
       </div>
