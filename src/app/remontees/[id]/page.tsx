@@ -54,7 +54,7 @@ export default async function RemonteeDetailPage({
   const statut = statutConfig[r.statut as string];
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
         <div className="flex items-start justify-between mb-8">
@@ -82,7 +82,7 @@ export default async function RemonteeDetailPage({
 
         <div className="space-y-4">
           {/* Card : Informations */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Informations
             </h2>
@@ -171,7 +171,7 @@ export default async function RemonteeDetailPage({
           </div>
 
           {/* Card : Réponse animateur */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Réponse animateur
             </h2>
@@ -202,7 +202,7 @@ export default async function RemonteeDetailPage({
 
           {/* Card : Changer le statut (hors archivée / traitée) */}
           {!["traitee", "archivee"].includes(r.statut) && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
                 Changer le statut
               </h2>
@@ -237,7 +237,7 @@ export default async function RemonteeDetailPage({
 
           {/* Bouton rouvrir si archivée */}
           {r.statut === "archivee" && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
                 Changer le statut
               </h2>

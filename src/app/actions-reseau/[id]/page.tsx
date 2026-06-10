@@ -49,7 +49,7 @@ export default async function ActionDetailPage({
     !["realisee", "annulee"].includes(action.statut);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
         <div className="flex items-start justify-between mb-8">
@@ -77,7 +77,7 @@ export default async function ActionDetailPage({
 
         <div className="space-y-4">
           {/* Card : Informations */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Informations
             </h2>
@@ -146,7 +146,7 @@ export default async function ActionDetailPage({
 
           {/* Card : Description */}
           {action.description && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
                 Description
               </h2>
@@ -189,7 +189,7 @@ export default async function ActionDetailPage({
 
           {/* Card : Changer le statut */}
           {action.statut !== "realisee" && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
                 Changer le statut
               </h2>

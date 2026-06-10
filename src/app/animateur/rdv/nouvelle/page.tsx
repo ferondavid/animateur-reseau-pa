@@ -18,7 +18,7 @@ export default async function NouvelleRDVPage({
   const today = new Date().toISOString().split("T")[0];
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <Link href="/animateur/rdv" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">

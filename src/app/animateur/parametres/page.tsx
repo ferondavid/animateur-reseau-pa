@@ -36,7 +36,7 @@ export default async function ParametresPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6 md:p-10">
+    <main className="min-h-screen p-6 md:p-10">
       <div className="max-w-3xl mx-auto space-y-8">
 
         <div className="flex items-center justify-between gap-4">
@@ -49,7 +49,7 @@ export default async function ParametresPage() {
         <Navigation />
 
         {/* Agenda Google Calendar */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+        <div className="pa-card p-6 space-y-5">
           <div>
             <h2 className="text-base font-semibold text-slate-900">📆 Agenda Google Calendar</h2>
             <p className="text-sm text-slate-500 mt-1">
@@ -79,7 +79,7 @@ export default async function ParametresPage() {
         </div>
 
         {/* Export iCal → Google Calendar */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+        <div className="pa-card p-6 space-y-5">
           <div>
             <h2 className="text-base font-semibold text-slate-900">📤 Exporter les RDV vers Google Calendar</h2>
             <p className="text-sm text-slate-500 mt-1">
@@ -91,7 +91,7 @@ export default async function ParametresPage() {
         </div>
 
         {/* Point de départ habituel */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+        <div className="pa-card p-6 space-y-5">
           <div>
             <h2 className="text-base font-semibold text-slate-900">🏠 Point de départ habituel</h2>
             <p className="text-sm text-slate-500 mt-1">
@@ -124,7 +124,7 @@ export default async function ParametresPage() {
         </div>
 
         {/* Notifications email */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+        <div className="pa-card p-6 space-y-5">
           <div>
             <h2 className="text-base font-semibold text-slate-900">📧 Notifications email</h2>
             <p className="text-sm text-slate-500 mt-1">
@@ -143,7 +143,7 @@ export default async function ParametresPage() {
         </div>
 
         {/* Affichage news fiche membre */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="pa-card p-6 space-y-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">📰 Affichage news sur les fiches membre</h2>
             <p className="text-sm text-slate-500 mt-1">
@@ -154,7 +154,7 @@ export default async function ParametresPage() {
         </div>
 
         {/* Documentation : Niveaux de magasin */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="pa-card p-6 space-y-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">🏷️ Niveaux de magasin</h2>
             <p className="text-sm text-slate-500 mt-1">
@@ -185,7 +185,7 @@ export default async function ParametresPage() {
             </div>
 
             {/* Standard */}
-            <div className="rounded-xl border-l-4 border-l-slate-400 border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-xl border-l-4 border-l-slate-400 border border-slate-200 p-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
                   ⚪ Standard

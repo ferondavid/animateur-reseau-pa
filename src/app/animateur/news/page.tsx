@@ -33,7 +33,7 @@ export default async function AdminNewsPage() {
   const liste = (newsList ?? []) as NewsItem[];
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6 md:p-10">
+    <main className="min-h-screen p-6 md:p-10">
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
@@ -70,7 +70,7 @@ export default async function AdminNewsPage() {
             <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
+                  <tr className="border-b" style={{ borderColor: "var(--pa-line)" }}>
                     <th className="px-4 py-3 w-16" />
                     <th className="text-left px-4 py-3 font-medium text-slate-600">Titre</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-600">Type</th>

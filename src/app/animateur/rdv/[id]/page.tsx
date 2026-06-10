@@ -96,7 +96,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
       : null;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <Link href="/animateur/rdv" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">
@@ -116,7 +116,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
         </div>
 
         {/* Infos */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3">
+        <div className="pa-card p-5 space-y-3">
           <Row label="Magasin" value={nomMag} />
           {mag?.ville && <Row label="Ville" value={`${mag.ville}${mag.region ? ` · ${mag.region}` : ""}`} />}
           <Row label="Date souhaitée" value={new Date(rdv.date_souhaitee + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} />
@@ -129,7 +129,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
 
         {/* Contact magasin */}
         {mag?.contact_telephone && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div className="pa-card p-5">
             <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Contact — {nomMag}</h2>
             <div className="flex items-center gap-3">
               <span className="text-sm text-slate-700 tabular-nums">{formatTel(mag.contact_telephone)}</span>
@@ -143,7 +143,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
 
         {/* Invités */}
         {invites.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div className="pa-card p-5">
             <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
               Invités ({invites.length})
             </h2>
@@ -176,7 +176,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
 
         {/* Préparation veille */}
         {rdvFutur && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3">
+          <div className="pa-card p-5 space-y-3">
             <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">🌅 Préparation veille</h2>
 
             {!departOk ? (

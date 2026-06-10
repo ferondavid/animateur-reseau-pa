@@ -16,7 +16,7 @@ export default async function NouvelleRemonteePage({
     .order("nom");
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <Link
@@ -108,7 +108,7 @@ export default async function NouvelleRemonteePage({
           </div>
 
           {/* Gravité */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Niveau de gravité
             </h2>

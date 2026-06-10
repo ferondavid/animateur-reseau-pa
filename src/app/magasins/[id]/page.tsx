@@ -113,7 +113,7 @@ export default async function MagasinDetailPage({
   if (!m) notFound();
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
         <div className="flex items-start justify-between mb-8">
@@ -154,7 +154,7 @@ export default async function MagasinDetailPage({
           <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
 
           {/* Card : Informations générales */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Informations générales
             </h2>
@@ -201,7 +201,7 @@ export default async function MagasinDetailPage({
           </div>
 
           {/* Card : Contact */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Contact
             </h2>
@@ -236,7 +236,7 @@ export default async function MagasinDetailPage({
 
           {/* Card : Notes (uniquement si présentes) */}
           {m.notes && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
                 Notes
               </h2>
@@ -325,7 +325,7 @@ export default async function MagasinDetailPage({
           )}
 
           {/* Card : Visites */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                 Visites
@@ -392,7 +392,7 @@ export default async function MagasinDetailPage({
             )}
           </div>
           {/* Card : Remontées terrain */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                 Remontées terrain
@@ -451,7 +451,7 @@ export default async function MagasinDetailPage({
           </div>
 
           {/* Card : Actions ouvertes */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                 Actions

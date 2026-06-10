@@ -257,7 +257,7 @@ export default function ParcoursMagasins({
       <div className="space-y-4">
 
         {/* Départ */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+        <div className="pa-card p-4 space-y-3">
           <h2 className="text-sm font-semibold text-slate-700">📍 Point de départ</h2>
           <input
             type="text"
@@ -332,7 +332,7 @@ export default function ParcoursMagasins({
         )}
 
         {/* Filtres + liste */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+        <div className="pa-card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-slate-700">Magasins à visiter</h2>
             <span className="text-xs text-slate-500">
@@ -399,7 +399,7 @@ export default function ParcoursMagasins({
         </div>
 
         {/* CTA */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+        <div className="pa-card p-4 space-y-3">
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={retourDepart}
               onChange={(e) => { setRetourDepart(e.target.checked); setParcours(null); }}
@@ -429,7 +429,7 @@ export default function ParcoursMagasins({
         />
 
         {parcours && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
+          <div className="pa-card p-4 space-y-4">
 
             {/* Stats */}
             <div className={`grid gap-4 ${configVE.active && nbBornes > 0 ? "grid-cols-4" : "grid-cols-3"}`}>

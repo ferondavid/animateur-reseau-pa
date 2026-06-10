@@ -43,7 +43,7 @@ export default async function EvaluationDetailPage({
   const moy = moyenneNotes(e as Record<string, number | null>);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
+    <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
         <div className="flex items-start justify-between mb-8">
@@ -75,7 +75,7 @@ export default async function EvaluationDetailPage({
 
         <div className="space-y-4">
           {/* Notes par question */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Notes détaillées
             </h2>
@@ -104,7 +104,7 @@ export default async function EvaluationDetailPage({
 
           {/* Commentaire */}
           {e.commentaire_texte && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
                 Commentaire
               </h2>
@@ -115,7 +115,7 @@ export default async function EvaluationDetailPage({
           )}
 
           {/* Informations liées */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Informations
             </h2>

@@ -19,7 +19,7 @@ export default async function ModifierVisitePage({
   if (!visite) notFound();
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <Link

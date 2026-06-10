@@ -34,7 +34,7 @@ export default function FormulaireModifierAction({ action, magasins }: Props) {
       <input type="hidden" name="id" value={action.id} />
 
       {/* Informations */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <div className="pa-card p-6">
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
           Informations
         </h2>
@@ -66,7 +66,7 @@ export default function FormulaireModifierAction({ action, magasins }: Props) {
       </div>
 
       {/* Paramètres */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <div className="pa-card p-6">
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
           Paramètres
         </h2>

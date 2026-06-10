@@ -24,7 +24,7 @@ function Champ({
 
 export default function NouveauMagasinPage() {
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <Link href="/magasins" className="text-slate-500 hover:text-slate-900 text-sm transition-colors">

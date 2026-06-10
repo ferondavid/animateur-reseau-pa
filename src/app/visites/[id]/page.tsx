@@ -109,7 +109,7 @@ export default async function VisiteDetailPage({
     : "Visite";
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-8">
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
         <div className="flex items-start justify-between mb-8">
@@ -144,7 +144,7 @@ export default async function VisiteDetailPage({
 
         <div className="space-y-4">
           {/* Informations */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <div className="pa-card p-6">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
               Informations
             </h2>
@@ -204,7 +204,7 @@ export default async function VisiteDetailPage({
 
           {/* Objectif */}
           {v.objectif && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
                 Objectif
               </h2>
@@ -216,7 +216,7 @@ export default async function VisiteDetailPage({
 
           {/* Compte-rendu */}
           {(v.compte_rendu || v.points_positifs || v.points_attention) && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
                 Compte-rendu
               </h2>
@@ -230,7 +230,7 @@ export default async function VisiteDetailPage({
 
           {/* Actions */}
           {(v.actions_decidees || v.prochaine_etape) && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
                 Actions
               </h2>
@@ -252,7 +252,7 @@ export default async function VisiteDetailPage({
                 : "");
 
             return (
-              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <div className="pa-card p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                     Actions de suivi
@@ -323,7 +323,7 @@ export default async function VisiteDetailPage({
 
           {/* Card évaluation qualité — uniquement pour les visites réalisées */}
           {v.statut === "realisee" && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
                 Évaluation qualité
               </h2>
@@ -377,7 +377,7 @@ export default async function VisiteDetailPage({
 
           {/* Indicateurs */}
           {(v.note_confiance || v.note_business) && (
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="pa-card p-6">
               <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
                 Indicateurs
               </h2>

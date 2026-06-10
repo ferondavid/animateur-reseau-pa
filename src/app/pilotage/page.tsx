@@ -450,7 +450,7 @@ export default async function PilotagePage({
   // ── Rendu ─────────────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
+    <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
 
         {/* En-tête */}
@@ -680,7 +680,7 @@ export default async function PilotagePage({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Top 3 */}
               {top3.length > 0 && (
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div className="pa-card p-4">
                   <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-3">
                     Top {top3.length}
                   </p>
@@ -709,7 +709,7 @@ export default async function PilotagePage({
 
               {/* Flop 3 */}
               {flop3.length > 0 && (
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div className="pa-card p-4">
                   <p className="text-xs font-semibold text-red-500 uppercase tracking-wide mb-3">
                     Flop {flop3.length}
                   </p>

@@ -201,7 +201,7 @@ export default function TabsMembre({ actions, rdvs, remontees, visites, historiq
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="pa-card overflow-hidden">
       <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-hide">
         {tabs.map((t) => {
           const active = tab === t.id;

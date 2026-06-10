@@ -51,7 +51,7 @@ export default async function ParcoursPage({
   const apiKeyOk = !!process.env.OPENCHARGEMAP_API_KEY;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6 md:p-8">
+    <main className="min-h-screen p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>

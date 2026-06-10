@@ -37,7 +37,7 @@ export default async function NewsListePage() {
 
   if (liste.length === 0) {
     return (
-      <main className="min-h-screen bg-slate-50 p-6 md:p-10">
+      <main className="min-h-screen p-6 md:p-10">
         <div className="max-w-6xl mx-auto space-y-6 pt-8">
           <Link href="/" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">← Retour</Link>
           <h1 className="text-2xl font-bold text-slate-900">Actualités du réseau</h1>
@@ -55,7 +55,7 @@ export default async function NewsListePage() {
   const grille = suite.slice(2);       // reste en grille 3 colonnes
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6 md:p-10 pb-16">
+    <main className="min-h-screen p-6 md:p-10 pb-16">
       <div className="max-w-6xl mx-auto space-y-8">
 
         {/* Header */}
@@ -72,7 +72,7 @@ export default async function NewsListePage() {
 
           {/* Hero (col 1-2) */}
           <Link href={`/news/${hero.id}`} className="lg:col-span-2 block group">
-            <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
+            <article className="pa-card overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
               <div className="relative h-64 md:h-80">
                 {hero.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -111,7 +111,7 @@ export default async function NewsListePage() {
           <div className="flex flex-col gap-4">
             {lateral.map((n) => (
               <Link key={n.id} href={`/news/${n.id}`} className="flex-1 block group">
-                <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
+                <article className="pa-card overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
                   <div className="relative h-36">
                     {n.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -153,7 +153,7 @@ export default async function NewsListePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {grille.map((n) => (
                 <Link key={n.id} href={`/news/${n.id}`} className="block group">
-                  <article className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
+                  <article className="pa-card overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
                     <div className="relative h-40">
                       {n.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
