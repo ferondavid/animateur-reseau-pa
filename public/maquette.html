@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Maquette — Nouvelle fiche membre</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #EDE9E1;
+    color: #2C2C2A;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 12px 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .banner {
+    max-width: 420px; width: 100%;
+    background: #534AB7; color: #fff;
+    border-radius: 16px; padding: 14px 18px; margin-bottom: 20px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .banner b { font-weight: 600; }
+  .phone {
+    width: 100%; max-width: 420px;
+    background: #FBF9F5;
+    border-radius: 30px;
+    border: 1px solid rgba(0,0,0,0.08);
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+  }
+  .pad { padding: 22px 18px 18px; }
+
+  .hero { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+  .weather {
+    width:56px; height:56px; border-radius:18px; background:#E1F5EE;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; color:#0F6E56;
+  }
+  .weather i { font-size:23px; }
+  .weather span { font-size:11px; font-weight:600; margin-top:1px; }
+  .hero h1 { font-size:18px; font-weight:600; }
+  .hero .loc { font-size:12px; color:#888780; margin-top:1px; }
+  .stars { display:flex; gap:2px; margin-top:4px; color:#EF9F27; font-size:14px; }
+  .stars .off { color:#D3D1C7; }
+
+  .quick { display:grid; grid-template-columns: repeat(4,1fr); gap:9px; margin-bottom:22px; }
+  .qa { border-radius:17px; padding:13px 4px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:transform .12s; border:none; }
+  .qa i { font-size:21px; }
+  .qa span { font-size:11px; font-weight:600; }
+  .qa:active { transform:scale(.92); }
+
+  .section-label { font-size:11px; font-weight:700; color:#B4B2A9; text-transform:uppercase; letter-spacing:0.07em; margin:6px 0 12px 3px; }
+
+  .tile { border:1px solid; border-radius:18px; margin-bottom:11px; overflow:hidden; cursor:pointer; background:#fff; transition:border-color .2s; }
+  .tile-head { display:flex; align-items:center; justify-content:space-between; padding:14px; }
+  .tile-head .lead { display:flex; align-items:center; gap:11px; }
+  .tile-head .lead > i { font-size:20px; }
+  .tile-title { font-size:14px; font-weight:600; }
+  .tile-sub { font-size:12px; margin-top:1px; }
+  .big { font-size:19px; font-weight:600; margin-top:1px; }
+  .big small { font-size:11px; font-weight:400; color:#888780; }
+  .chev { font-size:18px; transition:transform .26s; color:#B4B2A9; }
+  .tile.open .chev { transform:rotate(180deg); }
+  .tile-body { max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .tile.open .tile-body { max-height:260px; }
+  .tile-body-inner { padding:0 14px 13px; }
+
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+  .grid2 .tile { margin-bottom:0; }
+
+  .row { display:flex; align-items:center; gap:11px; padding:10px 0; border-top:1px solid rgba(0,0,0,0.06); }
+  .row > i { font-size:19px; }
+  .row-t { font-size:13px; font-weight:600; }
+  .row-s { font-size:11px; color:#888780; }
+  .row-act { margin-left:auto; display:flex; gap:7px; }
+  .row-act button { width:30px; height:30px; border-radius:11px; border:none; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; }
+  .ok { background:#9FE1CB; color:#0F6E56; }
+  .no { background:#F4C0D1; color:#993556; }
+
+  .mini { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#5F5E5A; padding:7px 0; border-top:1px solid rgba(0,0,0,0.05); }
+  .mini b { font-weight:600; color:#2C2C2A; }
+  .mini i { font-size:13px; }
+
+  .footer { display:flex; gap:9px; padding:14px 18px; background:#fff; border-top:1px solid rgba(0,0,0,0.06); }
+  .navbtn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:11px; border:1px solid rgba(0,0,0,0.12); background:#FBF9F5; border-radius:13px; font-size:12px; font-weight:600; color:#5F5E5A; cursor:pointer; }
+  .navbtn i { font-size:16px; }
+
+  .note { max-width:420px; width:100%; margin-top:22px; font-size:12px; color:#7a7870; line-height:1.6; text-align:center; }
+</style>
+</head>
+<body>
+
+  <div class="banner">
+    <b>Maquette — fiche membre revisitée</b><br/>
+    Touchez les tuiles pour les ouvrir. Tout est replié par défaut : l'écran reste calme, on déroule l'info au besoin.
+  </div>
+
+  <div class="phone">
+    <div class="pad">
+
+      <div class="hero">
+        <div class="weather"><i class="ti ti-cloud"></i><span>22°</span></div>
+        <div style="flex:1; min-width:0;">
+          <h1>Aqua Démo Lyon</h1>
+          <div class="loc">Lyon · Auvergne-Rhône-Alpes</div>
+          <div class="stars"><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star"></i><i class="ti ti-star off"></i></div>
+        </div>
+      </div>
+
+      <div class="quick">
+        <button class="qa" style="background:#E1F5EE; color:#0F6E56;"><i class="ti ti-phone"></i><span>Contacter</span></button>
+        <button class="qa" style="background:#E6F1FB; color:#185FA5;"><i class="ti ti-calendar-plus"></i><span>RDV</span></button>
+        <button class="qa" style="background:#FAECE7; color:#993C1D;"><i class="ti ti-speakerphone"></i><span>Remonter</span></button>
+        <button class="qa" style="background:#EEEDFE; color:#534AB7;"><i class="ti ti-microphone"></i><span>Vocal</span></button>
+      </div>
+
+      <div class="tile" style="border-color:#FAC775; background:#FAEEDA;">
+        <div class="tile-head">
+          <div class="lead">
+            <i class="ti ti-inbox" style="color:#854F0B;"></i>
+            <div>
+              <div class="tile-title" style="color:#633806;">Demandes de l'animateur</div>
+              <div class="tile-sub" style="color:#BA7517;">2 en attente de réponse</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:9px;">
+            <span style="background:#EF9F27; color:#412402; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px;">2</span>
+            <i class="ti ti-chevron-down chev" style="color:#BA7517;"></i>
+          </div>
+        </div>
+        <div class="tile-body"><div class="tile-body-inner">
+          <div class="row"><i class="ti ti-building-store" style="color:#854F0B;"></i><div><div class="row-t">Visite hebdomadaire</div><div class="row-s">mer. 10 juin · 10h00</div></div><div class="row-act"><button class="ok"><i class="ti ti-check"></i></button><button class="no"><i class="ti ti-x"></i></button></div></div>
+          <div class="row"><i class="ti ti-device-laptop" style="color:#854F0B;"></i><div><div class="row-t">Formation nouveautés</div><div class="row-s">mar. 23 juin · 10h00</div></div><div class="row-act"><button class="ok"><i class="ti ti-check"></i></button><button class="no"><i class="ti ti-x"></i></button></div></div>
+        </div></div>
+      </div>
+
+      <div class="section-label">Mes informations</div>
+
+      <div class="grid2">
+
+        <div class="tile" style="border-color:rgba(0,0,0,0.08);">
+          <div class="tile-head" style="padding:13px;">
+            <div class="lead">
+              <i class="ti ti-chart-dots" style="color:#534AB7;"></i>
+              <div><div class="tile-title">Indicateurs</div><div class="big" style="color:#534AB7;">4,2<small> /5</small></div></div>
+            </div>
+            <i class="ti ti-chevron-down chev"></i>
+          </div>
+          <div class="tile-body"><div class="tile-body-inner">
+            <div class="mini"><span>Confiance</span><b>4,2</b></div>
+            <div class="mini"><span>Business</span><b>3,8</b></div>
+            <div class="mini"><span>Satisfaction</span><b>4,0</b></div>
+          </div></div>
+        </div>
+
+        <div class="tile" style="border-color:rgba(0,0,0,0.08);">
+          <div class="tile-head" style="padding:13px;">
+            <div class="lead">
+              <i class="ti ti-coin" style="color:#0F6E56;"></i>
+              <div><div class="tile-title">Chiffre d'aff.</div><div class="big" style="color:#0F6E56;">580k€</div></div>
+            </div>
+            <i class="ti ti-chevron-down chev"></i>
+          </div>
+          <div class="tile-body"><div class="tile-body-inner">
+            <div class="mini"><span>2026</span><b>580k€</b></div>
+            <div class="mini"><span>vs 2025</span><b style="color:#0F6E56;">+4%</b></div>
+            <div class="mini"><span>Spa</span><b>132k€</b></div>
+          </div></div>
+        </div>
+
+        <div class="tile" style="border-color:rgba(0,0,0,0.08);">
+          <div class="tile-head" style="padding:13px;">
+            <div class="lead">
+              <i class="ti ti-history" style="color:#185FA5;"></i>
+              <div><div class="tile-title">Mon activité</div><div class="tile-sub" style="color:#888780;">12 événements</div></div>
+            </div>
+            <i class="ti ti-chevron-down chev"></i>
+          </div>
+          <div class="tile-body"><div class="tile-body-inner">
+            <div class="mini"><span><i class="ti ti-car" style="color:#5DCAA5;"></i> Visites</span><b>3</b></div>
+            <div class="mini"><span><i class="ti ti-calendar" style="color:#85B7EB;"></i> RDV</span><b>4</b></div>
+            <div class="mini"><span><i class="ti ti-speakerphone" style="color:#F0997B;"></i> Remontées</span><b>2</b></div>
+          </div></div>
+        </div>
+
+        <div class="tile" style="border-color:rgba(0,0,0,0.08);">
+          <div class="tile-head" style="padding:13px;">
+            <div class="lead">
+              <i class="ti ti-news" style="color:#993556;"></i>
+              <div><div class="tile-title">Actualités</div><div class="tile-sub" style="color:#888780;">3 nouvelles</div></div>
+            </div>
+            <i class="ti ti-chevron-down chev"></i>
+          </div>
+          <div class="tile-body"><div class="tile-body-inner">
+            <div class="mini"><span>Saison 2026</span><i class="ti ti-arrow-right" style="color:#B4B2A9;"></i></div>
+            <div class="mini"><span>Promo juin</span><i class="ti ti-arrow-right" style="color:#B4B2A9;"></i></div>
+          </div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <button class="navbtn"><i class="ti ti-building-store"></i> Changer magasin</button>
+      <button class="navbtn"><i class="ti ti-logout"></i> Quitter</button>
+    </div>
+  </div>
+
+  <p class="note">Ceci est une maquette statique, pas l'app réelle. Sert uniquement à valider le style avant de coder.</p>
+
+<script>
+  document.querySelectorAll('.tile').forEach(function(t){
+    t.querySelector('.tile-head').addEventListener('click', function(){ t.classList.toggle('open'); });
+  });
+</script>
+</body>
+</html>
