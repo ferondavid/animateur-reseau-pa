@@ -127,6 +127,31 @@ main {
   .pa-modal-content { background: rgba(255, 255, 255, 0.97); }
 }
 
+/* Bouton ghost — barre nav membre / formulaires légers */
+.pa-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(120, 110, 150, 0.2);
+  color: #6F6982;
+  cursor: pointer;
+  transition: color 0.18s, background 0.18s, transform 0.18s, box-shadow 0.18s;
+}
+.pa-ghost-btn:hover {
+  color: #534AB7;
+  background: #fff;
+  box-shadow: 0 8px 18px -8px rgba(80, 60, 140, 0.4);
+  transform: translateY(-2px);
+}
+.pa-ghost-btn:active { transform: scale(0.96); }
+
 /* Label de formulaire */
 .pa-label {
   display: block;
