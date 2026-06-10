@@ -101,6 +101,54 @@ export async function POST(req: NextRequest) {
     return Response.json({ reponse: "Commande vide, réessayez." });
   }
 
+  // 0. FALLBACK RAPIDE : regex sur les commandes de navigation simples
+  // Évite un appel Claude inutile et garantit que ces commandes marchent
+  const texteLower = texte
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, ""); // supprime accents
+  const REGEX_NAV: Array<{ regex: RegExp; cible: string }> = [
+    { regex: /\b(carte|map|cartographie|reseau)\b/, cible: "carte" },
+    { regex: /\b(pilotage|cockpit|tableau de bord)\b/, cible: "pilotage" },
+    { regex: /\b(rendez ?vous|rdv|prochains? rdv|mes? rdv)\b/, cible: "rdv" },
+    { regex: /\b(visites?|liste des visites)\b/, cible: "visites" },
+    { regex: /\b(parcours|tournee|itineraire|preparer une tournee)\b/, cible: "parcours" },
+    { regex: /\b(actions?|actions? reseau)\b/, cible: "actions" },
+    { regex: /\b(remontees?|alertes?|signalements?)\b/, cible: "remontees" },
+    { regex: /\b(news|actualites?|infos? reseau)\b/, cible: "news" },
+    { regex: /\b(evaluations?|notes? visites?)\b/, cible: "evaluations" },
+    { regex: /\b(magasins?|liste|liste des magasins)\b/, cible: "magasins" },
+    { regex: /\b(parametres?|reglages?|configuration|settings)\b/, cible: "parametres" },
+    { regex: /\b(agenda|calendrier|planning)\b/, cible: "agenda" },
+  ];
+  // Si le texte commence par un verbe de navigation, on cherche la cible
+  const verbeNav = /\b(ouvre|ouvrir|va|aller|montre|montrer|affiche|afficher|page|emmene|emmener|retour)\b/.test(texteLower);
+  if (verbeNav) {
+    for (const { regex, cible } of REGEX_NAV) {
+      if (regex.test(texteLower)) {
+        const MAP_LABEL: Record<string, { url: string; label: string }> = {
+          carte:        { url: "/animateur",            label: "la carte du réseau" },
+          agenda:       { url: "/animateur",            label: "l'agenda" },
+          pilotage:     { url: "/pilotage",             label: "le pilotage" },
+          rdv:          { url: "/animateur/rdv",        label: "les rendez-vous" },
+          visites:      { url: "/visites",              label: "les visites" },
+          parcours:     { url: "/animateur/parcours",   label: "la préparation de tournée" },
+          actions:      { url: "/actions-reseau",       label: "les actions" },
+          remontees:    { url: "/remontees",            label: "les remontées" },
+          news:         { url: "/animateur/news",       label: "les actualités" },
+          evaluations:  { url: "/evaluations",          label: "les évaluations" },
+          magasins:     { url: "/magasins",             label: "la liste des magasins" },
+          parametres:   { url: "/animateur/parametres", label: "les paramètres" },
+        };
+        const match = MAP_LABEL[cible];
+        return Response.json({
+          reponse: `J'ouvre ${match.label}.`,
+          action: { type: "navigate", url: match.url },
+        });
+      }
+    }
+  }
+
   // 1. Parsing intention avec cache sur le prompt système
   const parseMsg = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
