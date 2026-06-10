@@ -1,27 +1,32 @@
 import { logout } from "@/app/login/actions";
+import { LogOut } from "lucide-react";
 
 export default function BoutonChangerRole() {
   return (
     <form action={logout}>
       <button
         type="submit"
-        className="bg-slate-900 hover:bg-slate-700 text-white rounded-xl px-5 py-2.5 text-sm font-semibold inline-flex items-center gap-2 shadow-sm transition-colors"
+        className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:-translate-y-0.5"
+        style={{
+          background: "rgba(255,255,255,0.7)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid rgba(120,110,150,0.2)",
+          color: "#6F6982",
+          boxShadow: "none",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = "#534AB7";
+          e.currentTarget.style.background = "#fff";
+          e.currentTarget.style.boxShadow = "0 8px 18px -8px rgba(80,60,140,.4)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = "#6F6982";
+          e.currentTarget.style.background = "rgba(255,255,255,0.7)";
+          e.currentTarget.style.boxShadow = "none";
+        }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
+        <LogOut size={14} />
         Déconnexion
       </button>
     </form>

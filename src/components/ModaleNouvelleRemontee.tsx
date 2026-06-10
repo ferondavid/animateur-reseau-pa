@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Megaphone, Paperclip, X } from "lucide-react";
 
 type Props = { magasinId: string; onClose: () => void };
 
@@ -37,7 +38,6 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
           .from("photos-remontees")
           .getPublicUrl(path);
         photoUrl = pub.publicUrl;
-        console.log("[REMONTEE] photo uploadée :", photoUrl);
       }
 
       const { data: nouvelleRemontee, error: insErr } = await supabase
@@ -71,7 +71,6 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
         router.refresh();
       }, 1200);
     } catch (err) {
-      console.error("[REMONTEE] erreur:", err);
       setErreur(err instanceof Error ? err.message : JSON.stringify(err));
     } finally {
       setBusy(false);
@@ -79,29 +78,41 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+    <div className="pa-modal-overlay">
+      <div className="pa-modal-content w-full max-w-lg p-6 space-y-4">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">📢 Faire remonter une info</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-xl leading-none">×</button>
+          <h2 className="text-base font-bold flex items-center gap-2" style={{ color: "var(--pa-ink)" }}>
+            <Megaphone size={18} style={{ color: "#EC6B4E" }} />
+            Faire remonter une info
+          </h2>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors"
+            style={{ color: "var(--pa-muted)" }}
+            aria-label="Fermer"
+          >
+            <X size={16} />
+          </button>
         </div>
 
         {succes && (
-          <div className="rounded-xl px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700">
-            Remontée envoyée ✓
+          <div className="rounded-xl px-4 py-2.5 text-sm font-medium"
+               style={{ background: "#D4F3E8", color: "#0F8C68" }}>
+            Remontée envoyée avec succès
           </div>
         )}
-
         {erreur && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-xs font-mono break-all">
-            ❌ {erreur}
+          <div className="rounded-xl px-4 py-2.5 text-xs font-mono break-all"
+               style={{ background: "#FBE0E8", color: "#C0476E", border: "1px solid rgba(192,71,110,.2)" }}>
+            {erreur}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
-            <select name="type" required defaultValue="" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <label className="pa-label">Type *</label>
+            <select name="type" required defaultValue="" className="pa-input">
               <option value="" disabled>— Choisir —</option>
               <option value="commerciale">Commerciale</option>
               <option value="sav_technique">SAV / Technique</option>
@@ -112,21 +123,19 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Titre *</label>
-            <input name="titre" required type="text" placeholder="Résumé en une ligne"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            <label className="pa-label">Titre *</label>
+            <input name="titre" required type="text" placeholder="Résumé en une ligne" className="pa-input" />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Description *</label>
+            <label className="pa-label">Description *</label>
             <textarea name="description" required rows={3} placeholder="Décrivez la situation…"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 resize-y" />
+              className="pa-input resize-y" />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Gravité</label>
-            <select name="gravite" defaultValue="normale"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <label className="pa-label">Gravité</label>
+            <select name="gravite" defaultValue="normale" className="pa-input">
               <option value="normale">Normale</option>
               <option value="attention">Attention</option>
               <option value="urgente">Urgente</option>
@@ -134,25 +143,28 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Photo ou document (optionnel)</label>
+            <label className="pa-label">Photo ou document (optionnel)</label>
             {fichier && (
-              <p className="text-xs text-slate-500 mb-1">📎 {fichier.name} ({(fichier.size / 1024).toFixed(0)} Ko)</p>
+              <p className="text-xs mb-1 flex items-center gap-1.5" style={{ color: "var(--pa-muted)" }}>
+                <Paperclip size={11} />
+                {fichier.name} ({(fichier.size / 1024).toFixed(0)} Ko)
+              </p>
             )}
             <input
               type="file"
               accept="image/*,.pdf,.doc,.docx"
               onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
-              className="w-full text-sm text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+              className="pa-input"
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition-colors">
+              className="pa-btn-secondary flex-1 py-2.5 rounded-xl text-sm">
               Annuler
             </button>
             <button type="submit" disabled={busy}
-              className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-sm font-semibold transition-colors">
+              className="pa-btn-primary flex-1 py-2.5 rounded-xl text-sm">
               {busy ? "Envoi…" : "Envoyer"}
             </button>
           </div>

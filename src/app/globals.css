@@ -44,6 +44,101 @@ main {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   PA Utilities — boutons, inputs, modales, labels
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Bouton primaire gradient violet */
+.pa-btn-primary {
+  background: linear-gradient(135deg, #7C6BE8, #8A5FE0);
+  box-shadow: 0 6px 16px -6px rgba(124, 107, 232, 0.55);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.3, 1), box-shadow 0.2s;
+}
+.pa-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 10px 22px -8px rgba(124, 107, 232, 0.75);
+  transform: translateY(-1px);
+}
+.pa-btn-primary:active:not(:disabled) { transform: scale(0.97); }
+.pa-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Bouton secondaire (annuler) */
+.pa-btn-secondary {
+  background: rgba(124, 107, 232, 0.08);
+  color: var(--pa-muted);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.pa-btn-secondary:hover { background: rgba(124, 107, 232, 0.15); }
+
+/* Input/select/textarea */
+.pa-input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 107, 232, 0.25);
+  padding: 9px 12px;
+  font-size: 14px;
+  background: #fff;
+  color: var(--pa-ink);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: auto;
+}
+.pa-input:focus {
+  border-color: rgba(124, 107, 232, 0.5);
+  box-shadow: 0 0 0 3px rgba(124, 107, 232, 0.12);
+}
+.pa-input::placeholder { color: var(--pa-muted); }
+.pa-input[type="file"] {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/* Overlay de modale */
+.pa-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(36, 31, 51, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+/* Contenu de modale — glassmorphism */
+.pa-modal-content {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 26px;
+  box-shadow: 0 24px 60px -20px rgba(80, 60, 140, 0.45);
+  overflow: hidden;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@supports not (backdrop-filter: blur(0)) {
+  .pa-modal-content { background: rgba(255, 255, 255, 0.97); }
+}
+
+/* Label de formulaire */
+.pa-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pa-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 5px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    PA DESIGN SYSTEM — Keyframes
    ══════════════════════════════════════════════════════════════════ */
 

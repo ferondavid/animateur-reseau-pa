@@ -1,21 +1,34 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Store } from "lucide-react";
 
 export default function BoutonChangerMagasin() {
   const router = useRouter();
   return (
     <button
       onClick={() => router.push("/membre")}
-      className="bg-white border border-slate-300 hover:border-slate-400 text-slate-700 rounded-xl px-5 py-2.5 text-sm font-semibold inline-flex items-center gap-2 shadow-sm transition-colors"
+      className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:-translate-y-0.5"
+      style={{
+        background: "rgba(255,255,255,0.7)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        border: "1px solid rgba(120,110,150,0.2)",
+        color: "#6F6982",
+        boxShadow: "none",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = "#534AB7";
+        e.currentTarget.style.background = "#fff";
+        e.currentTarget.style.boxShadow = "0 8px 18px -8px rgba(80,60,140,.4)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = "#6F6982";
+        e.currentTarget.style.background = "rgba(255,255,255,0.7)";
+        e.currentTarget.style.boxShadow = "none";
+      }}
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
-        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-        <path d="M15 22v-4a3 3 0 0 0-6 0v4"/>
-        <path d="M2 7h20"/>
-        <path d="M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>
-      </svg>
+      <Store size={14} />
       Choisir un autre magasin
     </button>
   );
