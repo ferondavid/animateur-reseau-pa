@@ -197,35 +197,61 @@ export default function BoutonMicroVocal() {
 
   return (
     <>
-      {/* FAB violet fixe en bas à droite */}
+      {/* FAB — gradient violet animé */}
       <button
         onClick={ouvrirEtEcouter}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-700 shadow-lg flex items-center justify-center text-white transition-all hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center text-white transition-all active:scale-90"
+        style={{
+          background: "linear-gradient(140deg, #7C6BE8, #C98BD9)",
+          boxShadow: "0 8px 25px -8px rgba(124,107,232,0.7)",
+          transform: "scale(1)",
+          transition: "transform .22s cubic-bezier(.2,.8,.3,1), box-shadow .22s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.08)";
+          e.currentTarget.style.boxShadow = "0 16px 35px -10px rgba(124,107,232,0.85)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 8px 25px -8px rgba(124,107,232,0.7)";
+        }}
         aria-label="Assistant vocal"
         title="Assistant vocal — parlez pour piloter"
       >
         <MicIcon size="md" />
       </button>
 
-      {/* Modale */}
+      {/* Modale — glassmorphism */}
       {ouverte && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 backdrop-blur-sm"
+            style={{ background: "rgba(36,31,51,0.45)" }}
             onClick={fermer}
           />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+          <div
+            className="relative w-full max-w-sm p-6 space-y-4"
+            style={{
+              background: "rgba(255,255,255,0.88)",
+              backdropFilter: "blur(24px) saturate(160%)",
+              WebkitBackdropFilter: "blur(24px) saturate(160%)",
+              border: "1px solid rgba(255,255,255,0.75)",
+              borderRadius: "26px",
+              boxShadow: "0 24px 60px -20px rgba(80,60,140,0.45)",
+            }}
+          >
             {/* Status */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${couleurEtat[etat]}`} />
-                <span className="text-sm font-medium text-slate-700">
+                <span className="text-sm font-semibold" style={{ color: "var(--pa-ink)" }}>
                   {etatsLabel[etat]}
                 </span>
               </div>
               <button
                 onClick={fermer}
-                className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 text-xl leading-none"
+                className="w-7 h-7 flex items-center justify-center rounded-full text-xl leading-none transition-colors"
+                style={{ color: "var(--pa-muted)" }}
               >
                 ×
               </button>
@@ -233,8 +259,11 @@ export default function BoutonMicroVocal() {
 
             {/* Transcription */}
             {transcription && (
-              <div className="bg-slate-50 rounded-xl px-4 py-3 text-sm text-slate-700">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">
+              <div
+                className="rounded-xl px-4 py-3 text-sm"
+                style={{ background: "rgba(124,107,232,0.07)", color: "var(--pa-ink)" }}
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--pa-muted)" }}>
                   Vous
                 </p>
                 <p>{transcription}</p>
@@ -247,8 +276,8 @@ export default function BoutonMicroVocal() {
                 {[0, 150, 300].map((delay) => (
                   <div
                     key={delay}
-                    className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce"
-                    style={{ animationDelay: `${delay}ms` }}
+                    className="w-1.5 h-1.5 rounded-full animate-bounce"
+                    style={{ background: "#9B7BE8", animationDelay: `${delay}ms` }}
                   />
                 ))}
               </div>
@@ -256,16 +285,24 @@ export default function BoutonMicroVocal() {
 
             {/* Réponse */}
             {reponse && (
-              <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 text-sm text-violet-900">
+              <div
+                className="rounded-xl px-4 py-3 text-sm"
+                style={{
+                  background: "linear-gradient(135deg, rgba(124,107,232,0.10), rgba(201,139,217,0.10))",
+                  border: "1px solid rgba(124,107,232,0.2)",
+                  color: "var(--pa-ink)",
+                }}
+              >
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-[10px] font-semibold text-violet-400 uppercase tracking-wide">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "#7C6BE8" }}>
                     Assistant
                   </p>
                   <button
                     type="button"
                     onClick={() => parler(reponse)}
                     title="Réécouter"
-                    className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-violet-200 text-violet-700 hover:bg-violet-100 text-[10px] font-semibold"
+                    className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors"
+                    style={{ background: "rgba(124,107,232,0.12)", color: "#7C6BE8", border: "1px solid rgba(124,107,232,0.2)" }}
                   >
                     🔊 Réécouter
                   </button>
@@ -279,7 +316,8 @@ export default function BoutonMicroVocal() {
               {etat === "ecoute" ? (
                 <button
                   onClick={arreter}
-                  className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl py-2.5 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 text-white text-sm font-semibold rounded-xl py-2.5 transition-colors"
+                  style={{ background: "linear-gradient(140deg,#F79B72,#EC6B4E)", boxShadow: "0 6px 16px -6px rgba(236,107,78,.6)" }}
                 >
                   Arrêter
                 </button>
@@ -288,7 +326,8 @@ export default function BoutonMicroVocal() {
                 etat === "erreur" ? (
                 <button
                   onClick={demarrerEcoute}
-                  className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold rounded-xl py-2.5 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 text-white text-sm font-semibold rounded-xl py-2.5 transition-all"
+                  style={{ background: "linear-gradient(140deg,#7C6BE8,#C98BD9)", boxShadow: "0 6px 16px -6px rgba(124,107,232,.65)" }}
                 >
                   <MicIcon size="sm" />
                   Parler
@@ -296,14 +335,15 @@ export default function BoutonMicroVocal() {
               ) : null}
               <button
                 onClick={fermer}
-                className="px-4 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+                className="px-4 text-sm rounded-xl transition-colors"
+                style={{ color: "var(--pa-muted)" }}
               >
                 Fermer
               </button>
             </div>
 
-            <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-              Essayez : &quot;Prochain RDV&quot; · &quot;Remontées urgentes&quot; · &quot;Ouvre Piscine Service Lyon&quot;
+            <p className="text-[11px] text-center leading-relaxed" style={{ color: "var(--pa-muted)" }}>
+              Essayez : &quot;Prochain RDV&quot; · &quot;Remontées urgentes&quot; · &quot;Ouvre [magasin]&quot;
             </p>
           </div>
         </div>
