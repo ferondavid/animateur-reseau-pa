@@ -60,7 +60,7 @@ export default async function MagasinsPage({
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
+    <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="space-y-4 mb-6 sm:mb-8">
 
@@ -95,7 +95,7 @@ export default async function MagasinsPage({
 
         {/* État vide */}
         {(magasins?.length ?? 0) === 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-sm space-y-4">
+          <div className="pa-card p-16 text-center space-y-4">
             <p className="text-slate-400">Aucun magasin pour ce filtre.</p>
             <Link
               href="/magasins/nouveau"
@@ -109,10 +109,10 @@ export default async function MagasinsPage({
         {(magasins?.length ?? 0) > 0 && (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div className="hidden md:block pa-card rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
+                  <tr className="border-b" style={{ borderColor: "var(--pa-line)" }}>
                     <th className="text-left px-6 py-3.5 font-medium text-slate-600">Enseigne</th>
                     <th className="text-left px-6 py-3.5 font-medium text-slate-600">Nom</th>
                     <th className="text-left px-6 py-3.5 font-medium text-slate-600">Ville</th>
@@ -150,7 +150,7 @@ export default async function MagasinsPage({
                 <Link
                   key={m.id}
                   href={`/magasins/${m.id}`}
-                  className="block bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:bg-slate-50 transition-colors"
+                  className="block pa-card p-4 transition-all active:scale-[.99]"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">

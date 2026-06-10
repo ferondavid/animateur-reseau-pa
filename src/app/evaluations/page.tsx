@@ -37,7 +37,7 @@ export default async function EvaluationsPage() {
       : null;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
+    <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         {/* En-tête */}
         <div className="flex items-center justify-between">
@@ -58,7 +58,7 @@ export default async function EvaluationsPage() {
         {liste.length > 0 && (
           <div className="space-y-4">
             {/* Moyenne globale */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 flex items-center justify-between shadow-sm">
+            <div className="pa-card p-6 flex items-center justify-between" style={{ background: "linear-gradient(135deg,rgba(254,243,199,0.8),rgba(253,230,138,0.6))" }}>
               <div>
                 <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">
                   Satisfaction globale moyenne
@@ -81,7 +81,7 @@ export default async function EvaluationsPage() {
                 return (
                   <div
                     key={q.key}
-                    className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"
+                    className="pa-card p-4"
                   >
                     <p className="text-xs text-slate-500 leading-snug mb-2">
                       {q.label}
@@ -106,7 +106,7 @@ export default async function EvaluationsPage() {
 
         {/* État vide */}
         {liste.length === 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-sm">
+          <div className="pa-card p-16 text-center">
             <p className="text-slate-400 text-sm">
               Aucune évaluation reçue pour l'instant.
             </p>
@@ -121,10 +121,10 @@ export default async function EvaluationsPage() {
         {liste.length > 0 && (
           <>
             {/* Vue desktop : tableau */}
-            <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div className="hidden md:block pa-card rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
+                  <tr className="border-b" style={{ borderColor: "var(--pa-line)" }}>
                     <th className="text-left px-6 py-3.5 font-medium text-slate-600">
                       Date
                     </th>
@@ -199,7 +199,7 @@ export default async function EvaluationsPage() {
                   <Link
                     key={e.id}
                     href={`/evaluations/${e.id}`}
-                    className="block bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:bg-slate-50 transition-colors"
+                    className="block pa-card p-4 transition-all active:scale-[.99]"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-slate-700">

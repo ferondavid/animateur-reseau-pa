@@ -45,7 +45,7 @@ export default async function VisitesPage() {
     .order("date_prevue", { ascending: false });
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-8">
+    <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="space-y-4 mb-6 sm:mb-8">
           <div className="flex items-center justify-between">
@@ -68,7 +68,7 @@ export default async function VisitesPage() {
 
         {/* État vide */}
         {(visites?.length ?? 0) === 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-sm">
+          <div className="pa-card p-16 text-center">
             <p className="text-slate-400">Aucune visite enregistrée.</p>
           </div>
         )}
@@ -76,10 +76,10 @@ export default async function VisitesPage() {
         {(visites?.length ?? 0) > 0 && (
           <>
             {/* Vue desktop : tableau */}
-            <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div className="hidden md:block pa-card rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
+                  <tr className="border-b" style={{ borderColor: "var(--pa-line)" }}>
                     <th className="text-left px-6 py-3.5 font-medium text-slate-600">Date</th>
                     <th className="text-left px-6 py-3.5 font-medium text-slate-600">Magasin</th>
                     <th className="text-left px-6 py-3.5 font-medium text-slate-600">Statut</th>
@@ -145,7 +145,7 @@ export default async function VisitesPage() {
                   <Link
                     key={v.id}
                     href={`/visites/${v.id}`}
-                    className="block bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:bg-slate-50 transition-colors"
+                    className="block pa-card p-4 transition-all active:scale-[.99]"
                   >
                     {/* Date + statut */}
                     <div className="flex items-center justify-between mb-2">

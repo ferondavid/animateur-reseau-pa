@@ -55,7 +55,7 @@ export default async function RDVAdminPage({
   ).length;
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-6 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {ok && (
           <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
@@ -87,7 +87,7 @@ export default async function RDVAdminPage({
         </div>
 
         <div className="flex flex-wrap gap-3 items-center">
-          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 border border-slate-200">
+          <div className="flex items-center gap-1 p-1 rounded-[16px]" style={{ background: "rgba(255,255,255,0.65)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: "1px solid rgba(255,255,255,0.7)" }}>
             {TABS.map((t) => (
               <Link
                 key={t.key}
