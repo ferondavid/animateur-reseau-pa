@@ -222,9 +222,31 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           />
         </div>
 
+        {/* ── Actualités ────────────────────────────────────────────── */}
+        {newsList.length > 0 && (
+          <div className="pa-reveal" style={{ animationDelay: ".18s" }}>
+            <Tuile
+              icon={
+                <IcoBox bg="linear-gradient(135deg,#F9DCE7,#F4C4D6)" color="#C04B72" Icon={Newspaper} />
+              }
+              titre="Actualités du réseau"
+              sousTitre={`${newsList.length} publication${newsList.length > 1 ? "s" : ""}`}
+            >
+              <div className="space-y-2 pt-1">
+                {newsList.map((n) => (
+                  <CardNews key={n.id} news={n} compact />
+                ))}
+                <Link href="/news" className="block text-center text-[12px] font-semibold mt-2 py-1" style={{ color: "#6B4FD8" }}>
+                  Toutes les actualités →
+                </Link>
+              </div>
+            </Tuile>
+          </div>
+        )}
+
         {/* ── Demandes animateur ────────────────────────────────────── */}
         {nbDemandes > 0 && (
-          <div className="pa-reveal" style={{ animationDelay: ".20s" }}>
+          <div className="pa-reveal" style={{ animationDelay: ".22s" }}>
             <Tuile
               icon={
                 <IcoBox bg="rgba(255,255,255,0.75)" color="#5B4FCB" Icon={Inbox} />
@@ -256,7 +278,6 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             }
             titre="Votre activité"
             sousTitre={`${historique.length} événements sur 12 mois`}
-            defaultOpen
           >
             <TabsMembre
               actions={(actions ?? []) as { id: string; titre: string; niveau_urgence: number; statut: string; deadline: string | null; created_at: string; description: string | null; portee: string | null }[]}
@@ -326,29 +347,6 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
                 <div>{sparkNotes.length} visites</div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* ── Actualités ────────────────────────────────────────────── */}
-        {newsList.length > 0 && (
-          <div className="pa-reveal" style={{ animationDelay: ".44s" }}>
-            <Tuile
-              icon={
-                <IcoBox bg="linear-gradient(135deg,#F9DCE7,#F4C4D6)" color="#C04B72" Icon={Newspaper} />
-              }
-              titre="Actualités du réseau"
-              sousTitre={`${newsList.length} publication${newsList.length > 1 ? "s" : ""}`}
-              defaultOpen
-            >
-              <div className="space-y-2 pt-1">
-                {newsList.map((n) => (
-                  <CardNews key={n.id} news={n} compact />
-                ))}
-                <Link href="/news" className="block text-center text-[12px] font-semibold mt-2 py-1" style={{ color: "#6B4FD8" }}>
-                  Toutes les actualités →
-                </Link>
-              </div>
-            </Tuile>
           </div>
         )}
 
