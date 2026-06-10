@@ -36,7 +36,7 @@ export default async function Landing() {
   return (
     <>
       <BoundaryRedirect />
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 pb-16">
+      <main className="min-h-screen pb-16">
 
         {/* Choix de rôle */}
         <div className="max-w-4xl mx-auto px-6 md:px-10 pt-16 pb-4 flex flex-col items-center gap-8">
