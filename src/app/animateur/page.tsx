@@ -11,22 +11,78 @@ import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
 import { getParametre, getParametreNumber, getParametreFloat } from "@/lib/parametres";
 import { calculerPreparation } from "@/lib/preparation-rdv";
+import Tuile from "@/components/ui/Tuile";
+import CountUp from "@/components/ui/CountUp";
+import {
+  Sun, CalendarDays, MapPin, Calendar, Eye, Star, AlertTriangle,
+  BarChart3, Car, Megaphone, Zap, Activity,
+} from "lucide-react";
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function premierJourMois(d: Date): string {
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
 }
-
 function dernierJourMois(d: Date): string {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0)
-    .toISOString()
-    .split("T")[0];
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split("T")[0];
+}
+function ilYATroisMois(d: Date): string {
+  return new Date(d.getFullYear(), d.getMonth() - 3, 1).toISOString().split("T")[0];
 }
 
-function ilYATroisMois(d: Date): string {
-  return new Date(d.getFullYear(), d.getMonth() - 3, 1)
-    .toISOString()
-    .split("T")[0];
+function IcoBox({ bg, color, Icon }: {
+  bg: string; color: string;
+  Icon: React.ComponentType<{ size?: number }>;
+}) {
+  return (
+    <div
+      className="w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0"
+      style={{ background: bg, color }}
+    >
+      <Icon size={20} />
+    </div>
+  );
 }
+
+// ── Metric card ───────────────────────────────────────────────────────────────
+
+function CardMetrique({
+  label, valeur, href, sub, rouge,
+}: {
+  label: string; valeur: string; href: string; sub?: string; rouge?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="pa-tile flex flex-col gap-2 p-5 transition-all"
+      style={{ cursor: "pointer", textDecoration: "none" }}
+    >
+      <span
+        className="text-[11px] font-semibold uppercase tracking-wide"
+        style={{ color: "var(--pa-muted)" }}
+      >
+        {label}
+      </span>
+      <span
+        className="text-3xl font-bold leading-none"
+        style={{ color: rouge ? "#C0476E" : "#6B4FD8", letterSpacing: "-0.5px" }}
+      >
+        {valeur}
+      </span>
+      {sub && (
+        <span className="text-[11px]" style={{ color: "var(--pa-muted)" }}>{sub}</span>
+      )}
+      <span
+        className="text-sm font-semibold mt-auto pt-2"
+        style={{ color: rouge ? "#C0476E" : "#7C6BE8" }}
+      >
+        Voir →
+      </span>
+    </Link>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function AnimateurPage() {
   const supabase = await createClient();
@@ -36,6 +92,8 @@ export default async function AnimateurPage() {
   const debutMois = premierJourMois(now);
   const finMois = dernierJourMois(now);
   const debutTrimestre = ilYATroisMois(now);
+  const h = now.getHours();
+  const greeting = h < 12 ? "Bonne matinée" : h < 18 ? "Bonne journée" : "Bonne soirée";
 
   const [
     { count: nbMagasins },
@@ -50,61 +108,19 @@ export default async function AnimateurPage() {
     { data: visitesPourRisque },
     { data: remonteesUrgentesActives },
   ] = await Promise.all([
-    supabase
-      .from("magasins")
-      .select("*", { count: "exact", head: true })
-      .eq("statut", "actif"),
-    supabase
-      .from("visites")
-      .select("*", { count: "exact", head: true })
-      .gte("date_realisee", debutMois)
-      .lte("date_realisee", finMois),
-    supabase
-      .from("visites")
-      .select("note_confiance")
-      .eq("statut", "realisee")
-      .gte("date_realisee", debutTrimestre)
-      .not("note_confiance", "is", null),
-    supabase
-      .from("visites")
-      .select("note_business")
-      .eq("statut", "realisee")
-      .gte("date_realisee", debutTrimestre)
-      .not("note_business", "is", null),
-    supabase
-      .from("magasins")
-      .select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone, niveau")
-      .eq("statut", "actif")
-      .not("latitude", "is", null)
-      .order("nom"),
-    supabase
-      .from("visites")
-      .select("id, date_prevue, objectif, magasins(nom, enseigne)")
-      .eq("statut", "planifiee")
-      .gte("date_prevue", today)
-      .order("date_prevue", { ascending: true })
-      .limit(5),
-    supabase
-      .from("actions")
-      .select("*", { count: "exact", head: true })
-      .in("statut", ["ouverte", "en_cours"]),
-    supabase
-      .from("remontees")
-      .select("*", { count: "exact", head: true })
-      .eq("statut", "nouvelle"),
+    supabase.from("magasins").select("*", { count: "exact", head: true }).eq("statut", "actif"),
+    supabase.from("visites").select("*", { count: "exact", head: true }).gte("date_realisee", debutMois).lte("date_realisee", finMois),
+    supabase.from("visites").select("note_confiance").eq("statut", "realisee").gte("date_realisee", debutTrimestre).not("note_confiance", "is", null),
+    supabase.from("visites").select("note_business").eq("statut", "realisee").gte("date_realisee", debutTrimestre).not("note_business", "is", null),
+    supabase.from("magasins").select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone, niveau").eq("statut", "actif").not("latitude", "is", null).order("nom"),
+    supabase.from("visites").select("id, date_prevue, objectif, magasins(nom, enseigne)").eq("statut", "planifiee").gte("date_prevue", today).order("date_prevue", { ascending: true }).limit(5),
+    supabase.from("actions").select("*", { count: "exact", head: true }).in("statut", ["ouverte", "en_cours"]),
+    supabase.from("remontees").select("*", { count: "exact", head: true }).eq("statut", "nouvelle"),
     supabase.from("evaluations_visite").select("q6_satisfaction_globale"),
-    supabase
-      .from("visites")
-      .select("magasin_id, date_realisee, note_confiance, note_business")
-      .eq("statut", "realisee"),
-    supabase
-      .from("remontees")
-      .select("magasin_id")
-      .eq("gravite", "urgente")
-      .not("statut", "in", "(traitee,archivee)"),
+    supabase.from("visites").select("magasin_id, date_realisee, note_confiance, note_business").eq("statut", "realisee"),
+    supabase.from("remontees").select("magasin_id").eq("gravite", "urgente").not("statut", "in", "(traitee,archivee)"),
   ]);
 
-  // RDV en attente uniquement (les confirmés viennent du flux agenda unifié)
   const dans7j = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
   const { data: rdvsEnAttente } = await supabase
     .from("rendez_vous")
@@ -115,7 +131,7 @@ export default async function AnimateurPage() {
     .order("date_souhaitee", { ascending: true })
     .limit(10);
 
-  // ── Préparation J+1 ──────────────────────────────────────────────────────
+  // Préparation J+1
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
@@ -125,13 +141,7 @@ export default async function AnimateurPage() {
     latDep, lngDep, vitesseKmh, coefRoute, bufferMin, margeCharge,
     veActifJ1, autonomieKmJ1, seuilPctJ1,
   ] = await Promise.all([
-    supabase
-      .from("rendez_vous")
-      .select(
-        "id, type, objet, heure_souhaitee, magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville, latitude, longitude)"
-      )
-      .eq("statut", "confirme")
-      .eq("date_souhaitee", tomorrowStr),
+    supabase.from("rendez_vous").select("id, type, objet, heure_souhaitee, magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville, latitude, longitude)").eq("statut", "confirme").eq("date_souhaitee", tomorrowStr),
     getParametre("lat_depart_habituel", ""),
     getParametre("lng_depart_habituel", ""),
     getParametreFloat("vitesse_moyenne_kmh", 70),
@@ -144,14 +154,7 @@ export default async function AnimateurPage() {
   ]);
 
   const departOk = !!(latDep && lngDep);
-  const configCalcJ1 = {
-    vitesseMoyenneKmh: vitesseKmh,
-    coefRoute,
-    bufferMin,
-    margeChargePct: margeCharge,
-    autonomieKm: veActifJ1 === "true" ? autonomieKmJ1 : undefined,
-    seuilPct: veActifJ1 === "true" ? seuilPctJ1 : undefined,
-  };
+  const configCalcJ1 = { vitesseMoyenneKmh: vitesseKmh, coefRoute, bufferMin, margeChargePct: margeCharge, autonomieKm: veActifJ1 === "true" ? autonomieKmJ1 : undefined, seuilPct: veActifJ1 === "true" ? seuilPctJ1 : undefined };
 
   type MagJ1 = { id: string; nom: string; enseigne: string | null; ville: string | null; latitude: number | null; longitude: number | null };
   type RdvJ1Row = { id: string; type: string; objet: string; heure_souhaitee: string | null; magasins: MagJ1 | null };
@@ -160,18 +163,11 @@ export default async function AnimateurPage() {
     ? ((rdvsDemain ?? []) as unknown as RdvJ1Row[])
         .filter((r) => r.magasins?.latitude && r.magasins?.longitude)
         .map((r) => ({
-          rdv: r,
-          mag: r.magasins!,
-          prep: calculerPreparation(
-            parseFloat(latDep), parseFloat(lngDep),
-            r.magasins!.latitude!, r.magasins!.longitude!,
-            r.heure_souhaitee?.slice(0, 5) ?? null,
-            configCalcJ1
-          ),
+          rdv: r, mag: r.magasins!,
+          prep: calculerPreparation(parseFloat(latDep), parseFloat(lngDep), r.magasins!.latitude!, r.magasins!.longitude!, r.heure_souhaitee?.slice(0, 5) ?? null, configCalcJ1),
         }))
     : [];
 
-  // Trier : urgents (dans 7j) en premier, puis par date
   const rdvsSorted = (rdvsEnAttente ?? []).sort((a, b) => {
     const aUrgent = a.date_souhaitee <= dans7j ? 0 : 1;
     const bUrgent = b.date_souhaitee <= dans7j ? 0 : 1;
@@ -191,40 +187,25 @@ export default async function AnimateurPage() {
   );
   const magasinsAvecRisque = magasinsList.map((m) => {
     const r = risqueMap.get(m.id);
-    return {
-      ...m,
-      risque: r
-        ? { niveau: r.niveau, raisons: r.raisons, joursSansVisite: r.joursSansVisite }
-        : undefined,
-    };
+    return { ...m, risque: r ? { niveau: r.niveau, raisons: r.raisons, joursSansVisite: r.joursSansVisite } : undefined };
   });
 
-  // Magasins prioritaires à revisiter selon leur niveau de criticité
-  // Stratégique : seuil 60 jours · Observation : seuil 30 jours · Standard : 90 jours (rare)
   const seuilParNiveau: Record<string, number> = { strategique: 60, observation: 30, standard: 90 };
   type MagasinDB = { id: string; nom: string; enseigne?: string | null; ville?: string | null; niveau?: string | null };
   const magasinsPrioritaires = magasinsList
     .filter((m) => {
       const niveau = (m as MagasinDB).niveau ?? "standard";
       const r = risqueMap.get(m.id);
-      if (niveau === "standard") return false; // on garde le focus sur les non-standards
+      if (niveau === "standard") return false;
       const seuil = seuilParNiveau[niveau] ?? 90;
       return r?.joursSansVisite === null || (r?.joursSansVisite ?? 0) > seuil;
     })
     .map((m) => {
       const niveau = (m as MagasinDB).niveau ?? "standard";
       const r = risqueMap.get(m.id);
-      return {
-        id: m.id,
-        nom: (m as MagasinDB).nom,
-        enseigne: (m as MagasinDB).enseigne,
-        ville: (m as MagasinDB).ville,
-        niveau,
-        joursSansVisite: r?.joursSansVisite ?? null,
-      };
+      return { id: m.id, nom: (m as MagasinDB).nom, enseigne: (m as MagasinDB).enseigne, ville: (m as MagasinDB).ville, niveau, joursSansVisite: r?.joursSansVisite ?? null };
     })
     .sort((a, b) => {
-      // Stratégique en premier, puis observation, puis par jours décroissants
       if (a.niveau === "strategique" && b.niveau !== "strategique") return -1;
       if (b.niveau === "strategique" && a.niveau !== "strategique") return 1;
       const ja = a.joursSansVisite ?? 9999;
@@ -232,410 +213,362 @@ export default async function AnimateurPage() {
       return jb - ja;
     });
 
-  const moyConfiance =
-    notesConfiance && notesConfiance.length > 0
-      ? (
-          notesConfiance.reduce((s, v) => s + (v.note_confiance ?? 0), 0) /
-          notesConfiance.length
-        ).toFixed(1)
-      : null;
-
-  const moyBusiness =
-    notesBusiness && notesBusiness.length > 0
-      ? (
-          notesBusiness.reduce((s, v) => s + (v.note_business ?? 0), 0) /
-          notesBusiness.length
-        ).toFixed(1)
-      : null;
-
-  const moySatisfaction =
-    notesEval && notesEval.length > 0
-      ? (
-          notesEval.reduce((s, e) => s + (e.q6_satisfaction_globale ?? 0), 0) /
-          notesEval.length
-        ).toFixed(1)
-      : null;
+  const moyConfiance = notesConfiance && notesConfiance.length > 0
+    ? (notesConfiance.reduce((s, v) => s + (v.note_confiance ?? 0), 0) / notesConfiance.length).toFixed(1) : null;
+  const moyBusiness = notesBusiness && notesBusiness.length > 0
+    ? (notesBusiness.reduce((s, v) => s + (v.note_business ?? 0), 0) / notesBusiness.length).toFixed(1) : null;
+  const moySatisfaction = notesEval && notesEval.length > 0
+    ? (notesEval.reduce((s, e) => s + (e.q6_satisfaction_globale ?? 0), 0) / notesEval.length).toFixed(1) : null;
 
   const { events: agendaUnifie, gcalLabel, gcalError } = await fetchAgendaUnifie(30);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen p-6">
       <PersistRole role="animateur" />
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">
-              Animation réseau Piscinistes Associés
-            </h1>
-            <p className="text-slate-500 mt-1">
-              Pilotage et suivi de votre réseau de magasins
-            </p>
-          </div>
-          <div className="shrink-0">
-            <MenuAnimateur />
-          </div>
-        </div>
+      <div className="max-w-6xl mx-auto space-y-5">
 
-        {/* Navigation */}
-        <Navigation />
-
-        {/* ── Préparation pour demain ─────────────────────────────────── */}
-        <div>
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
-            🌅 Préparation pour demain
-          </h2>
-
-          {(rdvsDemain ?? []).length === 0 ? (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-sm text-slate-500">
-              Pas de RDV confirmé prévu demain 😌
-            </div>
-          ) : !departOk ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-sm text-amber-700 flex items-center justify-between gap-3">
-              <span>
-                {(rdvsDemain ?? []).length} RDV demain — configure ton adresse de départ habituelle pour voir la préparation détaillée.
-              </span>
-              <Link href="/animateur/parametres" className="shrink-0 font-semibold underline">
-                Configurer →
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {preparationsJ1.map(({ rdv, mag, prep }) => {
-                const typeIcon: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
-                const nomMag = mag.enseigne ? `${mag.enseigne} — ${mag.nom}` : mag.nom;
-                return (
-                  <div key={rdv.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
-                          {rdv.heure_souhaitee ? rdv.heure_souhaitee.slice(0, 5) + " · " : ""}
-                          {typeIcon[rdv.type]} {nomMag}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-0.5">{rdv.objet}</p>
-                      </div>
-                      <Link
-                        href={`/animateur/parcours?prefill_magasin=${mag.id}`}
-                        className="shrink-0 text-xs font-semibold text-blue-600 hover:underline whitespace-nowrap"
-                      >
-                        Préparer ↗
-                      </Link>
-                    </div>
-
-                    <div className="space-y-1 text-sm text-slate-700">
-                      <p>
-                        🚗 {prep.heureDepart
-                          ? `Partir à ${prep.heureDepart}${prep.heureDepartVeille ? " (veille)" : ""} · `
-                          : "Heure RDV non précisée · "}
-                        {Math.round(prep.distanceKm)} km · {
-                          prep.dureeRouteMinutes < 60
-                            ? `${prep.dureeRouteMinutes} min`
-                            : `${Math.floor(prep.dureeRouteMinutes / 60)}h${prep.dureeRouteMinutes % 60 > 0 ? String(prep.dureeRouteMinutes % 60).padStart(2, "0") : ""}`
-                        } de route
-                      </p>
-                      {prep.chargeRecommandeePct > 0 && (
-                        <p>
-                          🔋 Charger ce soir jusqu&apos;à {prep.chargeRecommandeePct}%
-                          {prep.nbArretsEstime > 0 && ` · ${prep.nbArretsEstime} arrêt${prep.nbArretsEstime > 1 ? "s" : ""} borne prévu`}
-                        </p>
-                      )}
-                    </div>
-
-                    {prep.alertes.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {prep.alertes.map((a, i) => (
-                          <span key={i} className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-                            ⚠️ {a}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* RDV en attente */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-              📅 Demandes de RDV à traiter
-              {rdvsTotal > 0 && (
-                <span className="ml-2 text-xs font-bold text-slate-900 bg-slate-200 rounded-full px-2 py-0.5">
-                  {rdvsTotal}
-                </span>
-              )}
-            </h2>
-            {rdvsTotal > 6 && (
-              <Link href="/animateur/rdv?tab=attente" className="text-sm text-blue-600 hover:underline font-medium">
-                Voir tout ({rdvsTotal}) →
-              </Link>
-            )}
-          </div>
-
-          {rdvsTotal === 0 ? (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3 text-sm text-emerald-700 font-medium">
-              Aucune demande de RDV en attente 👍
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {rdvsDuTerrain.length > 0 && (
-                <div>
-                  {rdvsAnimAttente.length > 0 && (
-                    <p className="text-xs font-semibold text-slate-400 mb-2">📥 Demandes du terrain</p>
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {(rdvsDuTerrain as unknown as RDVDemande[]).map((r) => (
-                      <CardRDVDemande key={r.id} rdv={r} />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {rdvsAnimAttente.length > 0 && (
-                <div>
-                  {rdvsDuTerrain.length > 0 && (
-                    <p className="text-xs font-semibold text-slate-400 mb-2">⏳ Vos demandes en attente de validation</p>
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {(rdvsAnimAttente as unknown as RDVDemande[]).map((r) => (
-                      <CardRDVDemande key={r.id} rdv={r} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Magasins prioritaires à revisiter (stratégiques + observation hors seuil) */}
-        {magasinsPrioritaires.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-                🎯 Magasins prioritaires à revisiter
-                <span className="ml-2 text-xs font-bold text-slate-900 bg-slate-200 rounded-full px-2 py-0.5">
-                  {magasinsPrioritaires.length}
-                </span>
-              </h2>
-              <Link href="/magasins" className="text-sm text-blue-600 hover:underline font-medium">
-                Voir tous les magasins →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {magasinsPrioritaires.slice(0, 6).map((m) => {
-                const isStrategique = m.niveau === "strategique";
-                const seuil = seuilParNiveau[m.niveau] ?? 90;
-                const j = m.joursSansVisite;
-                return (
-                  <Link
-                    key={m.id}
-                    href={`/magasins/${m.id}`}
-                    className={`block rounded-xl border-l-4 ${isStrategique ? "border-l-amber-400 bg-amber-50 border-amber-200" : "border-l-blue-400 bg-blue-50 border-blue-200"} border p-4 hover:shadow-md transition-shadow`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isStrategique ? "bg-amber-200 text-amber-800" : "bg-blue-200 text-blue-800"}`}>
-                        {isStrategique ? "⭐ Stratégique" : "🔍 Observation"}
-                      </span>
-                    </div>
-                    <p className="text-sm font-semibold text-slate-900 truncate">
-                      {m.enseigne ? `${m.enseigne} — ${m.nom}` : m.nom}
-                    </p>
-                    {m.ville && <p className="text-xs text-slate-500">{m.ville}</p>}
-                    <p className="text-xs text-slate-600 mt-2">
-                      {j === null ? (
-                        <span className="font-medium text-red-700">⚠️ Jamais visité</span>
-                      ) : (
-                        <>
-                          <span className="font-medium text-slate-800">{j} jours</span> sans visite
-                          <span className="text-slate-400"> (seuil {seuil}j)</span>
-                        </>
-                      )}
-                    </p>
-                  </Link>
-                );
-              })}
-            </div>
-            {magasinsPrioritaires.length > 6 && (
-              <p className="text-xs text-slate-400 mt-2 text-center">
-                + {magasinsPrioritaires.length - 6} autres magasins prioritaires
+        {/* ── Hero ────────────────────────────────────────────────── */}
+        <div className="pa-hero pa-reveal" style={{ animationDelay: ".04s" }}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1
+                className="text-xl font-bold"
+                style={{ color: "#fff", letterSpacing: "-0.3px" }}
+              >
+                Animation réseau PA
+              </h1>
+              <p className="text-[13px] mt-1" style={{ color: "rgba(255,255,255,0.85)" }}>
+                {greeting} — pilotage et suivi de votre réseau
               </p>
+            </div>
+            <div className="shrink-0">
+              <MenuAnimateur />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Navigation ──────────────────────────────────────────── */}
+        <div className="pa-reveal" style={{ animationDelay: ".10s" }}>
+          <Navigation />
+        </div>
+
+        {/* ── Préparation J+1 ─────────────────────────────────────── */}
+        <div className="pa-reveal" style={{ animationDelay: ".14s" }}>
+          <Tuile
+            icon={
+              <IcoBox bg="linear-gradient(135deg,#FEF3C7,#FDE68A)" color="#B45309" Icon={Sun} />
+            }
+            titre="Préparation pour demain"
+            sousTitre={
+              (rdvsDemain ?? []).length === 0
+                ? "Pas de RDV confirmé"
+                : `${(rdvsDemain ?? []).length} RDV confirmé${(rdvsDemain ?? []).length > 1 ? "s" : ""}`
+            }
+            defaultOpen
+          >
+            {(rdvsDemain ?? []).length === 0 ? (
+              <p className="text-sm py-2" style={{ color: "var(--pa-muted)" }}>
+                Pas de RDV confirmé prévu demain 😌
+              </p>
+            ) : !departOk ? (
+              <div
+                className="rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-3"
+                style={{ background: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A" }}
+              >
+                <span>
+                  {(rdvsDemain ?? []).length} RDV demain — configure ton adresse de départ habituelle.
+                </span>
+                <Link href="/animateur/parametres" className="shrink-0 font-semibold underline">
+                  Configurer →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {preparationsJ1.map(({ rdv, mag, prep }) => {
+                  const typeIcon: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
+                  const nomMag = mag.enseigne ? `${mag.enseigne} — ${mag.nom}` : mag.nom;
+                  return (
+                    <div
+                      key={rdv.id}
+                      className="rounded-2xl p-4 space-y-2"
+                      style={{
+                        background: "rgba(255,255,255,0.6)",
+                        border: "1px solid rgba(255,255,255,0.7)",
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: "var(--pa-ink)" }}>
+                            {rdv.heure_souhaitee ? rdv.heure_souhaitee.slice(0, 5) + " · " : ""}
+                            {typeIcon[rdv.type]} {nomMag}
+                          </p>
+                          <p className="text-xs mt-0.5" style={{ color: "var(--pa-muted)" }}>{rdv.objet}</p>
+                        </div>
+                        <Link
+                          href={`/animateur/parcours?prefill_magasin=${mag.id}`}
+                          className="shrink-0 text-xs font-semibold hover:underline whitespace-nowrap"
+                          style={{ color: "#7C6BE8" }}
+                        >
+                          Préparer ↗
+                        </Link>
+                      </div>
+                      <div className="space-y-1 text-sm" style={{ color: "var(--pa-ink)" }}>
+                        <p>
+                          🚗 {prep.heureDepart ? `Partir à ${prep.heureDepart}${prep.heureDepartVeille ? " (veille)" : ""} · ` : "Heure RDV non précisée · "}
+                          {Math.round(prep.distanceKm)} km · {
+                            prep.dureeRouteMinutes < 60
+                              ? `${prep.dureeRouteMinutes} min`
+                              : `${Math.floor(prep.dureeRouteMinutes / 60)}h${prep.dureeRouteMinutes % 60 > 0 ? String(prep.dureeRouteMinutes % 60).padStart(2, "0") : ""}`
+                          } de route
+                        </p>
+                        {prep.chargeRecommandeePct > 0 && (
+                          <p>🔋 Charger ce soir jusqu&apos;à {prep.chargeRecommandeePct}%{prep.nbArretsEstime > 0 && ` · ${prep.nbArretsEstime} arrêt${prep.nbArretsEstime > 1 ? "s" : ""} borne`}</p>
+                        )}
+                      </div>
+                      {prep.alertes.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {prep.alertes.map((a, i) => (
+                            <span key={i} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#FEF3C7", color: "#92400E" }}>
+                              ⚠️ {a}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
+          </Tuile>
+        </div>
+
+        {/* ── RDV en attente ──────────────────────────────────────── */}
+        {rdvsTotal > 0 && (
+          <div className="pa-reveal" style={{ animationDelay: ".18s" }}>
+            <Tuile
+              icon={
+                <IcoBox bg="linear-gradient(135deg,#D9EAFB,#BFDBF7)" color="#2D6FD0" Icon={CalendarDays} />
+              }
+              titre="Demandes de RDV à traiter"
+              sousTitre={`${rdvsTotal} demande${rdvsTotal > 1 ? "s" : ""} en attente`}
+              badge={rdvsTotal}
+              defaultOpen
+            >
+              <div className="space-y-4 pt-1">
+                {rdvsDuTerrain.length > 0 && (
+                  <div>
+                    {rdvsAnimAttente.length > 0 && (
+                      <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: "var(--pa-muted)" }}>
+                        📥 Demandes du terrain
+                      </p>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {(rdvsDuTerrain as unknown as RDVDemande[]).map((r) => (
+                        <CardRDVDemande key={r.id} rdv={r} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {rdvsAnimAttente.length > 0 && (
+                  <div>
+                    {rdvsDuTerrain.length > 0 && (
+                      <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: "var(--pa-muted)" }}>
+                        ⏳ Vos demandes en attente de validation
+                      </p>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {(rdvsAnimAttente as unknown as RDVDemande[]).map((r) => (
+                        <CardRDVDemande key={r.id} rdv={r} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {rdvsTotal > 6 && (
+                  <Link href="/animateur/rdv?tab=attente" className="block text-center text-sm font-semibold" style={{ color: "#7C6BE8" }}>
+                    Voir tout ({rdvsTotal}) →
+                  </Link>
+                )}
+              </div>
+            </Tuile>
           </div>
         )}
 
-        {/* Métriques */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {/* ── Magasins prioritaires ────────────────────────────────── */}
+        {magasinsPrioritaires.length > 0 && (
+          <div className="pa-reveal" style={{ animationDelay: ".22s" }}>
+            <Tuile
+              icon={
+                <IcoBox bg="linear-gradient(135deg,#FEE2E2,#FECACA)" color="#B91C1C" Icon={AlertTriangle} />
+              }
+              titre="Magasins prioritaires à revisiter"
+              sousTitre={`${magasinsPrioritaires.length} magasin${magasinsPrioritaires.length > 1 ? "s" : ""} hors seuil`}
+              badge={magasinsPrioritaires.length}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                {magasinsPrioritaires.slice(0, 6).map((m) => {
+                  const isStrategique = m.niveau === "strategique";
+                  const seuil = seuilParNiveau[m.niveau] ?? 90;
+                  const j = m.joursSansVisite;
+                  return (
+                    <Link
+                      key={m.id}
+                      href={`/magasins/${m.id}`}
+                      className="rounded-xl p-3 flex flex-col gap-1.5 transition-all hover:-translate-y-0.5"
+                      style={{
+                        background: isStrategique ? "#FFFBEB" : "#EFF6FF",
+                        border: `1px solid ${isStrategique ? "#FDE68A" : "#BFDBFE"}`,
+                        textDecoration: "none",
+                      }}
+                    >
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full self-start"
+                        style={{ background: isStrategique ? "#FEF3C7" : "#DBEAFE", color: isStrategique ? "#92400E" : "#1E40AF" }}
+                      >
+                        {isStrategique ? "⭐ Stratégique" : "🔍 Observation"}
+                      </span>
+                      <p className="text-sm font-semibold truncate" style={{ color: "var(--pa-ink)" }}>
+                        {m.enseigne ? `${m.enseigne} — ${m.nom}` : m.nom}
+                      </p>
+                      {m.ville && <p className="text-xs" style={{ color: "var(--pa-muted)" }}>{m.ville}</p>}
+                      <p className="text-xs" style={{ color: "var(--pa-muted)" }}>
+                        {j === null ? <span className="font-medium text-red-700">⚠️ Jamais visité</span> : <><span className="font-medium" style={{ color: "var(--pa-ink)" }}>{j} jours</span> sans visite <span>(seuil {seuil}j)</span></>}
+                      </p>
+                    </Link>
+                  );
+                })}
+              </div>
+              {magasinsPrioritaires.length > 6 && (
+                <p className="text-xs text-center mt-3" style={{ color: "var(--pa-muted)" }}>
+                  + {magasinsPrioritaires.length - 6} autres magasins prioritaires
+                </p>
+              )}
+              <div className="text-right mt-2">
+                <Link href="/magasins" className="text-xs font-semibold" style={{ color: "#7C6BE8" }}>
+                  Tous les magasins →
+                </Link>
+              </div>
+            </Tuile>
+          </div>
+        )}
+
+        {/* ── Métriques ───────────────────────────────────────────── */}
+        <div className="pa-reveal grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3" style={{ animationDelay: ".26s" }}>
           <CardMetrique label="Magasins actifs" valeur={String(nbMagasins ?? 0)} href="/magasins" />
           <CardMetrique label="Visites ce mois" valeur={String(nbVisitesMois ?? 0)} href="/visites" />
-          <CardMetrique
-            label="Confiance moy."
-            valeur={moyConfiance ? `${moyConfiance}/5` : "—"}
-            href="/visites"
-            sub="3 derniers mois"
-          />
-          <CardMetrique
-            label="Actions ouvertes"
-            valeur={String(nbActionsOuvertes ?? 0)}
-            href="/actions-reseau"
-            sub="ouvertes + en cours"
-          />
-          <CardMetrique
-            label="Remontées nouvelles"
-            valeur={String(nbRemonteesNouvelles ?? 0)}
-            href="/remontees"
-            rouge={(nbRemonteesNouvelles ?? 0) > 0}
-          />
-          <CardMetrique
-            label="Satisfaction membres"
-            valeur={moySatisfaction ? `${moySatisfaction}/5` : "—"}
-            href="/evaluations"
-            sub="note globale moy."
-          />
+          <CardMetrique label="Confiance moy." valeur={moyConfiance ? `${moyConfiance}/5` : "—"} href="/visites" sub="3 derniers mois" />
+          <CardMetrique label="Actions ouvertes" valeur={String(nbActionsOuvertes ?? 0)} href="/actions-reseau" sub="ouvertes + en cours" />
+          <CardMetrique label="Remontées nouvelles" valeur={String(nbRemonteesNouvelles ?? 0)} href="/remontees" rouge={(nbRemonteesNouvelles ?? 0) > 0} />
+          <CardMetrique label="Satisfaction" valeur={moySatisfaction ? `${moySatisfaction}/5` : "—"} href="/evaluations" sub="note globale moy." />
         </div>
 
-        {/* Carte */}
-        <div>
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+        {/* ── Carte ───────────────────────────────────────────────── */}
+        <div className="pa-reveal pa-card p-5" style={{ animationDelay: ".30s" }}>
+          <p className="text-[11px] font-semibold uppercase tracking-wide mb-3" style={{ color: "var(--pa-muted)" }}>
             Carte du réseau
-          </h2>
+          </p>
           <CarteWrapper magasins={magasinsAvecRisque} />
         </div>
 
-        {/* Prochaines visites planifiées */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-              Prochaines visites planifiées
-            </h2>
-            <Link
-              href="/visites/nouvelle"
-              className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              + Nouvelle visite
-            </Link>
-          </div>
-
-          {(prochainesVisites ?? []).length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center shadow-sm">
-              <p className="text-slate-400 mb-3">Aucune visite planifiée</p>
-              <Link href="/visites/nouvelle" className="text-sm text-blue-600 hover:underline font-medium">
-                Créer une nouvelle visite →
+        {/* ── Prochaines visites ──────────────────────────────────── */}
+        <div className="pa-reveal" style={{ animationDelay: ".34s" }}>
+          <Tuile
+            icon={
+              <IcoBox bg="linear-gradient(135deg,#D2F2E7,#B5E9D5)" color="#0F8C68" Icon={Eye} />
+            }
+            titre="Prochaines visites planifiées"
+            sousTitre={`${(prochainesVisites ?? []).length} visite${(prochainesVisites ?? []).length !== 1 ? "s" : ""} à venir`}
+            defaultOpen
+          >
+            {(prochainesVisites ?? []).length === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-sm mb-2" style={{ color: "var(--pa-muted)" }}>Aucune visite planifiée</p>
+                <Link href="/visites/nouvelle" className="text-sm font-semibold" style={{ color: "#7C6BE8" }}>
+                  Créer une visite →
+                </Link>
+              </div>
+            ) : (
+              <div className="divide-y" style={{ borderColor: "var(--pa-line)" }}>
+                {(prochainesVisites ?? []).map((v) => {
+                  const m = v.magasins as unknown as { nom: string; enseigne: string | null } | null;
+                  return (
+                    <div key={v.id} className="flex items-center justify-between gap-3 py-3 first:pt-0">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate" style={{ color: "var(--pa-ink)" }}>
+                          {m ? `${m.enseigne ? m.enseigne + " — " : ""}${m.nom}` : "—"}
+                        </p>
+                        <p className="text-xs mt-0.5 truncate" style={{ color: "var(--pa-muted)" }}>
+                          {v.date_prevue ? new Date(v.date_prevue).toLocaleDateString("fr-FR") : "—"}
+                          {v.objectif ? ` · ${v.objectif}` : ""}
+                        </p>
+                      </div>
+                      <Link href={`/visites/${v.id}`} className="shrink-0 text-sm font-semibold" style={{ color: "#7C6BE8", textDecoration: "none" }}>
+                        Voir →
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="pt-2 text-right">
+              <Link href="/visites/nouvelle" className="text-xs font-semibold" style={{ color: "#7C6BE8" }}>
+                + Nouvelle visite
               </Link>
             </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Date</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Magasin</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Objectif</th>
-                    <th className="px-6 py-3.5" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {(prochainesVisites ?? []).map((v) => {
-                    const m = v.magasins as unknown as { nom: string; enseigne: string | null } | null;
-                    return (
-                      <tr key={v.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 text-slate-700 whitespace-nowrap">
-                          {v.date_prevue ? new Date(v.date_prevue).toLocaleDateString("fr-FR") : "—"}
-                        </td>
-                        <td className="px-6 py-4 font-medium text-slate-900">
-                          {m ? `${m.enseigne ? m.enseigne + " — " : ""}${m.nom}` : "—"}
-                        </td>
-                        <td className="px-6 py-4 text-slate-600 max-w-xs truncate">{v.objectif ?? "—"}</td>
-                        <td className="px-6 py-4 text-right">
-                          <Link href={`/visites/${v.id}`} className="text-slate-900 hover:underline font-medium">
-                            Voir →
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+          </Tuile>
         </div>
 
-        {/* Agenda unifié : RDV pro + visites planifiées + agenda Google */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-              📆 Mon agenda
-              {agendaUnifie.length > 0 && (
-                <span className="text-xs font-bold text-slate-900 bg-slate-200 rounded-full px-2 py-0.5">
-                  {agendaUnifie.length}
-                </span>
-              )}
-              {gcalError && (
-                <span className="text-[10px] font-normal text-amber-600 normal-case tracking-normal">
-                  · Google indisponible
-                </span>
-              )}
-            </h2>
-            <div className="flex items-center gap-3">
-              <Link href="/animateur/rdv?tab=confirme" className="text-xs text-slate-400 hover:text-slate-700">
-                Tous les RDV →
-              </Link>
-              <Link href="/animateur/parametres" className="text-xs text-slate-400 hover:text-slate-700">
-                Configurer →
-              </Link>
+        {/* ── Agenda unifié ───────────────────────────────────────── */}
+        <div className="pa-reveal" style={{ animationDelay: ".38s" }}>
+          <div className="pa-card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <IcoBox bg="linear-gradient(135deg,#E4DDFB,#D3C7F7)" color="#6B4FD8" Icon={Calendar} />
+                <div>
+                  <p className="text-sm font-bold" style={{ color: "var(--pa-ink)" }}>
+                    Mon agenda
+                    {agendaUnifie.length > 0 && (
+                      <span className="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full text-white" style={{ background: "#7C6BE8" }}>
+                        {agendaUnifie.length}
+                      </span>
+                    )}
+                  </p>
+                  {gcalError && (
+                    <p className="text-[10px] font-normal" style={{ color: "#B45309" }}>Google indisponible</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link href="/animateur/rdv?tab=confirme" className="text-xs font-medium" style={{ color: "var(--pa-muted)" }}>
+                  Tous les RDV →
+                </Link>
+                <Link href="/animateur/parametres" className="text-xs font-medium" style={{ color: "var(--pa-muted)" }}>
+                  Configurer →
+                </Link>
+              </div>
             </div>
+
+            {agendaUnifie.length === 0 ? (
+              <div className="rounded-xl p-5 text-center text-sm" style={{ background: "rgba(255,255,255,0.5)", color: "var(--pa-muted)" }}>
+                Aucun évènement à venir dans les 30 jours
+                {gcalError && <div className="text-[11px] mt-1" style={{ color: "#B45309" }}>{gcalLabel} : {gcalError}</div>}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {agendaUnifie.slice(0, 12).map((e) => (
+                  <CardEvtAgenda key={e.id} evt={e} />
+                ))}
+              </div>
+            )}
+
+            {agendaUnifie.length > 12 && (
+              <p className="text-xs text-center mt-3" style={{ color: "var(--pa-muted)" }}>
+                + {agendaUnifie.length - 12} autres évènements dans les 30 prochains jours
+              </p>
+            )}
           </div>
-
-          {agendaUnifie.length === 0 ? (
-            <div className="bg-slate-50 rounded-xl p-6 text-slate-400 text-sm text-center">
-              Aucun évènement à venir dans les 30 jours
-              {gcalError && (
-                <div className="text-[11px] text-amber-600 mt-2">{gcalLabel} : {gcalError}</div>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {agendaUnifie.slice(0, 12).map((e) => (
-                <CardEvtAgenda key={e.id} evt={e} />
-              ))}
-            </div>
-          )}
-
-          {agendaUnifie.length > 12 && (
-            <p className="text-xs text-slate-400 text-center mt-2">
-              + {agendaUnifie.length - 12} autres évènements dans les 30 prochains jours
-            </p>
-          )}
         </div>
 
       </div>
     </main>
-  );
-}
-
-function CardMetrique({
-  label, valeur, href, sub, rouge,
-}: {
-  label: string; valeur: string; href: string; sub?: string; rouge?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`rounded-xl border p-6 shadow-sm transition-colors flex flex-col gap-2 ${
-        rouge
-          ? "bg-red-50 border-red-200 hover:border-red-300"
-          : "bg-white border-slate-200 hover:border-slate-300"
-      }`}
-    >
-      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{label}</span>
-      <span className={`text-3xl font-bold leading-none ${rouge ? "text-red-600" : "text-slate-900"}`}>
-        {valeur}
-      </span>
-      {sub && <span className="text-xs text-slate-400">{sub}</span>}
-      <span className={`text-sm font-medium mt-auto pt-2 ${rouge ? "text-red-500" : "text-blue-600"}`}>
-        Voir →
-      </span>
-    </Link>
   );
 }
