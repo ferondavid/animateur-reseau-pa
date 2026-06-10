@@ -77,7 +77,7 @@ export default function AdresseDepart({
           disabled={geocoding || !adresse.trim()}
           className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
         >
-          {geocoding ? "Recherche…" : "📍 Géocoder"}
+          {geocoding ? "Recherche…" : "Géocoder"}
         </button>
         {coords && (
           <button

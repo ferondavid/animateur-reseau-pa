@@ -85,7 +85,7 @@ export default function PartageEvaluation({ visiteId }: Props) {
       ? "bg-green-700 hover:bg-green-800"
       : statut === "erreur"
         ? "bg-red-700 hover:bg-red-800"
-        : "bg-slate-900 hover:bg-slate-700";
+        : "pa-btn-primary";
 
   return (
     <div className="space-y-3">
