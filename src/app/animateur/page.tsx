@@ -5,10 +5,10 @@ import PersistRole from "@/components/PersistRole";
 import MenuAnimateur from "@/components/MenuAnimateur";
 import CardRDVDemande from "@/components/CardRDVDemande";
 import type { RDVDemande } from "@/components/CardRDVDemande";
-import CardGCalEvent from "@/components/CardGCalEvent";
+import CardEvtAgenda from "@/components/CardEvtAgenda";
+import { fetchAgendaUnifie } from "@/lib/agenda-unifie";
 import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
-import { fetchGCalEvents } from "@/lib/gcal";
 import { getParametre, getParametreNumber, getParametreFloat } from "@/lib/parametres";
 import { calculerPreparation } from "@/lib/preparation-rdv";
 
@@ -104,27 +104,16 @@ export default async function AnimateurPage() {
       .not("statut", "in", "(traitee,archivee)"),
   ]);
 
-  // RDV en attente
+  // RDV en attente uniquement (les confirmés viennent du flux agenda unifié)
   const dans7j = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
-  const [{ data: rdvsEnAttente }, { data: rdvsConfirmes }] = await Promise.all([
-    supabase
-      .from("rendez_vous")
-      .select(`id, type, statut, demandeur_type, date_souhaitee, heure_souhaitee, objet, message, lieu,
-        magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville),
-        rendez_vous_invites(magasin_id, magasins(nom, enseigne))`)
-      .in("statut", ["demande", "reporte"])
-      .order("date_souhaitee", { ascending: true })
-      .limit(10),
-    supabase
-      .from("rendez_vous")
-      .select(`id, type, date_souhaitee, heure_souhaitee, objet,
-        magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville),
-        rendez_vous_invites(magasin_id, magasins(nom, enseigne))`)
-      .eq("statut", "confirme")
-      .gte("date_souhaitee", today)
-      .order("date_souhaitee", { ascending: true })
-      .limit(10),
-  ]);
+  const { data: rdvsEnAttente } = await supabase
+    .from("rendez_vous")
+    .select(`id, type, statut, demandeur_type, date_souhaitee, heure_souhaitee, objet, message, lieu,
+      magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville),
+      rendez_vous_invites(magasin_id, magasins(nom, enseigne))`)
+    .in("statut", ["demande", "reporte"])
+    .order("date_souhaitee", { ascending: true })
+    .limit(10);
 
   // ── Préparation J+1 ──────────────────────────────────────────────────────
   const tomorrow = new Date(now);
@@ -267,7 +256,7 @@ export default async function AnimateurPage() {
         ).toFixed(1)
       : null;
 
-  const { events: gcalEvents, label: gcalLabel, error: gcalError } = await fetchGCalEvents(30);
+  const { events: agendaUnifie, gcalLabel, gcalError } = await fetchAgendaUnifie(30);
 
   return (
     <main className="min-h-screen bg-slate-50 p-8">
@@ -572,96 +561,53 @@ export default async function AnimateurPage() {
           )}
         </div>
 
-        {/* RDV confirmés à venir */}
-        {(() => {
-          const liste = rdvsConfirmes ?? [];
-          const JOURS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
-          const MOIS = ["jan.", "fév.", "mars", "avr.", "mai", "juin", "juil.", "août", "sep.", "oct.", "nov.", "déc."];
-          const TYPE_STYLE: Record<string, { emoji: string; cls: string }> = {
-            physique: { emoji: "🏪", cls: "bg-blue-100 text-blue-700" },
-            tel:      { emoji: "📞", cls: "bg-emerald-100 text-emerald-700" },
-            visio:    { emoji: "💻", cls: "bg-purple-100 text-purple-700" },
-          };
-          function fmtDate(d: string, h: string | null) {
-            const dt = new Date(d + "T12:00:00");
-            const base = `${JOURS[dt.getDay()]} ${dt.getDate()} ${MOIS[dt.getMonth()]}`;
-            return h ? `${base} · ${h.slice(0, 5)}` : base;
-          }
-          return (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-                  ✅ Prochains RDV confirmés
-                  {liste.length > 0 && (
-                    <span className="ml-2 text-xs font-bold text-slate-900 bg-slate-200 rounded-full px-2 py-0.5">
-                      {liste.length}
-                    </span>
-                  )}
-                </h2>
-                <Link href="/animateur/rdv?tab=confirme" className="text-sm text-blue-600 hover:underline font-medium">
-                  Voir tous les RDV →
-                </Link>
-              </div>
-
-              {liste.length === 0 ? (
-                <div className="bg-slate-50 rounded-xl p-6 text-slate-400 text-sm text-center">
-                  Aucun RDV confirmé à venir
-                </div>
-              ) : (
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                  {liste.map((r, i) => {
-                    const mag = r.magasins as unknown as { id: string; nom: string; enseigne: string | null; ville: string } | null;
-                    const invites = (r.rendez_vous_invites ?? []) as unknown[];
-                    const style = TYPE_STYLE[r.type] ?? { emoji: "📅", cls: "bg-slate-100 text-slate-600" };
-                    const nomMag = mag ? (mag.enseigne ? `${mag.enseigne} — ${mag.nom}` : mag.nom) : "—";
-                    return (
-                      <div key={r.id} className={`flex items-center gap-4 px-5 py-3 ${i < liste.length - 1 ? "border-b border-slate-100" : ""}`}>
-                        <span className={`shrink-0 text-base w-8 h-8 flex items-center justify-center rounded-lg ${style.cls}`}>
-                          {style.emoji}
-                        </span>
-                        <span className="w-36 shrink-0 text-xs text-slate-500 font-medium whitespace-nowrap">
-                          {fmtDate(r.date_souhaitee, r.heure_souhaitee)}
-                        </span>
-                        <span className="flex-1 text-sm text-slate-900 font-medium truncate">{nomMag}</span>
-                        <span className="text-xs text-slate-400 truncate max-w-[120px]">{r.objet}</span>
-                        {invites.length > 0 && (
-                          <span className="shrink-0 text-xs text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">
-                            +{invites.length} invité{invites.length > 1 ? "s" : ""}
-                          </span>
-                        )}
-                        <Link href={`/animateur/rdv/${r.id}`} className="shrink-0 text-xs text-blue-600 hover:underline font-medium">
-                          Détails →
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
+        {/* Agenda unifié : RDV pro + visites planifiées + agenda Google */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-2">
+              📆 Mon agenda
+              {agendaUnifie.length > 0 && (
+                <span className="text-xs font-bold text-slate-900 bg-slate-200 rounded-full px-2 py-0.5">
+                  {agendaUnifie.length}
+                </span>
               )}
-            </div>
-          );
-        })()}
-
-        {/* Agenda GCal — masqué si URL non configurée ou aucun événement */}
-        {!gcalError && gcalEvents.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-                📆 {gcalLabel}
-              </h2>
-              <Link
-                href="/animateur/parametres"
-                className="text-sm text-slate-400 hover:text-slate-700 transition-colors"
-              >
-                Configurer l&apos;agenda →
+              {gcalError && (
+                <span className="text-[10px] font-normal text-amber-600 normal-case tracking-normal">
+                  · Google indisponible
+                </span>
+              )}
+            </h2>
+            <div className="flex items-center gap-3">
+              <Link href="/animateur/rdv?tab=confirme" className="text-xs text-slate-400 hover:text-slate-700">
+                Tous les RDV →
+              </Link>
+              <Link href="/animateur/parametres" className="text-xs text-slate-400 hover:text-slate-700">
+                Configurer →
               </Link>
             </div>
+          </div>
+
+          {agendaUnifie.length === 0 ? (
+            <div className="bg-slate-50 rounded-xl p-6 text-slate-400 text-sm text-center">
+              Aucun évènement à venir dans les 30 jours
+              {gcalError && (
+                <div className="text-[11px] text-amber-600 mt-2">{gcalLabel} : {gcalError}</div>
+              )}
+            </div>
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {gcalEvents.slice(0, 8).map((e) => (
-                <CardGCalEvent key={e.uid} event={e} />
+              {agendaUnifie.slice(0, 12).map((e) => (
+                <CardEvtAgenda key={e.id} evt={e} />
               ))}
             </div>
-          </div>
-        )}
+          )}
+
+          {agendaUnifie.length > 12 && (
+            <p className="text-xs text-slate-400 text-center mt-2">
+              + {agendaUnifie.length - 12} autres évènements dans les 30 prochains jours
+            </p>
+          )}
+        </div>
 
       </div>
     </main>
