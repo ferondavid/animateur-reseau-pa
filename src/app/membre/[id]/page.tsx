@@ -13,6 +13,12 @@ import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 import CarteDemandeAnimateur, { type RDVEnAttente, type VisiteEnAttente } from "@/components/CarteDemandeAnimateur";
 import TabsMembre from "@/components/TabsMembre";
 import { type EvtHistorique } from "@/components/HistoriqueMembre";
+import HeroMembre from "@/components/ui/HeroMembre";
+import Tuile from "@/components/ui/Tuile";
+import CountUp from "@/components/ui/CountUp";
+import {
+  Inbox, Activity, BarChart3, Coins, Newspaper,
+} from "lucide-react";
 
 // ─── Météo ────────────────────────────────────────────────────────────────────
 
@@ -52,9 +58,26 @@ function Sparkline({ notes }: { notes: number[] }) {
   const d = points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
   return (
     <svg width="100%" viewBox={`0 0 ${W} ${H}`} className="h-10 overflow-visible">
-      <path d={d} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {points.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="2.5" fill="#3b82f6" />)}
+      <path d={d} fill="none" stroke="#7C6BE8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {points.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="2.5" fill="#7C6BE8" />)}
     </svg>
+  );
+}
+
+// ─── Icon box helper ──────────────────────────────────────────────────────────
+
+function IcoBox({ bg, color, Icon }: {
+  bg: string;
+  color: string;
+  Icon: React.ComponentType<{ size?: number }>;
+}) {
+  return (
+    <div
+      className="w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0"
+      style={{ background: bg, color }}
+    >
+      <Icon size={20} />
+    </div>
   );
 }
 
@@ -108,7 +131,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
   const nomAffiche = magasin.enseigne ?? magasin.nom;
   const newsList = (newsData ?? []) as NewsItem[];
 
-  // ── Historique complet (12 derniers mois, toutes activités) ───
+  // ── Historique complet (12 derniers mois) ──────────────────────────────────
   const il12mois = new Date(Date.now() - 365 * 86_400_000).toISOString();
   const [
     { data: histVisites },
@@ -116,26 +139,10 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     { data: histRemontees },
     { data: histRDV },
   ] = await Promise.all([
-    supabase.from("visites")
-      .select("id, statut, date_realisee, date_prevue, objectif, points_cles, note_confiance, note_business")
-      .eq("magasin_id", id)
-      .or(`date_realisee.gte.${il12mois.slice(0,10)},date_prevue.gte.${il12mois.slice(0,10)}`)
-      .order("date_realisee", { ascending: false, nullsFirst: false }),
-    supabase.from("actions")
-      .select("id, titre, description, statut, niveau_urgence, deadline, created_at")
-      .eq("magasin_id", id)
-      .gte("created_at", il12mois)
-      .order("created_at", { ascending: false }),
-    supabase.from("remontees")
-      .select("id, titre, description, gravite, statut, source, type, photo_url, reponse_animateur, date_traitement, created_at")
-      .eq("magasin_id", id)
-      .gte("created_at", il12mois)
-      .order("created_at", { ascending: false }),
-    supabase.from("rendez_vous")
-      .select("id, type, statut, date_souhaitee, heure_souhaitee, objet, message, lieu, lien_visio, demandeur_type, created_at")
-      .eq("magasin_id", id)
-      .gte("created_at", il12mois)
-      .order("created_at", { ascending: false }),
+    supabase.from("visites").select("id, statut, date_realisee, date_prevue, objectif, points_cles, note_confiance, note_business").eq("magasin_id", id).or(`date_realisee.gte.${il12mois.slice(0,10)},date_prevue.gte.${il12mois.slice(0,10)}`).order("date_realisee", { ascending: false, nullsFirst: false }),
+    supabase.from("actions").select("id, titre, description, statut, niveau_urgence, deadline, created_at").eq("magasin_id", id).gte("created_at", il12mois).order("created_at", { ascending: false }),
+    supabase.from("remontees").select("id, titre, description, gravite, statut, source, type, photo_url, reponse_animateur, date_traitement, created_at").eq("magasin_id", id).gte("created_at", il12mois).order("created_at", { ascending: false }),
+    supabase.from("rendez_vous").select("id, type, statut, date_souhaitee, heure_souhaitee, objet, message, lieu, lien_visio, demandeur_type, created_at").eq("magasin_id", id).gte("created_at", il12mois).order("created_at", { ascending: false }),
   ]);
 
   const historique: EvtHistorique[] = [];
@@ -146,21 +153,12 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     const visite = v as { id: string; statut: string; date_realisee: string | null; date_prevue: string | null; objectif: string | null; points_cles: string | null; note_confiance: number | null; note_business: number | null };
     const isReal = visite.statut === "realisee";
     historique.push({
-      id: visite.id,
-      type: "visite",
-      date,
+      id: visite.id, type: "visite", date,
       titre: visite.objectif || (isReal ? "Visite réalisée" : "Visite planifiée"),
-      detail: isReal && (visite.note_confiance != null || visite.note_business != null)
-        ? `Notes : ${visite.note_confiance ?? "—"}/5 conf · ${visite.note_business ?? "—"}/5 biz`
-        : null,
+      detail: isReal && (visite.note_confiance != null || visite.note_business != null) ? `Notes : ${visite.note_confiance ?? "—"}/5 conf · ${visite.note_business ?? "—"}/5 biz` : null,
       meta: isReal ? "Réalisée" : visite.statut === "planifiee" ? "Planifiée" : visite.statut,
       metaTon: isReal ? "ok" : visite.statut === "planifiee" ? "blue" : "slate",
-      details: {
-        statut: isReal ? "Réalisée" : visite.statut === "planifiee" ? "Planifiée" : visite.statut,
-        noteConfiance: visite.note_confiance,
-        noteBusiness: visite.note_business,
-        pointsCles: visite.points_cles,
-      },
+      details: { statut: isReal ? "Réalisée" : visite.statut === "planifiee" ? "Planifiée" : visite.statut, noteConfiance: visite.note_confiance, noteBusiness: visite.note_business, pointsCles: visite.points_cles },
     });
   }
 
@@ -168,134 +166,76 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     const action = a as { id: string; titre: string; description: string | null; statut: string; niveau_urgence: number; deadline: string | null; created_at: string };
     const labelStatut = action.statut === "ouverte" ? "Ouverte" : action.statut === "en_cours" ? "En cours" : action.statut === "terminee" ? "Terminée" : action.statut;
     const ton: EvtHistorique["metaTon"] = action.statut === "terminee" ? "ok" : action.niveau_urgence === 3 ? "red" : action.niveau_urgence === 2 ? "amber" : "slate";
-    historique.push({
-      id: action.id,
-      type: "action",
-      date: action.created_at,
-      titre: action.titre,
-      detail: action.deadline ? `Échéance ${new Date(action.deadline).toLocaleDateString("fr-FR")}` : null,
-      meta: labelStatut,
-      metaTon: ton,
-      details: {
-        description: action.description,
-        statut: labelStatut,
-        urgence: action.niveau_urgence,
-        deadline: action.deadline,
-      },
-    });
+    historique.push({ id: action.id, type: "action", date: action.created_at, titre: action.titre, detail: action.deadline ? `Échéance ${new Date(action.deadline).toLocaleDateString("fr-FR")}` : null, meta: labelStatut, metaTon: ton, details: { description: action.description, statut: labelStatut, urgence: action.niveau_urgence, deadline: action.deadline } });
   }
 
   for (const r of histRemontees ?? []) {
     const remontee = r as { id: string; titre: string; description: string | null; gravite: string; statut: string; source: string | null; type: string | null; photo_url: string | null; reponse_animateur: string | null; date_traitement: string | null; created_at: string };
     const ton: EvtHistorique["metaTon"] = remontee.gravite === "urgente" ? "red" : remontee.gravite === "attention" ? "amber" : "slate";
-    historique.push({
-      id: remontee.id,
-      type: "remontee",
-      date: remontee.created_at,
-      titre: remontee.titre,
-      detail: remontee.type ? `Type ${remontee.type.replace("_", " ")}` : null,
-      meta: remontee.gravite.charAt(0).toUpperCase() + remontee.gravite.slice(1),
-      metaTon: ton,
-      details: {
-        description: remontee.description,
-        typeRemontee: remontee.type,
-        gravite: remontee.gravite,
-        statut: remontee.statut,
-        source: remontee.source,
-        photoUrl: remontee.photo_url,
-        reponseAnimateur: remontee.reponse_animateur,
-        dateTraitement: remontee.date_traitement,
-      },
-    });
+    historique.push({ id: remontee.id, type: "remontee", date: remontee.created_at, titre: remontee.titre, detail: remontee.type ? `Type ${remontee.type.replace("_", " ")}` : null, meta: remontee.gravite.charAt(0).toUpperCase() + remontee.gravite.slice(1), metaTon: ton, details: { description: remontee.description, typeRemontee: remontee.type, gravite: remontee.gravite, statut: remontee.statut, source: remontee.source, photoUrl: remontee.photo_url, reponseAnimateur: remontee.reponse_animateur, dateTraitement: remontee.date_traitement } });
   }
 
   for (const r of histRDV ?? []) {
     const rdv = r as { id: string; type: string; statut: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; message: string | null; lieu: string | null; lien_visio: string | null; demandeur_type: string; created_at: string };
     const typeIcons: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
-    const dateRDV = rdv.date_souhaitee;
     const labelStatut = rdv.statut === "confirme" ? "Confirmé" : rdv.statut === "annule" ? "Annulé" : rdv.statut === "fait" ? "Fait" : rdv.statut === "reporte" ? "Reporté" : "Demandé";
     const ton: EvtHistorique["metaTon"] = rdv.statut === "confirme" || rdv.statut === "fait" ? "ok" : rdv.statut === "annule" ? "red" : rdv.statut === "reporte" ? "amber" : "blue";
-    historique.push({
-      id: rdv.id,
-      type: "rdv",
-      date: dateRDV,
-      titre: `${typeIcons[rdv.type] ?? "📅"} ${rdv.objet}`,
-      detail: `${rdv.demandeur_type === "animateur" ? "Initié par animateur" : "Initié par magasin"}${rdv.heure_souhaitee ? ` · ${rdv.heure_souhaitee.slice(0, 5)}` : ""}`,
-      meta: labelStatut,
-      metaTon: ton,
-      details: {
-        typeRdv: rdv.type,
-        statut: rdv.statut,
-        demandeurType: rdv.demandeur_type,
-        heureSouhaitee: rdv.heure_souhaitee,
-        lieu: rdv.lieu,
-        lienVisio: rdv.lien_visio,
-        message: rdv.message,
-      },
-    });
+    historique.push({ id: rdv.id, type: "rdv", date: rdv.date_souhaitee, titre: `${typeIcons[rdv.type] ?? "📅"} ${rdv.objet}`, detail: `${rdv.demandeur_type === "animateur" ? "Initié par animateur" : "Initié par magasin"}${rdv.heure_souhaitee ? ` · ${rdv.heure_souhaitee.slice(0, 5)}` : ""}`, meta: labelStatut, metaTon: ton, details: { typeRdv: rdv.type, statut: rdv.statut, demandeurType: rdv.demandeur_type, heureSouhaitee: rdv.heure_souhaitee, lieu: rdv.lieu, lienVisio: rdv.lien_visio, message: rdv.message } });
   }
 
+  const nbDemandes = (rdvDemandesAnim?.length ?? 0) + (visitesEnAttente?.length ?? 0);
+  const demandes = [
+    ...(rdvDemandesAnim ?? []).map(r => ({ kind: "rdv" as const, ...r })),
+    ...(visitesEnAttente ?? []).map(v => ({ kind: "visite" as const, ...v })),
+  ];
+
+  const kpis = [
+    { label: "Confiance",     val: moyCfn, color: "#6B4FD8", bg: "linear-gradient(135deg,#E4DDFB,#D3C7F7)" },
+    { label: "Business",      val: moyBiz, color: "#0F8C68", bg: "linear-gradient(135deg,#D2F2E7,#B5E9D5)" },
+    { label: "Satisfaction",  val: moySat, color: "#2D6FD0", bg: "linear-gradient(135deg,#D9EAFB,#BFDBF7)" },
+  ];
+
   return (
-    <main className="min-h-screen bg-slate-50 p-4 md:p-8 pb-28">
+    <main className="min-h-screen p-4 pb-28">
       <PersistRole role="membre" magasinId={id} />
-      <div className="max-w-3xl mx-auto space-y-5">
+      <div className="max-w-lg mx-auto space-y-4">
 
-        {/* ── HEADER COMPACT ─────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-4 flex items-center gap-4">
-          {meteo && (
-            <div className="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200">
-              <div className="text-center leading-tight">
-                <div className="text-2xl leading-none">{meteo.emoji}</div>
-                <div className="text-[10px] font-semibold text-slate-600 mt-0.5">{meteo.temp}°C</div>
-              </div>
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg md:text-xl font-bold text-slate-900 truncate">
-              Bonne journée à {nomAffiche}&nbsp;!
-            </h1>
-            <p className="text-xs text-slate-500 truncate">
-              {magasin.ville}{magasin.region ? ` · ${magasin.region}` : ""}
-              {meteo ? ` · ${meteo.libelle}` : ""}
-            </p>
-          </div>
-        </div>
-
-        {/* ── 1. ACTIONS RAPIDES (les 4 fonctions principales) ──── */}
-        <ActionsMembre
-          magasinId={id}
-          animateurTel={animateurTel}
-          animateurEmail={animateurEmail}
-          magasinNom={nomAffiche}
-          autresMagasins={(autresMagasins ?? []) as { id: string; nom: string; enseigne: string | null }[]}
-        />
-
-        {/* ── 2. VOTRE ACTIVITÉ (tabs unifiés juste après) ─────── */}
-        <div>
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Votre activité</h2>
-          <TabsMembre
-            actions={(actions ?? []) as { id: string; titre: string; niveau_urgence: number; statut: string; deadline: string | null; created_at: string; description: string | null; portee: string | null }[]}
-            rdvs={(rdvData ?? []) as { id: string; type: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; statut: string; message: string | null; lieu: string | null; demandeur_type: string; created_at: string }[]}
-            remontees={(remontees ?? []) as { id: string; titre: string; gravite: string; statut: string; created_at: string; description: string | null; photo_url: string | null; source: string | null; type: string | null }[]}
-            visites={trois}
-            historique={historique}
+        {/* ── Hero ──────────────────────────────────────────────────── */}
+        <div className="pa-reveal" style={{ animationDelay: ".06s" }}>
+          <HeroMembre
+            nomAffiche={nomAffiche}
+            ville={magasin.ville}
+            region={magasin.region}
+            meteo={meteo}
+            scoreConfiance={moyCfn ? parseFloat(moyCfn) : null}
           />
         </div>
 
-        {/* ── 3. DEMANDES DE L'ANIMATEUR (si présent) ──────────── */}
-        {((rdvDemandesAnim ?? []).length > 0 || (visitesEnAttente ?? []).length > 0) && (() => {
-          const nbTotal = (rdvDemandesAnim ?? []).length + (visitesEnAttente ?? []).length;
-          const demandes = [
-            ...(rdvDemandesAnim ?? []).map(r => ({ kind: "rdv" as const, ...r })),
-            ...(visitesEnAttente ?? []).map(v => ({ kind: "visite" as const, ...v })),
-          ];
-          return (
-            <div className="bg-amber-50 border-l-4 border-amber-400 rounded-2xl border border-amber-200 p-4 space-y-3">
-              <h2 className="text-xs font-semibold text-amber-900 uppercase tracking-wide flex items-center gap-2">
-                📥 Demandes de l&apos;animateur
-                <span className="bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full text-[10px] font-bold">{nbTotal}</span>
-              </h2>
-              <div className="space-y-2">
+        {/* ── Actions rapides ───────────────────────────────────────── */}
+        <div className="pa-reveal" style={{ animationDelay: ".14s" }}>
+          <ActionsMembre
+            magasinId={id}
+            animateurTel={animateurTel}
+            animateurEmail={animateurEmail}
+            magasinNom={nomAffiche}
+            autresMagasins={(autresMagasins ?? []) as { id: string; nom: string; enseigne: string | null }[]}
+          />
+        </div>
+
+        {/* ── Demandes animateur ────────────────────────────────────── */}
+        {nbDemandes > 0 && (
+          <div className="pa-reveal" style={{ animationDelay: ".20s" }}>
+            <Tuile
+              icon={
+                <IcoBox bg="rgba(255,255,255,0.75)" color="#5B4FCB" Icon={Inbox} />
+              }
+              titre="Demandes de l'animateur"
+              sousTitre={`${nbDemandes} en attente`}
+              badge={nbDemandes}
+              variantDemande
+              defaultOpen
+            >
+              <div className="space-y-2 pt-1">
                 {demandes.map((d) => (
                   <CarteDemandeAnimateur
                     key={`${d.kind}-${d.id}`}
@@ -304,72 +244,129 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
                   />
                 ))}
               </div>
-            </div>
-          );
-        })()}
-
-        {/* ── 4. INDICATEURS (3 KPIs en row compacte) ──────────── */}
-        <div id="indicateurs">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Vos indicateurs</h2>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: "Confiance", val: moyCfn, color: "text-blue-600" },
-              { label: "Business", val: moyBiz, color: "text-emerald-600" },
-              { label: "Satisfaction", val: moySat, color: "text-purple-600" },
-            ].map(({ label, val, color }) => (
-              <div key={label} className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 text-center">
-                <div className={`text-xl font-bold ${val ? color : "text-slate-400"}`}>{val ? `${val}` : "—"}</div>
-                <div className="text-[10px] text-slate-400 uppercase tracking-wide mt-0.5">/ 5</div>
-                <div className="text-[11px] font-medium text-slate-600 mt-1">{label}</div>
-              </div>
-            ))}
+            </Tuile>
           </div>
+        )}
+
+        {/* ── Votre activité ────────────────────────────────────────── */}
+        <div className="pa-reveal" style={{ animationDelay: ".26s" }}>
+          <Tuile
+            icon={
+              <IcoBox bg="linear-gradient(135deg,#D9EAFB,#BFDBF7)" color="#2D6FD0" Icon={Activity} />
+            }
+            titre="Votre activité"
+            sousTitre={`${historique.length} événements sur 12 mois`}
+            defaultOpen
+          >
+            <TabsMembre
+              actions={(actions ?? []) as { id: string; titre: string; niveau_urgence: number; statut: string; deadline: string | null; created_at: string; description: string | null; portee: string | null }[]}
+              rdvs={(rdvData ?? []) as { id: string; type: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; statut: string; message: string | null; lieu: string | null; demandeur_type: string; created_at: string }[]}
+              remontees={(remontees ?? []) as { id: string; titre: string; gravite: string; statut: string; created_at: string; description: string | null; photo_url: string | null; source: string | null; type: string | null }[]}
+              visites={trois}
+              historique={historique}
+            />
+          </Tuile>
         </div>
 
-        {/* ── 5. CHIFFRE D'AFFAIRES ────────────────────────────── */}
-        <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
+        {/* ── Indicateurs KPI ───────────────────────────────────────── */}
+        <div className="pa-reveal" id="indicateurs" style={{ animationDelay: ".32s" }}>
+          <Tuile
+            icon={
+              <IcoBox bg="linear-gradient(135deg,#E4DDFB,#D3C7F7)" color="#6B4FD8" Icon={BarChart3} />
+            }
+            titre="Vos indicateurs"
+            sousTitre="3 dernières visites"
+          >
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              {kpis.map(({ label, val, color, bg }) => (
+                <div
+                  key={label}
+                  className="rounded-2xl p-3 text-center"
+                  style={{ background: bg }}
+                >
+                  <div className="text-xl font-extrabold" style={{ color, letterSpacing: "-0.4px" }}>
+                    {val ? <CountUp to={parseFloat(val)} decimals={1} delay={500} /> : <span style={{ color: "var(--pa-muted)" }}>—</span>}
+                    {val && <small className="text-[11px] font-medium" style={{ color: "var(--pa-muted)" }}>/5</small>}
+                  </div>
+                  <div className="text-[11px] font-semibold mt-1" style={{ color: "var(--pa-muted)" }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </Tuile>
+        </div>
 
-        {/* ── 6. ÉVOLUTION SPARKLINE ──────────────────────────── */}
+        {/* ── Chiffre d'affaires ────────────────────────────────────── */}
+        <div className="pa-reveal" style={{ animationDelay: ".36s" }}>
+          <Tuile
+            icon={
+              <IcoBox bg="linear-gradient(135deg,#D2F2E7,#B5E9D5)" color="#0F8C68" Icon={Coins} />
+            }
+            titre="Chiffre d'affaires"
+            sousTitre="Évolution annuelle"
+          >
+            <div className="pt-1">
+              <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
+            </div>
+          </Tuile>
+        </div>
+
+        {/* ── Sparkline confiance ───────────────────────────────────── */}
         {sparkNotes.length >= 2 && (
-          <div>
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Évolution Confiance</h2>
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+          <div className="pa-reveal pa-card p-4" style={{ animationDelay: ".40s" }}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide mb-3" style={{ color: "var(--pa-muted)" }}>
+              Évolution Confiance
+            </p>
+            <div className="flex items-center gap-4">
               <div className="flex-1 min-w-0">
                 <Sparkline notes={sparkNotes} />
               </div>
-              <div className="shrink-0 text-[11px] text-slate-400 space-y-0.5 leading-tight">
-                <div>Min <strong className="text-slate-700">{Math.min(...sparkNotes)}</strong></div>
-                <div>Max <strong className="text-slate-700">{Math.max(...sparkNotes)}</strong></div>
+              <div className="shrink-0 text-[11px] space-y-0.5 leading-tight" style={{ color: "var(--pa-muted)" }}>
+                <div>Min <strong style={{ color: "var(--pa-ink)" }}>{Math.min(...sparkNotes)}</strong></div>
+                <div>Max <strong style={{ color: "var(--pa-ink)" }}>{Math.max(...sparkNotes)}</strong></div>
                 <div>{sparkNotes.length} visites</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── 7. ACTUALITÉS (mini cards horizontales) ────────── */}
+        {/* ── Actualités ────────────────────────────────────────────── */}
         {newsList.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Actualités du réseau</h2>
-              <Link href="/news" className="text-xs font-medium text-blue-600 hover:underline">
-                Toutes →
-              </Link>
-            </div>
-            <div className="space-y-2">
-              {newsList.map((n) => (
-                <CardNews key={n.id} news={n} compact />
-              ))}
-            </div>
+          <div className="pa-reveal" style={{ animationDelay: ".44s" }}>
+            <Tuile
+              icon={
+                <IcoBox bg="linear-gradient(135deg,#F9DCE7,#F4C4D6)" color="#C04B72" Icon={Newspaper} />
+              }
+              titre="Actualités du réseau"
+              sousTitre={`${newsList.length} publication${newsList.length > 1 ? "s" : ""}`}
+              defaultOpen
+            >
+              <div className="space-y-2 pt-1">
+                {newsList.map((n) => (
+                  <CardNews key={n.id} news={n} compact />
+                ))}
+                <Link href="/news" className="block text-center text-[12px] font-semibold mt-2 py-1" style={{ color: "#6B4FD8" }}>
+                  Toutes les actualités →
+                </Link>
+              </div>
+            </Tuile>
           </div>
         )}
 
-        {/* L'historique est désormais intégré dans le tab "Historique" de Votre activité ci-dessus */}
-
       </div>
 
-      {/* ── BARRE DE NAV STICKY ─────────────────────────────────── */}
+      {/* ── Barre de nav sticky glassmorphism ──────────────────────── */}
       <div className="fixed bottom-4 left-0 right-0 flex justify-center z-40 px-4">
-        <div className="flex items-center gap-2 bg-white rounded-2xl shadow-xl border border-slate-200 px-4 py-2.5">
+        <div
+          className="flex items-center gap-2 px-4 py-2.5"
+          style={{
+            background: "rgba(255,255,255,0.82)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            borderRadius: "18px",
+            border: "1px solid rgba(255,255,255,0.7)",
+            boxShadow: "0 8px 30px -10px rgba(80,60,140,0.25)",
+          }}
+        >
           <BoutonInstallerPWA />
           <BoutonChangerMagasin />
           <BoutonChangerRole />
