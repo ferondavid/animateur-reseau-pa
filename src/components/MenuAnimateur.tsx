@@ -15,6 +15,7 @@ const ITEMS: Item[] = [
   { kind: "link", href: "/animateur/parcours",icon: "🚗", label: "Préparer une tournée", tone: "emerald" },
   { kind: "sep" },
   { kind: "link", href: "/animateur/news",    icon: "📰", label: "Gestion des news" },
+  { kind: "link", href: "/animateur/fonctionnalites", icon: "📚", label: "Fonctionnalités app" },
   { kind: "link", href: "/animateur/parametres", icon: "⚙️", label: "Paramètres" },
   { kind: "sep" },
   { kind: "logout" },
