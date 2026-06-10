@@ -14,12 +14,33 @@ interface VocalResponse {
   action?: VocalAction;
 }
 
+// Types Web Speech API — pas inclus dans lib.dom.d.ts par défaut
+type SpeechRecognitionResultLike = {
+  isFinal: boolean;
+  0: { transcript: string };
+};
+type SpeechRecognitionEventLike = {
+  resultIndex: number;
+  results: ArrayLike<SpeechRecognitionResultLike> & { length: number };
+};
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start: () => void;
+  stop: () => void;
+  abort?: () => void;
+  onresult: ((e: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((e: { error: string }) => void) | null;
+  onend: (() => void) | null;
+};
+
 export default function BoutonMicroVocal() {
   const [etat, setEtat] = useState<Etat>("idle");
   const [ouverte, setOuverte] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [reponse, setReponse] = useState("");
-  const reconRef = useRef<SpeechRecognition | null>(null);
+  const reconRef = useRef<SpeechRecognitionLike | null>(null);
 
   function parler(texte: string) {
     if (!("speechSynthesis" in window)) return;
@@ -56,8 +77,8 @@ export default function BoutonMicroVocal() {
 
   function demarrerEcoute() {
     const w = window as Window & {
-      SpeechRecognition?: new () => SpeechRecognition;
-      webkitSpeechRecognition?: new () => SpeechRecognition;
+      SpeechRecognition?: new () => SpeechRecognitionLike;
+      webkitSpeechRecognition?: new () => SpeechRecognitionLike;
     };
     const SpeechRecognitionAPI = w.SpeechRecognition ?? w.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
