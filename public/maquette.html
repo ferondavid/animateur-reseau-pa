@@ -56,9 +56,17 @@
   .pad{padding:22px 18px 20px;}
 
   .hero{position:relative;border-radius:24px;padding:20px;margin-bottom:18px;overflow:hidden;
-    background:linear-gradient(135deg,#7C6BE8 0%,#9B7BE8 45%,#C98BD9 100%);
+    background:linear-gradient(120deg,#7C6BE8 0%,#9B7BE8 30%,#C98BD9 55%,#7FBEE8 80%,#7C6BE8 100%);
+    background-size:280% 280%;
+    animation:heroShift 12s ease infinite;
     box-shadow:0 14px 40px -14px rgba(124,107,232,0.6);
     transition:transform .3s cubic-bezier(.2,.8,.3,1),box-shadow .3s;}
+  @keyframes heroShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+  .hero::before{content:"";position:absolute;inset:0;z-index:0;
+    background:radial-gradient(120px 120px at 20% 20%,rgba(255,255,255,0.25),transparent 70%),
+               radial-gradient(140px 140px at 85% 80%,rgba(127,190,232,0.35),transparent 70%);
+    animation:glowPulse 7s ease-in-out infinite;}
+  @keyframes glowPulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
   .hero:hover{transform:translateY(-3px);box-shadow:0 22px 50px -16px rgba(124,107,232,0.7);}
   .hero:hover .wx{transform:scale(1.06);transition:transform .3s;}
   .hero::after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;
@@ -108,17 +116,23 @@
   .sub{font-size:12px;margin-top:1px;}
   .big{font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-top:1px;}
   .big small{font-size:11px;font-weight:500;color:var(--muted);}
+  .caval{font-size:19px;font-weight:600;letter-spacing:-0.4px;margin-top:1px;display:flex;align-items:center;gap:5px;}
+  .trend{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;}
+  .trend i{font-size:13px;}
+  .trend.up{background:#D4F3E8;color:#0F8C68;}
+  .trend.mid{background:#FBF1D8;color:#B07D14;}
+  .trend.down{background:#FBE0E8;color:#C0476E;}
   .chev{font-size:19px;transition:transform .3s cubic-bezier(.3,.7,.3,1);color:#B6B0C4;}
   .tile.open .chev{transform:rotate(180deg);}
   .body{max-height:0;overflow:hidden;transition:max-height .34s cubic-bezier(.3,.7,.3,1);}
   .tile.open .body{max-height:280px;}
   .bin{padding:0 16px 15px;}
 
-  .demande{background:linear-gradient(135deg,#FFF3D6,#FFE8C2);border:1px solid rgba(240,180,90,0.4);}
-  .row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(180,130,40,0.18);}
-  .row .ri{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;font-size:18px;color:#A86A12;flex-shrink:0;}
-  .rt{font-size:13px;font-weight:700;color:#6B4410;}
-  .rs{font-size:11.5px;color:#A8843E;}
+  .demande{background:linear-gradient(135deg,#EDEBFB,#E4F0FB);border:1px solid rgba(124,107,232,0.28);}
+  .row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(100,90,160,0.16);}
+  .row .ri{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,0.75);display:flex;align-items:center;justify-content:center;font-size:18px;color:#5B4FCB;flex-shrink:0;}
+  .rt{font-size:13px;font-weight:700;color:#3B3470;}
+  .rs{font-size:11.5px;color:#7A72A8;}
   .ract{margin-left:auto;display:flex;gap:8px;}
   .ract button{width:34px;height:34px;border-radius:12px;border:none;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s;}
   .ract button:hover{transform:translateY(-2px) scale(1.08);}
@@ -176,12 +190,12 @@
         <div class="tile demande">
           <div class="thead">
             <div class="lead">
-              <div class="ico" style="background:rgba(255,255,255,0.6);color:#A86A12;"><i class="ti ti-inbox"></i></div>
-              <div><div class="ttl" style="color:#6B4410;">Demandes de l'animateur</div><div class="sub" style="color:#A8843E;">2 en attente</div></div>
+              <div class="ico" style="background:rgba(255,255,255,0.75);color:#5B4FCB;"><i class="ti ti-inbox"></i></div>
+              <div><div class="ttl" style="color:#3B3470;">Demandes de l'animateur</div><div class="sub" style="color:#7A72A8;">2 en attente</div></div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
-              <span style="background:#EF9F27;color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;box-shadow:0 4px 10px -3px rgba(239,159,39,.7);">2</span>
-              <i class="ti ti-chevron-down chev" style="color:#C58A2A;"></i>
+              <span style="background:#7C6BE8;color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;box-shadow:0 4px 10px -3px rgba(124,107,232,.7);">2</span>
+              <i class="ti ti-chevron-down chev" style="color:#8A7FC8;"></i>
             </div>
           </div>
           <div class="body"><div class="bin">
@@ -207,11 +221,14 @@
           <div class="tile">
             <div class="thead" style="padding:14px;">
               <div class="lead"><div class="ico" style="background:linear-gradient(135deg,#D2F2E7,#B5E9D5);color:#0F8C68;"><i class="ti ti-coin"></i></div>
-                <div><div class="ttl">Chiffre d'aff.</div><div class="big" style="color:#0F8C68;"><span class="cnt" data-to="580" data-suffix="k€">0</span></div></div></div>
+                <div><div class="ttl">Chiffre d'aff.</div><div class="caval" style="color:#0F8C68;"><span class="cnt" data-to="580" data-suffix="k€">0</span><span class="trend up"><i class="ti ti-trending-up"></i>+4%</span></div></div></div>
               <i class="ti ti-chevron-down chev"></i>
             </div>
             <div class="body"><div class="bin">
-              <div class="mini"><span>2026</span><b>580k€</b></div><div class="mini"><span>vs 2025</span><b style="color:#0F8C68;">+4%</b></div><div class="mini"><span>Spa</span><b>132k€</b></div>
+              <div class="mini"><span>Chimie</span><span class="trend up"><i class="ti ti-trending-up"></i>+8%</span></div>
+              <div class="mini"><span>Matériel</span><span class="trend mid"><i class="ti ti-minus"></i>+1%</span></div>
+              <div class="mini"><span>Piscine</span><span class="trend down"><i class="ti ti-trending-down"></i>-3%</span></div>
+              <div class="mini"><span>Spa</span><span class="trend up"><i class="ti ti-trending-up"></i>+6%</span></div>
             </div></div>
           </div>
 
