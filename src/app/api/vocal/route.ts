@@ -16,6 +16,7 @@ type Intention =
   | "magasins_risque"
   | "preparation_demain"
   | "ouvrir_magasin"
+  | "naviguer"
   | "inconnu";
 
 interface ParsedIntention {
@@ -39,14 +40,33 @@ Intentions disponibles:
 - "magasins_risque" : voir les magasins en risque. params: {}
 - "preparation_demain" : voir la préparation pour demain. params: {}
 - "ouvrir_magasin" : ouvrir la fiche d'un magasin. params: { magasin: string }
+- "naviguer" : ouvrir une page de l'app. params: { cible: "carte"|"pilotage"|"rdv"|"visites"|"parcours"|"actions"|"remontees"|"news"|"evaluations"|"magasins"|"parametres"|"agenda"|"tournee" }
 - "inconnu" : commande non reconnue. params: {}
 
-Exemples:
+Exemples navigation:
+- "ouvre la carte" → {"intention":"naviguer","params":{"cible":"carte"}}
+- "va à la carte" → {"intention":"naviguer","params":{"cible":"carte"}}
+- "montre-moi le pilotage" → {"intention":"naviguer","params":{"cible":"pilotage"}}
+- "ouvre les rendez-vous" / "page rdv" → {"intention":"naviguer","params":{"cible":"rdv"}}
+- "ouvre les visites" → {"intention":"naviguer","params":{"cible":"visites"}}
+- "page parcours" / "ma tournée" → {"intention":"naviguer","params":{"cible":"parcours"}}
+- "ouvre les actions" / "actions réseau" → {"intention":"naviguer","params":{"cible":"actions"}}
+- "remontées" / "voir les remontées" → {"intention":"naviguer","params":{"cible":"remontees"}}
+- "actualités" / "news" → {"intention":"naviguer","params":{"cible":"news"}}
+- "évaluations" → {"intention":"naviguer","params":{"cible":"evaluations"}}
+- "liste des magasins" / "page magasins" → {"intention":"naviguer","params":{"cible":"magasins"}}
+- "paramètres" / "réglages" → {"intention":"naviguer","params":{"cible":"parametres"}}
+- "mon agenda" → {"intention":"naviguer","params":{"cible":"agenda"}}
+
+Exemples autres:
 - "crée un RDV avec Piscine Service Lyon" → {"intention":"creer_rdv","params":{"magasin":"Piscine Service Lyon"}}
 - "montre-moi les remontées urgentes" → {"intention":"remontees_urgentes","params":{}}
 - "ouvre la fiche du magasin Aqua Rêve Strasbourg" → {"intention":"ouvrir_magasin","params":{"magasin":"Aqua Rêve Strasbourg"}}
 - "quel est mon prochain rendez-vous" → {"intention":"prochain_rdv","params":{}}
-- "CA du mois" → {"intention":"ca_du_mois","params":{}}`;
+- "CA du mois" → {"intention":"ca_du_mois","params":{}}
+
+IMPORTANT: "ouvre/va sur/page [section]" sans nom de magasin = "naviguer".
+"ouvre la fiche [nom magasin]" = "ouvrir_magasin".`;
 
 type MagasinRow = {
   id: string;
@@ -294,6 +314,44 @@ export async function POST(req: NextRequest) {
       const magasin = parsed.params.magasin ? ` chez ${parsed.params.magasin}` : "";
       donnees = `Je t'ouvre le formulaire pour planifier une visite${magasin}.`;
       actionRetour = { type: "navigate", url: "/visites/nouvelle" };
+      break;
+    }
+
+    case "naviguer": {
+      const cible = (parsed.params.cible ?? "").toLowerCase().trim();
+      const MAP_NAV: Record<string, { url: string; label: string }> = {
+        carte:        { url: "/animateur",          label: "la carte du réseau" },
+        accueil:      { url: "/animateur",          label: "l'accueil" },
+        dashboard:    { url: "/animateur",          label: "le dashboard" },
+        agenda:       { url: "/animateur",          label: "l'agenda" },
+        pilotage:     { url: "/pilotage",           label: "le pilotage" },
+        rdv:          { url: "/animateur/rdv",      label: "les rendez-vous" },
+        "rendez-vous":{ url: "/animateur/rdv",      label: "les rendez-vous" },
+        visites:      { url: "/visites",            label: "les visites" },
+        parcours:     { url: "/animateur/parcours", label: "la préparation de tournée" },
+        tournee:      { url: "/animateur/parcours", label: "la préparation de tournée" },
+        itineraire:   { url: "/animateur/parcours", label: "l'itinéraire" },
+        actions:      { url: "/actions-reseau",     label: "les actions" },
+        "actions-reseau": { url: "/actions-reseau", label: "les actions" },
+        remontees:    { url: "/remontees",          label: "les remontées" },
+        remontée:     { url: "/remontees",          label: "les remontées" },
+        news:         { url: "/animateur/news",     label: "les actualités" },
+        actualites:   { url: "/animateur/news",     label: "les actualités" },
+        evaluations:  { url: "/evaluations",        label: "les évaluations" },
+        magasins:     { url: "/magasins",           label: "la liste des magasins" },
+        liste:        { url: "/magasins",           label: "la liste des magasins" },
+        parametres:   { url: "/animateur/parametres", label: "les paramètres" },
+        reglages:     { url: "/animateur/parametres", label: "les réglages" },
+      };
+      // Normalise les accents (é → e, etc.)
+      const cibleNorm = cible.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+      const match = MAP_NAV[cibleNorm] ?? MAP_NAV[cible];
+      if (match) {
+        donnees = `J'ouvre ${match.label}.`;
+        actionRetour = { type: "navigate", url: match.url };
+      } else {
+        donnees = `Je ne sais pas ouvrir "${cible}". Essaye carte, pilotage, RDV, visites, parcours, actions, remontées, news, évaluations, magasins ou paramètres.`;
+      }
       break;
     }
 
