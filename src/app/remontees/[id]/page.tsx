@@ -1,15 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { changeStatutRemontee } from "./actions";
 import FormulaireReponse from "./FormulaireReponse";
 import BoutonSupprimerRemontee from "./BoutonSupprimerRemontee";
 import PieceJointe from "@/components/PieceJointe";
 
-const graviteConfig: Record<string, { label: string; style: string }> = {
-  normale: { label: "Normale", style: "bg-slate-100 text-slate-600" },
-  attention: { label: "Attention", style: "bg-orange-100 text-orange-800" },
-  urgente: { label: "Urgente", style: "bg-red-100 text-red-800" },
+type Badge = { label: string; bg: string; fg: string };
+const GRAY = { bg: "#ECEAF3", fg: "#6F6982" };
+
+const graviteConfig: Record<string, Badge> = {
+  normale:   { label: "Normale",   ...GRAY },
+  attention: { label: "Attention", bg: "#FBF1D8", fg: "#B07D14" },
+  urgente:   { label: "Urgente",   bg: "#FBE0E8", fg: "#C0476E" },
 };
 
 const typeLabels: Record<string, string> = {
@@ -20,12 +24,21 @@ const typeLabels: Record<string, string> = {
   autre: "Autre",
 };
 
-const statutConfig: Record<string, { label: string; style: string }> = {
-  nouvelle: { label: "Nouvelle", style: "bg-blue-100 text-blue-800" },
-  en_cours: { label: "En cours", style: "bg-orange-100 text-orange-800" },
-  traitee: { label: "Traitée", style: "bg-green-100 text-green-800" },
-  archivee: { label: "Archivée", style: "bg-slate-100 text-slate-600" },
+const statutConfig: Record<string, Badge> = {
+  nouvelle: { label: "Nouvelle", bg: "#E4F0FB", fg: "#2D6FD0" },
+  en_cours: { label: "En cours", bg: "#FBF1D8", fg: "#B07D14" },
+  traitee:  { label: "Traitée",  bg: "#D2F2E7", fg: "#0F8C68" },
+  archivee: { label: "Archivée", ...GRAY },
 };
+
+function Pill({ b }: { b: Badge | undefined }) {
+  const m = b ?? { label: "—", ...GRAY };
+  return (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ background: m.bg, color: m.fg }}>
+      {m.label}
+    </span>
+  );
+}
 
 export default async function RemonteeDetailPage({
   params,
@@ -50,30 +63,30 @@ export default async function RemonteeDetailPage({
     ville: string | null;
   } | null;
 
-  const gravite = graviteConfig[r.gravite as string];
-  const statut = statutConfig[r.statut as string];
-
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
           <div>
             <Link
               href="/remontees"
-              className="text-slate-500 hover:text-slate-900 text-sm transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm transition-colors"
+              style={{ color: "var(--pa-muted)" }}
             >
-              ← Retour aux remontées
+              <ArrowLeft size={15} strokeWidth={2.5} />
+              Retour aux remontées
             </Link>
-            <h1 className="mt-2 text-2xl font-semibold text-slate-900">
+            <h1 className="mt-2 text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>
               {r.titre}
             </h1>
           </div>
           <div className="flex items-center gap-2 mt-6">
             <Link
               href={`/remontees/${id}/modifier`}
-              className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold"
             >
+              <Pencil size={15} strokeWidth={2.5} />
               Modifier
             </Link>
             <BoutonSupprimerRemontee id={id} />
@@ -83,58 +96,43 @@ export default async function RemonteeDetailPage({
         <div className="space-y-4">
           {/* Card : Informations */}
           <div className="pa-card p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
               Informations
             </h2>
             <dl className="grid grid-cols-2 gap-x-8 gap-y-4">
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Magasin</dt>
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Magasin</dt>
                 <dd>
                   {magasin ? (
                     <Link
                       href={`/magasins/${magasin.id}`}
-                      className="text-slate-900 hover:underline text-sm font-medium"
+                      className="hover:underline text-sm font-semibold"
+                      style={{ color: "#6B4FD8" }}
                     >
                       {magasin.enseigne ? `${magasin.enseigne} — ` : ""}
                       {magasin.nom}
                       {magasin.ville ? ` (${magasin.ville})` : ""}
                     </Link>
                   ) : (
-                    <span className="text-slate-400">—</span>
+                    <span style={{ color: "var(--pa-muted)" }}>—</span>
                   )}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Type</dt>
-                <dd>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                    {typeLabels[r.type] ?? r.type}
-                  </span>
-                </dd>
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Type</dt>
+                <dd><Pill b={{ label: typeLabels[r.type] ?? r.type, ...GRAY }} /></dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Gravité</dt>
-                <dd>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gravite?.style ?? "bg-slate-100 text-slate-600"}`}
-                  >
-                    {gravite?.label ?? r.gravite}
-                  </span>
-                </dd>
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Gravité</dt>
+                <dd><Pill b={graviteConfig[r.gravite as string]} /></dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Statut</dt>
-                <dd>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}
-                  >
-                    {statut?.label ?? r.statut}
-                  </span>
-                </dd>
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Statut</dt>
+                <dd><Pill b={statutConfig[r.statut as string]} /></dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Reçue le</dt>
-                <dd className="text-slate-900 text-sm">
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Reçue le</dt>
+                <dd className="text-sm" style={{ color: "var(--pa-ink)" }}>
                   {new Date(r.created_at).toLocaleDateString("fr-FR", {
                     day: "numeric",
                     month: "long",
@@ -144,10 +142,10 @@ export default async function RemonteeDetailPage({
               </div>
               {r.date_traitement && (
                 <div>
-                  <dt className="text-xs text-slate-400 mb-0.5">
+                  <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>
                     Traitée le
                   </dt>
-                  <dd className="text-slate-900 text-sm">
+                  <dd className="text-sm" style={{ color: "var(--pa-ink)" }}>
                     {new Date(r.date_traitement).toLocaleDateString("fr-FR", {
                       day: "numeric",
                       month: "long",
@@ -160,11 +158,11 @@ export default async function RemonteeDetailPage({
           </div>
 
           {/* Card : Description */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+          <div className="pa-card p-6 space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
               Description
             </h2>
-            <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">
+            <p className="whitespace-pre-wrap leading-relaxed text-sm" style={{ color: "var(--pa-ink)" }}>
               {r.description}
             </p>
             <PieceJointe url={r.photo_url as string | null} />
@@ -172,19 +170,18 @@ export default async function RemonteeDetailPage({
 
           {/* Card : Réponse animateur */}
           <div className="pa-card p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
               Réponse animateur
             </h2>
             {r.reponse_animateur ? (
-              /* Réponse déjà enregistrée */
               <div className="space-y-3">
-                <div className="bg-green-50 rounded-lg border border-green-200 p-4">
-                  <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">
+                <div className="rounded-xl p-4" style={{ background: "#D2F2E7", border: "1px solid rgba(31,169,138,0.2)" }}>
+                  <p className="whitespace-pre-wrap leading-relaxed text-sm" style={{ color: "#0F5C44" }}>
                     {r.reponse_animateur}
                   </p>
                 </div>
                 {r.date_traitement && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs" style={{ color: "var(--pa-muted)" }}>
                     Répondu le{" "}
                     {new Date(r.date_traitement).toLocaleDateString("fr-FR", {
                       day: "numeric",
@@ -195,7 +192,6 @@ export default async function RemonteeDetailPage({
                 )}
               </div>
             ) : (
-              /* Formulaire de réponse (composant client) */
               <FormulaireReponse id={id} />
             )}
           </div>
@@ -203,30 +199,30 @@ export default async function RemonteeDetailPage({
           {/* Card : Changer le statut (hors archivée / traitée) */}
           {!["traitee", "archivee"].includes(r.statut) && (
             <div className="pa-card p-6">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
                 Changer le statut
               </h2>
               <div className="flex flex-wrap gap-2">
-                {/* Marquer en cours si encore nouvelle */}
                 {r.statut === "nouvelle" && (
                   <form action={changeStatutRemontee}>
                     <input type="hidden" name="id" value={id} />
                     <input type="hidden" name="statut" value="en_cours" />
                     <button
                       type="submit"
-                      className="px-4 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-800 text-sm font-medium hover:bg-orange-100 transition-colors"
+                      className="px-4 py-2 rounded-xl text-sm font-semibold transition-transform active:scale-95"
+                      style={{ background: "#FBF1D8", color: "#B07D14" }}
                     >
                       Marquer en cours
                     </button>
                   </form>
                 )}
-                {/* Archiver */}
                 <form action={changeStatutRemontee}>
                   <input type="hidden" name="id" value={id} />
                   <input type="hidden" name="statut" value="archivee" />
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 text-sm font-medium hover:bg-slate-100 transition-colors"
+                    className="px-4 py-2 rounded-xl text-sm font-semibold transition-transform active:scale-95"
+                    style={{ background: "#ECEAF3", color: "#6F6982" }}
                   >
                     Archiver
                   </button>
@@ -238,7 +234,7 @@ export default async function RemonteeDetailPage({
           {/* Bouton rouvrir si archivée */}
           {r.statut === "archivee" && (
             <div className="pa-card p-6">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
                 Changer le statut
               </h2>
               <form action={changeStatutRemontee}>
@@ -246,7 +242,8 @@ export default async function RemonteeDetailPage({
                 <input type="hidden" name="statut" value="nouvelle" />
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-800 text-sm font-medium hover:bg-blue-100 transition-colors"
+                  className="px-4 py-2 rounded-xl text-sm font-semibold transition-transform active:scale-95"
+                  style={{ background: "#E4F0FB", color: "#2D6FD0" }}
                 >
                   Rouvrir
                 </button>
