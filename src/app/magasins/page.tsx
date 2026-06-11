@@ -86,7 +86,7 @@ export default async function MagasinsPage({
           <Navigation />
 
           {/* Chips filtre statut */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap" style={{ paddingTop: "12px" }}>
             {CHIPS.map(({ key, label, sel, selBg, fg }) => {
               const actif = statutFilter === key;
               return (

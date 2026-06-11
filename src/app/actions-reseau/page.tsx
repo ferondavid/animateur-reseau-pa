@@ -97,7 +97,7 @@ export default async function ActionsPage({
         <Navigation />
 
         {/* Filtres */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap" style={{ paddingTop: "12px" }}>
           {filtres.map((f) => {
             const href = f.key ? `/actions-reseau?filtre=${f.key}` : "/actions-reseau";
             const actif = filtre === f.key || (!filtre && !f.key);
