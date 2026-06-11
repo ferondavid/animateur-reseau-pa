@@ -3,29 +3,34 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
+import { Plus, CircleDot, Moon, Archive, ArrowRight, type LucideIcon } from "lucide-react";
 
-const STATUT_BADGE: Record<string, string> = {
-  actif: "bg-green-100 text-green-800",
-  pause: "bg-yellow-100 text-yellow-800",
-  inactif: "bg-slate-100 text-slate-600",
-};
-const STATUT_EMOJI: Record<string, string> = {
-  actif: "🟢",
-  pause: "🌙",
-  inactif: "🗄️",
-};
-const STATUT_LABEL: Record<string, string> = {
-  actif: "Actif",
-  pause: "En sommeil",
-  inactif: "Archivé",
+const STATUT_META: Record<string, { label: string; icon: LucideIcon; bg: string; fg: string }> = {
+  actif:   { label: "Actif",      icon: CircleDot, bg: "#D2F2E7", fg: "#0F8C68" },
+  pause:   { label: "En sommeil", icon: Moon,      bg: "#FBF1D8", fg: "#B07D14" },
+  inactif: { label: "Archivé",    icon: Archive,   bg: "#ECEAF3", fg: "#6F6982" },
 };
 
 const CHIPS = [
-  { key: "actif",    label: "Actifs",      sel: "bg-emerald-500 text-white", def: "bg-emerald-100 text-emerald-700" },
-  { key: "pause",    label: "En sommeil",  sel: "bg-amber-500 text-white",   def: "bg-amber-100 text-amber-700" },
-  { key: "inactif",  label: "Archivés",    sel: "bg-slate-500 text-white",   def: "bg-slate-100 text-slate-600" },
-  { key: "tous",     label: "Tous",        sel: "bg-blue-500 text-white",    def: "bg-blue-100 text-blue-700" },
+  { key: "actif",    label: "Actifs",     sel: "#1FA98A", selBg: "#D2F2E7", fg: "#0F8C68" },
+  { key: "pause",    label: "En sommeil", sel: "#B07D14", selBg: "#FBF1D8", fg: "#B07D14" },
+  { key: "inactif",  label: "Archivés",   sel: "#6F6982", selBg: "#ECEAF3", fg: "#6F6982" },
+  { key: "tous",     label: "Tous",       sel: "#7C6BE8", selBg: "#EDEBFB", fg: "#6B4FD8" },
 ] as const;
+
+function StatutBadge({ statut }: { statut: string }) {
+  const meta = STATUT_META[statut] ?? STATUT_META.inactif;
+  const Icon = meta.icon;
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+      style={{ background: meta.bg, color: meta.fg }}
+    >
+      <Icon size={12} strokeWidth={2.5} />
+      {meta.label}
+    </span>
+  );
+}
 
 export default async function MagasinsPage({
   searchParams,
@@ -66,12 +71,15 @@ export default async function MagasinsPage({
 
           {/* Header */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <h1 className="text-2xl font-semibold text-slate-900">Magasins du réseau</h1>
+            <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>
+              Magasins du réseau
+            </h1>
             <Link
               href="/magasins/nouveau"
-              className="px-5 py-2.5 pa-btn-primary rounded-xl text-sm font-semibold"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 pa-btn-primary rounded-xl text-sm font-semibold"
             >
-              + Ajouter un magasin
+              <Plus size={16} strokeWidth={2.5} />
+              Ajouter un magasin
             </Link>
           </div>
 
@@ -79,29 +87,37 @@ export default async function MagasinsPage({
 
           {/* Chips filtre statut */}
           <div className="flex items-center gap-2 flex-wrap">
-            {CHIPS.map(({ key, label, sel, def }) => (
-              <Link
-                key={key}
-                href={`/magasins?statut=${key}`}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  statutFilter === key ? sel : def
-                }`}
-              >
-                {label} ({counts[key] ?? 0})
-              </Link>
-            ))}
+            {CHIPS.map(({ key, label, sel, selBg, fg }) => {
+              const actif = statutFilter === key;
+              return (
+                <Link
+                  key={key}
+                  href={`/magasins?statut=${key}`}
+                  className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all"
+                  style={
+                    actif
+                      ? { background: sel, color: "#fff", boxShadow: `0 4px 12px -4px ${sel}` }
+                      : { background: selBg, color: fg }
+                  }
+                >
+                  {label} ({counts[key] ?? 0})
+                </Link>
+              );
+            })}
           </div>
         </div>
 
         {/* État vide */}
         {(magasins?.length ?? 0) === 0 && (
           <div className="pa-card p-16 text-center space-y-4">
-            <p className="text-slate-400">Aucun magasin pour ce filtre.</p>
+            <p style={{ color: "var(--pa-muted)" }}>Aucun magasin pour ce filtre.</p>
             <Link
               href="/magasins/nouveau"
-              className="inline-block text-sm text-blue-600 hover:underline font-medium"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold"
+              style={{ color: "#6B4FD8" }}
             >
-              + Ajouter un magasin →
+              <Plus size={15} strokeWidth={2.5} />
+              Ajouter un magasin
             </Link>
           </div>
         )}
@@ -109,33 +125,29 @@ export default async function MagasinsPage({
         {(magasins?.length ?? 0) > 0 && (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block pa-card rounded-xl overflow-hidden">
+            <div className="hidden md:block pa-card overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b" style={{ borderColor: "var(--pa-line)" }}>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Enseigne</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Nom</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Ville</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Région</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Statut</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Enseigne</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Nom</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Ville</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Région</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Statut</th>
                     <th className="px-6 py-3.5" />
                   </tr>
                 </thead>
                 <tbody>
                   {(magasins ?? []).map((m) => (
-                    <tr key={m.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-slate-900">{m.enseigne ?? "—"}</td>
-                      <td className="px-6 py-4 text-slate-700">{m.nom}</td>
-                      <td className="px-6 py-4 text-slate-700">{m.ville}</td>
-                      <td className="px-6 py-4 text-slate-500">{m.region ?? "—"}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUT_BADGE[m.statut] ?? "bg-slate-100 text-slate-600"}`}>
-                          {STATUT_EMOJI[m.statut]} {STATUT_LABEL[m.statut] ?? m.statut}
-                        </span>
-                      </td>
+                    <tr key={m.id} className="border-b last:border-0 transition-colors hover:bg-white/40" style={{ borderColor: "var(--pa-line)" }}>
+                      <td className="px-6 py-4 font-semibold" style={{ color: "var(--pa-ink)" }}>{m.enseigne ?? "—"}</td>
+                      <td className="px-6 py-4" style={{ color: "var(--pa-ink)" }}>{m.nom}</td>
+                      <td className="px-6 py-4" style={{ color: "var(--pa-ink)" }}>{m.ville}</td>
+                      <td className="px-6 py-4" style={{ color: "var(--pa-muted)" }}>{m.region ?? "—"}</td>
+                      <td className="px-6 py-4"><StatutBadge statut={m.statut} /></td>
                       <td className="px-6 py-4 text-right">
-                        <Link href={`/magasins/${m.id}`} className="text-slate-900 hover:underline font-medium">
-                          Voir →
+                        <Link href={`/magasins/${m.id}`} className="inline-flex items-center gap-1 font-semibold" style={{ color: "#6B4FD8", textDecoration: "none" }}>
+                          Voir <ArrowRight size={14} strokeWidth={2.5} />
                         </Link>
                       </td>
                     </tr>
@@ -153,16 +165,14 @@ export default async function MagasinsPage({
                   className="block pa-card p-4 transition-all active:scale-[.99]"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                    <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
                       {m.enseigne ?? "—"}
                     </span>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUT_BADGE[m.statut] ?? "bg-slate-100 text-slate-600"}`}>
-                      {STATUT_EMOJI[m.statut]} {STATUT_LABEL[m.statut] ?? m.statut}
-                    </span>
+                    <StatutBadge statut={m.statut} />
                   </div>
-                  <p className="font-semibold text-slate-900 mb-1.5 leading-snug">{m.nom}</p>
+                  <p className="font-bold mb-1.5 leading-snug" style={{ color: "var(--pa-ink)" }}>{m.nom}</p>
                   {(m.ville || m.region) && (
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
                       {[m.ville, m.region].filter(Boolean).join(" · ")}
                     </p>
                   )}
