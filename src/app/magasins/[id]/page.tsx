@@ -1,33 +1,49 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CalendarPlus, Pencil, ArrowLeft, ArrowRight, Plus, Lock } from "lucide-react";
 import BoutonSupprimer from "./BoutonSupprimer";
 import BoutonStatutMagasin from "@/components/BoutonStatutMagasin";
 import CAEvolution from "@/components/CAEvolution";
 
-const statutStyles: Record<string, string> = {
-  actif: "bg-green-100 text-green-800",
-  pause: "bg-yellow-100 text-yellow-800",
-  inactif: "bg-slate-100 text-slate-600",
+type Badge = { label: string; bg: string; fg: string };
+const NEUTRAL: Badge = { label: "—", bg: "#ECEAF3", fg: "#6F6982" };
+const BLUE = { bg: "#E4F0FB", fg: "#2D6FD0" };
+const GREEN = { bg: "#D2F2E7", fg: "#0F8C68" };
+const AMBER = { bg: "#FBF1D8", fg: "#B07D14" };
+const RED = { bg: "#FBE0E8", fg: "#C0476E" };
+const GRAY = { bg: "#ECEAF3", fg: "#6F6982" };
+
+function Pill({ label, bg, fg }: { label: string; bg: string; fg: string }) {
+  return (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ background: bg, color: fg }}>
+      {label}
+    </span>
+  );
+}
+
+const statutMagasin: Record<string, Badge> = {
+  actif:   { label: "Actif",    ...GREEN },
+  pause:   { label: "En pause", ...AMBER },
+  inactif: { label: "Inactif",  ...GRAY },
 };
 
-const urgenceActionStyles: Record<number, { label: string; style: string }> = {
-  1: { label: "Info", style: "bg-slate-100 text-slate-600" },
-  2: { label: "Important", style: "bg-orange-100 text-orange-800" },
-  3: { label: "Urgent", style: "bg-red-100 text-red-800" },
+const urgenceAction: Record<number, Badge> = {
+  1: { label: "Info",      ...GRAY },
+  2: { label: "Important", ...AMBER },
+  3: { label: "Urgent",    ...RED },
 };
 
-const statutActionStyles: Record<string, { label: string; style: string }> = {
-  ouverte: { label: "Ouverte", style: "bg-blue-100 text-blue-800" },
-  en_cours: { label: "En cours", style: "bg-orange-100 text-orange-800" },
+const statutAction: Record<string, Badge> = {
+  ouverte:  { label: "Ouverte",  ...BLUE },
+  en_cours: { label: "En cours", ...AMBER },
 };
 
-const graviteRemonteeStyles: Record<string, { label: string; style: string }> =
-  {
-    normale: { label: "Normale", style: "bg-slate-100 text-slate-600" },
-    attention: { label: "Attention", style: "bg-orange-100 text-orange-800" },
-    urgente: { label: "Urgente", style: "bg-red-100 text-red-800" },
-  };
+const graviteRemontee: Record<string, Badge> = {
+  normale:   { label: "Normale",   ...GRAY },
+  attention: { label: "Attention", ...AMBER },
+  urgente:   { label: "Urgente",   ...RED },
+};
 
 const typeRemonteeLabels: Record<string, string> = {
   commerciale: "Commerciale",
@@ -37,31 +53,17 @@ const typeRemonteeLabels: Record<string, string> = {
   autre: "Autre",
 };
 
-const statutRemonteeStyles: Record<string, { label: string; style: string }> =
-  {
-    nouvelle: { label: "Nouvelle", style: "bg-blue-100 text-blue-800" },
-    en_cours: { label: "En cours", style: "bg-orange-100 text-orange-800" },
-    traitee: { label: "Traitée", style: "bg-green-100 text-green-800" },
-  };
-
-const statutVisiteStyles: Record<string, string> = {
-  planifiee: "bg-blue-100 text-blue-800",
-  realisee: "bg-green-100 text-green-800",
-  annulee: "bg-slate-100 text-slate-600",
-  reportee: "bg-orange-100 text-orange-800",
+const statutRemontee: Record<string, Badge> = {
+  nouvelle: { label: "Nouvelle", ...BLUE },
+  en_cours: { label: "En cours", ...AMBER },
+  traitee:  { label: "Traitée",  ...GREEN },
 };
 
-const statutVisiteLabels: Record<string, string> = {
-  planifiee: "Planifiée",
-  realisee: "Réalisée",
-  annulee: "Annulée",
-  reportee: "Reportée",
-};
-
-const statutLabels: Record<string, string> = {
-  actif: "Actif",
-  pause: "En pause",
-  inactif: "Inactif",
+const statutVisite: Record<string, Badge> = {
+  planifiee: { label: "Planifiée", ...BLUE },
+  realisee:  { label: "Réalisée",  ...GREEN },
+  annulee:   { label: "Annulée",   ...GRAY },
+  reportee:  { label: "Reportée",  ...AMBER },
 };
 
 const niveauLabels: Record<string, string> = {
@@ -116,32 +118,37 @@ export default async function MagasinDetailPage({
     <main className="min-h-screen p-8">
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
           <div>
             <Link
               href="/magasins"
-              className="text-slate-500 hover:text-slate-900 text-sm transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm transition-colors"
+              style={{ color: "var(--pa-muted)" }}
             >
-              ← Retour à la liste
+              <ArrowLeft size={15} strokeWidth={2.5} />
+              Retour à la liste
             </Link>
-            <h1 className="mt-2 text-2xl font-semibold text-slate-900">
+            <h1 className="mt-2 text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>
               {m.nom}
             </h1>
             {m.enseigne && (
-              <p className="text-slate-500 text-sm mt-0.5">{m.enseigne}</p>
+              <p className="text-sm mt-0.5" style={{ color: "var(--pa-muted)" }}>{m.enseigne}</p>
             )}
           </div>
           <div className="flex items-center gap-2 mt-6 flex-wrap">
             <Link
               href={`/animateur/rdv/nouvelle?magasin=${id}`}
-              className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-transform active:scale-95"
+              style={{ background: "linear-gradient(135deg,#5BA8F5,#3D7BE8)", boxShadow: "0 4px 12px -4px rgba(61,123,232,0.5)" }}
             >
-              📅 Proposer un RDV
+              <CalendarPlus size={15} strokeWidth={2.5} />
+              Proposer un RDV
             </Link>
             <Link
               href={`/magasins/${id}/modifier`}
-              className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold"
             >
+              <Pencil size={15} strokeWidth={2.5} />
               Modifier
             </Link>
             <BoutonStatutMagasin id={id} statut={m.statut} />
@@ -155,44 +162,40 @@ export default async function MagasinDetailPage({
 
           {/* Card : Informations générales */}
           <div className="pa-card p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
               Informations générales
             </h2>
             <dl className="grid grid-cols-2 gap-x-8 gap-y-4">
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Adresse</dt>
-                <dd className="text-slate-900">
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Adresse</dt>
+                <dd style={{ color: "var(--pa-ink)" }}>
                   {[m.adresse, m.code_postal, m.ville]
                     .filter(Boolean)
                     .join(", ") || "—"}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Région</dt>
-                <dd className="text-slate-900">{m.region ?? "—"}</dd>
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Région</dt>
+                <dd style={{ color: "var(--pa-ink)" }}>{m.region ?? "—"}</dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Statut</dt>
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Statut</dt>
                 <dd>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutStyles[m.statut] ?? "bg-slate-100 text-slate-600"}`}
-                  >
-                    {statutLabels[m.statut] ?? m.statut}
-                  </span>
+                  <Pill {...(statutMagasin[m.statut] ?? { label: m.statut, ...GRAY })} />
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Niveau</dt>
-                <dd className="text-slate-900">
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Niveau</dt>
+                <dd style={{ color: "var(--pa-ink)" }}>
                   {niveauLabels[m.niveau] ?? m.niveau ?? "—"}
                 </dd>
               </div>
               {m.date_entree_reseau && (
                 <div>
-                  <dt className="text-xs text-slate-400 mb-0.5">
+                  <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>
                     Entrée réseau
                   </dt>
-                  <dd className="text-slate-900">
+                  <dd style={{ color: "var(--pa-ink)" }}>
                     {new Date(m.date_entree_reseau).toLocaleDateString("fr-FR")}
                   </dd>
                 </div>
@@ -202,27 +205,28 @@ export default async function MagasinDetailPage({
 
           {/* Card : Contact */}
           <div className="pa-card p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
               Contact
             </h2>
             <dl className="grid grid-cols-2 gap-x-8 gap-y-4">
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Nom</dt>
-                <dd className="text-slate-900">{m.contact_nom ?? "—"}</dd>
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Nom</dt>
+                <dd style={{ color: "var(--pa-ink)" }}>{m.contact_nom ?? "—"}</dd>
               </div>
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">Téléphone</dt>
-                <dd className="text-slate-900">
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Téléphone</dt>
+                <dd style={{ color: "var(--pa-ink)" }}>
                   {m.contact_telephone ?? "—"}
                 </dd>
               </div>
               <div className="col-span-2">
-                <dt className="text-xs text-slate-400 mb-0.5">Email</dt>
-                <dd className="text-slate-900">
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Email</dt>
+                <dd style={{ color: "var(--pa-ink)" }}>
                   {m.contact_email ? (
                     <a
                       href={`mailto:${m.contact_email}`}
-                      className="text-slate-900 hover:underline"
+                      className="hover:underline"
+                      style={{ color: "#6B4FD8" }}
                     >
                       {m.contact_email}
                     </a>
@@ -237,10 +241,10 @@ export default async function MagasinDetailPage({
           {/* Card : Notes (uniquement si présentes) */}
           {m.notes && (
             <div className="pa-card p-6">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+              <h2 className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: "var(--pa-muted)" }}>
                 Notes
               </h2>
-              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+              <p className="whitespace-pre-wrap leading-relaxed" style={{ color: "var(--pa-ink)" }}>
                 {m.notes}
               </p>
             </div>
@@ -250,8 +254,8 @@ export default async function MagasinDetailPage({
           {(m.date_creation_entreprise || m.nb_collaborateurs || m.type_activite || m.score_potentiel || (Array.isArray(m.tags_animateur) && m.tags_animateur.length > 0) || m.notes_animateur) && (
             <div className="bg-amber-50 rounded-xl border-2 border-amber-200 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <h2 className="text-sm font-semibold text-amber-900 uppercase tracking-wide inline-flex items-center gap-2">
-                  🔒 Infos animateur
+                <h2 className="text-sm font-bold text-amber-900 uppercase tracking-wide inline-flex items-center gap-2">
+                  <Lock size={15} strokeWidth={2.5} /> Infos animateur
                 </h2>
                 <span className="text-[10px] font-semibold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
                   CONFIDENTIEL — Non visible côté membre
@@ -294,9 +298,9 @@ export default async function MagasinDetailPage({
                     <dt className="text-xs text-amber-700 mb-0.5">Type d&apos;activité</dt>
                     <dd className="text-slate-900">
                       {{
-                        integree: "🏗️ Intégrée (atelier/SAV maison)",
-                        sous_traitance: "🔗 Sous-traitance",
-                        mixte: "⚖️ Mixte",
+                        integree: "Intégrée (atelier/SAV maison)",
+                        sous_traitance: "Sous-traitance",
+                        mixte: "Mixte",
                       }[m.type_activite as string] ?? m.type_activite}
                     </dd>
                   </div>
@@ -327,23 +331,23 @@ export default async function MagasinDetailPage({
           {/* Card : Visites */}
           <div className="pa-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+              <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
                 Visites
               </h2>
               <Link
                 href={`/visites/nouvelle?magasin_id=${id}`}
-                className="pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-medium"
+                className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
               >
-                + Nouvelle visite
+                <Plus size={13} strokeWidth={2.5} /> Nouvelle visite
               </Link>
             </div>
 
             {(visites ?? []).length === 0 ? (
-              <p className="text-slate-400 text-sm">
+              <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
                 Aucune visite enregistrée.
               </p>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y" style={{ borderColor: "var(--pa-line)" }}>
                 {(visites ?? []).map((v) => {
                   const date = v.date_realisee ?? v.date_prevue;
                   return (
@@ -352,38 +356,29 @@ export default async function MagasinDetailPage({
                       className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-700">
+                        <span className="text-sm" style={{ color: "var(--pa-ink)" }}>
                           {date
                             ? new Date(date).toLocaleDateString("fr-FR")
                             : "—"}
                         </span>
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statutVisiteStyles[v.statut] ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {statutVisiteLabels[v.statut] ?? v.statut}
-                        </span>
+                        <Pill {...(statutVisite[v.statut] ?? { label: v.statut, ...GRAY })} />
                         {v.note_confiance && (
-                          <span className="text-xs text-slate-500">
-                            C&nbsp;
-                            <span className="text-amber-400">
-                              {"★".repeat(v.note_confiance)}
-                            </span>
+                          <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
+                            C&nbsp;<span style={{ color: "#EF9F27" }}>{"★".repeat(v.note_confiance)}</span>
                           </span>
                         )}
                         {v.note_business && (
-                          <span className="text-xs text-slate-500">
-                            B&nbsp;
-                            <span className="text-amber-400">
-                              {"★".repeat(v.note_business)}
-                            </span>
+                          <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
+                            B&nbsp;<span style={{ color: "#EF9F27" }}>{"★".repeat(v.note_business)}</span>
                           </span>
                         )}
                       </div>
                       <Link
                         href={`/visites/${v.id}`}
-                        className="text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors"
+                        className="inline-flex items-center gap-1 text-sm font-semibold"
+                        style={{ color: "#6B4FD8", textDecoration: "none" }}
                       >
-                        Voir →
+                        Voir <ArrowRight size={13} strokeWidth={2.5} />
                       </Link>
                     </div>
                   );
@@ -394,58 +389,43 @@ export default async function MagasinDetailPage({
           {/* Card : Remontées terrain */}
           <div className="pa-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+              <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
                 Remontées terrain
               </h2>
               <Link
                 href={`/remontees/nouvelle?magasin_id=${id}`}
-                className="pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-medium"
+                className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
               >
-                + Nouvelle remontée
+                <Plus size={13} strokeWidth={2.5} /> Nouvelle remontée
               </Link>
             </div>
 
             {(remonteesActives ?? []).length === 0 ? (
-              <p className="text-slate-400 text-sm">Aucune remontée active.</p>
+              <p className="text-sm" style={{ color: "var(--pa-muted)" }}>Aucune remontée active.</p>
             ) : (
-              <div className="divide-y divide-slate-100">
-                {(remonteesActives ?? []).map((rem) => {
-                  const gravite =
-                    graviteRemonteeStyles[rem.gravite as string];
-                  const statut =
-                    statutRemonteeStyles[rem.statut as string];
-                  return (
-                    <div
-                      key={rem.id}
-                      className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${gravite?.style ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {gravite?.label ?? rem.gravite}
-                        </span>
-                        <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                          {typeRemonteeLabels[rem.type as string] ?? rem.type}
-                        </span>
-                        <span className="text-sm text-slate-900 font-medium truncate">
-                          {rem.titre}
-                        </span>
-                        <span
-                          className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {statut?.label ?? rem.statut}
-                        </span>
-                      </div>
-                      <Link
-                        href={`/remontees/${rem.id}`}
-                        className="shrink-0 text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors ml-3"
-                      >
-                        Voir →
-                      </Link>
+              <div className="divide-y" style={{ borderColor: "var(--pa-line)" }}>
+                {(remonteesActives ?? []).map((rem) => (
+                  <div
+                    key={rem.id}
+                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Pill {...(graviteRemontee[rem.gravite as string] ?? { label: rem.gravite as string, ...GRAY })} />
+                      <Pill label={typeRemonteeLabels[rem.type as string] ?? (rem.type as string)} {...GRAY} />
+                      <span className="text-sm font-medium truncate" style={{ color: "var(--pa-ink)" }}>
+                        {rem.titre}
+                      </span>
+                      <Pill {...(statutRemontee[rem.statut as string] ?? { label: rem.statut as string, ...GRAY })} />
                     </div>
-                  );
-                })}
+                    <Link
+                      href={`/remontees/${rem.id}`}
+                      className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold ml-3"
+                      style={{ color: "#6B4FD8", textDecoration: "none" }}
+                    >
+                      Voir <ArrowRight size={13} strokeWidth={2.5} />
+                    </Link>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -453,59 +433,47 @@ export default async function MagasinDetailPage({
           {/* Card : Actions ouvertes */}
           <div className="pa-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+              <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
                 Actions
               </h2>
               <Link
                 href={`/actions-reseau/nouvelle?magasin_id=${id}`}
-                className="pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-medium"
+                className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
               >
-                + Nouvelle action
+                <Plus size={13} strokeWidth={2.5} /> Nouvelle action
               </Link>
             </div>
 
             {(actionsOuvertes ?? []).length === 0 ? (
-              <p className="text-slate-400 text-sm">Aucune action en cours.</p>
+              <p className="text-sm" style={{ color: "var(--pa-muted)" }}>Aucune action en cours.</p>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y" style={{ borderColor: "var(--pa-line)" }}>
                 {(actionsOuvertes ?? []).map((a) => {
                   const today = new Date().toISOString().split("T")[0];
-                  const urgence = urgenceActionStyles[a.niveau_urgence as number];
-                  const statut = statutActionStyles[a.statut as string];
-                  const depasse =
-                    a.deadline && a.deadline < today;
+                  const depasse = a.deadline && a.deadline < today;
                   return (
                     <div
                       key={a.id}
                       className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${urgence?.style ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {urgence?.label ?? a.niveau_urgence}
-                        </span>
-                        <span className="text-sm text-slate-900 font-medium truncate">
+                        <Pill {...(urgenceAction[a.niveau_urgence as number] ?? { label: String(a.niveau_urgence), ...GRAY })} />
+                        <span className="text-sm font-medium truncate" style={{ color: "var(--pa-ink)" }}>
                           {a.titre}
                         </span>
-                        <span
-                          className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {statut?.label ?? a.statut}
-                        </span>
+                        <Pill {...(statutAction[a.statut as string] ?? { label: a.statut as string, ...GRAY })} />
                         {a.deadline && (
-                          <span
-                            className={`shrink-0 text-xs ${depasse ? "text-red-600 font-medium" : "text-slate-400"}`}
-                          >
+                          <span className="shrink-0 text-xs font-medium" style={{ color: depasse ? "#C0476E" : "var(--pa-muted)" }}>
                             {new Date(a.deadline).toLocaleDateString("fr-FR")}
                           </span>
                         )}
                       </div>
                       <Link
                         href={`/actions-reseau/${a.id}`}
-                        className="shrink-0 text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors ml-3"
+                        className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold ml-3"
+                        style={{ color: "#6B4FD8", textDecoration: "none" }}
                       >
-                        Voir →
+                        Voir <ArrowRight size={13} strokeWidth={2.5} />
                       </Link>
                     </div>
                   );
