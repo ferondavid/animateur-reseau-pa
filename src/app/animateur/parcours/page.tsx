@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import ParcoursMagasins from "@/components/ParcoursMagasins";
 import type { ConfigVE } from "@/components/ParcoursMagasins";
+import { ArrowLeft } from "lucide-react";
 
 export default async function ParcoursPage({
   searchParams,
@@ -55,16 +56,18 @@ export default async function ParcoursPage({
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">🚗 Parcours de visite</h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>🚗 Parcours de visite</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--pa-muted)" }}>
               Sélectionne les magasins, optimise l&apos;itinéraire{configVE.active ? " avec arrêts recharge" : ""} et planifie ta tournée en 1 clic.
             </p>
           </div>
           <Link
             href="/animateur"
-            className="text-sm text-slate-400 hover:text-slate-700 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm transition-colors"
+            style={{ color: "var(--pa-muted)" }}
           >
-            ← Retour dashboard
+            <ArrowLeft size={15} strokeWidth={2.5} />
+            Retour dashboard
           </Link>
         </div>
 
