@@ -53,6 +53,18 @@ function formatTel(tel: string | null | undefined): string {
   return digits.match(/.{1,2}/g)?.join(" ") ?? digits;
 }
 
+// Titre magasin sans doublon : si l'enseigne contient déjà le nom (ou inversement),
+// on n'affiche qu'une fois. Sinon « Enseigne — Nom ».
+function titreMagasin(enseigne: string | null | undefined, nom: string): string {
+  const n = nom.trim();
+  if (!enseigne) return n;
+  const e = enseigne.trim();
+  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  if (!e || norm(e) === norm(n) || norm(e).includes(norm(n))) return e || n;
+  if (norm(n).includes(norm(e))) return n;
+  return `${e} — ${n}`;
+}
+
 const COULEURS: Record<NiveauRisque, string> = {
   ok: "#3DA877",
   modere: "#E8943A",
@@ -185,7 +197,7 @@ export default function Carte({ magasins }: { magasins: MagasinPin[] }) {
               <Popup>
                 <div className="space-y-1.5">
                   <strong style={{ color: "#241F33", fontSize: "14px", fontWeight: 600, letterSpacing: "-0.2px" }}>
-                    {m.enseigne ? `${m.enseigne} — ${m.nom}` : m.nom}
+                    {titreMagasin(m.enseigne, m.nom)}
                   </strong>
                   <div style={{ color: "#8B8699", fontSize: "12px" }}>
                     {m.ville}
