@@ -69,7 +69,7 @@ export default async function VisitesPage() {
 
         {/* État vide */}
         {(visites?.length ?? 0) === 0 && (
-          <div className="pa-card p-16 text-center">
+          <div className="pa-card p-16 text-center" style={{ marginTop: "12px" }}>
             <p style={{ color: "var(--pa-muted)" }}>Aucune visite enregistrée.</p>
           </div>
         )}
