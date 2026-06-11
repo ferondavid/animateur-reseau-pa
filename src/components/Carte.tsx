@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Phone, ArrowRight } from "lucide-react";
+import { titreMagasin } from "@/lib/magasin";
 import type { NiveauRisque, NiveauMagasin } from "@/lib/risque";
 
 type MagasinPin = {
@@ -51,18 +52,6 @@ function formatTel(tel: string | null | undefined): string {
   if (!tel) return "";
   const digits = tel.replace(/[\s.\-()]/g, "").replace(/^\+33/, "0");
   return digits.match(/.{1,2}/g)?.join(" ") ?? digits;
-}
-
-// Titre magasin sans doublon : si l'enseigne contient déjà le nom (ou inversement),
-// on n'affiche qu'une fois. Sinon « Enseigne — Nom ».
-function titreMagasin(enseigne: string | null | undefined, nom: string): string {
-  const n = nom.trim();
-  if (!enseigne) return n;
-  const e = enseigne.trim();
-  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
-  if (!e || norm(e) === norm(n) || norm(e).includes(norm(n))) return e || n;
-  if (norm(n).includes(norm(e))) return n;
-  return `${e} — ${n}`;
 }
 
 const COULEURS: Record<NiveauRisque, string> = {
