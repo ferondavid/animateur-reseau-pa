@@ -3,7 +3,9 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import CardRDVDemande from "@/components/CardRDVDemande";
 import type { RDVDemande } from "@/components/CardRDVDemande";
+import Navigation from "@/components/Navigation";
 import Link from "next/link";
+import { Plus, Check, AlertTriangle, ArrowLeft } from "lucide-react";
 
 const TABS = [
   { key: "attente",  label: "En attente", statuts: ["demande", "reporte"] },
@@ -58,21 +60,21 @@ export default async function RDVAdminPage({
     <main className="min-h-screen p-6 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {ok && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
-            <span className="text-lg">✓</span>
+          <div className="rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2" style={{ background: "#D2F2E7", color: "#0F8C68" }}>
+            <Check size={16} strokeWidth={2.5} />
             <span>Demande de RDV envoyée au magasin avec succès.</span>
           </div>
         )}
         {errMsg && (
-          <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
-            <span className="text-lg">⚠️</span>
+          <div className="rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2" style={{ background: "#FBE0E8", color: "#C0476E" }}>
+            <AlertTriangle size={16} strokeWidth={2.5} />
             <span>Erreur lors de la création du RDV : {errMsg}</span>
           </div>
         )}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Rendez-vous</h1>
-            <p className="text-slate-500 text-sm mt-0.5">
+            <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>Rendez-vous</h1>
+            <p className="text-sm mt-0.5" style={{ color: "var(--pa-muted)" }}>
               {nbAttente > 0
                 ? `${nbAttente} demande${nbAttente > 1 ? "s" : ""} en attente`
                 : "Aucune demande en attente"}
@@ -80,27 +82,34 @@ export default async function RDVAdminPage({
           </div>
           <Link
             href="/animateur/rdv/nouvelle"
-            className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold"
+            className="inline-flex items-center gap-1.5 px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold"
           >
-            + Nouvelle demande
+            <Plus size={16} strokeWidth={2.5} />
+            Nouvelle demande
           </Link>
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
+        <Navigation />
+
+        <div className="flex flex-wrap gap-3 items-center" style={{ paddingTop: "12px" }}>
           <div className="flex items-center gap-1 p-1 rounded-[16px]" style={{ background: "rgba(255,255,255,0.65)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: "1px solid rgba(255,255,255,0.7)" }}>
-            {TABS.map((t) => (
-              <Link
-                key={t.key}
-                href={`/animateur/rdv?tab=${t.key}${magasin ? `&magasin=${magasin}` : ""}`}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                  tab === t.key
-                    ? "bg-white shadow-sm text-slate-900"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {t.label}
-              </Link>
-            ))}
+            {TABS.map((t) => {
+              const actif = tab === t.key;
+              return (
+                <Link
+                  key={t.key}
+                  href={`/animateur/rdv?tab=${t.key}${magasin ? `&magasin=${magasin}` : ""}`}
+                  className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
+                  style={
+                    actif
+                      ? { background: "#fff", color: "#534AB7", boxShadow: "0 2px 8px -2px rgba(80,60,140,0.18)" }
+                      : { color: "var(--pa-muted)" }
+                  }
+                >
+                  {t.label}
+                </Link>
+              );
+            })}
           </div>
 
           <form method="get" action="/animateur/rdv" className="flex gap-2">
@@ -119,7 +128,8 @@ export default async function RDVAdminPage({
             </select>
             <button
               type="submit"
-              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              className="px-4 py-2 rounded-xl text-sm font-semibold"
+              style={{ background: "#EDEBFB", color: "#6B4FD8" }}
             >
               Filtrer
             </button>
@@ -127,8 +137,8 @@ export default async function RDVAdminPage({
         </div>
 
         {(rdvs ?? []).length === 0 ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
-            <p className="text-emerald-700 font-medium">Aucun RDV dans cette catégorie 👍</p>
+          <div className="pa-card p-6 text-center">
+            <p className="font-medium" style={{ color: "#0F8C68" }}>Aucun RDV dans cette catégorie 👍</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -140,9 +150,11 @@ export default async function RDVAdminPage({
 
         <Link
           href="/animateur"
-          className="inline-block text-sm text-slate-400 hover:text-slate-700 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm transition-colors"
+          style={{ color: "var(--pa-muted)" }}
         >
-          ← Retour tableau de bord
+          <ArrowLeft size={15} strokeWidth={2.5} />
+          Retour tableau de bord
         </Link>
       </div>
     </main>
