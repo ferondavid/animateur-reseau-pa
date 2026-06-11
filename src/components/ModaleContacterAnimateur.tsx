@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 type Props = {
   animateurTel: string;
   animateurEmail: string;
@@ -25,6 +28,14 @@ export default function ModaleContacterAnimateur({
   magasinNom,
   onClose,
 }: Props) {
+  const [monte, setMonte] = useState(false);
+  useEffect(() => setMonte(true), []);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const telPlus = normalizeTelPlus(animateurTel);
   const telWA = normalizeTelWA(animateurTel);
   const message = `Bonjour, ici ${magasinNom}.`;
@@ -83,7 +94,9 @@ export default function ModaleContacterAnimateur({
     },
   ];
 
-  return (
+  if (!monte) return null;
+
+  return createPortal(
     <div
       className="pa-modal-overlay"
       onClick={onClose}
@@ -93,17 +106,18 @@ export default function ModaleContacterAnimateur({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-lg font-bold text-slate-900">Contacter l&apos;animateur</h2>
+          <h2 className="text-lg font-bold" style={{ color: "var(--pa-ink)" }}>Contacter l&apos;animateur</h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 text-2xl leading-none"
+            className="text-2xl leading-none transition-colors"
+            style={{ color: "var(--pa-muted)" }}
             aria-label="Fermer"
           >
             ×
           </button>
         </div>
-        <p className="text-sm text-slate-500 mb-5">Choisissez votre canal préféré</p>
+        <p className="text-sm mb-5" style={{ color: "var(--pa-muted)" }}>Choisissez votre canal préféré</p>
 
         <div className="grid grid-cols-2 gap-3">
           {options.map((o) => (
@@ -122,6 +136,7 @@ export default function ModaleContacterAnimateur({
           ))}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
