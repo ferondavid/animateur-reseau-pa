@@ -278,7 +278,7 @@ export default function ParcoursMagasins({
   const nbBornes = parcours?.etapes.filter((e) => e.type === "recharge" && !e.label.startsWith("⚠️")).length ?? 0;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-5 items-start" style={{ paddingTop: "12px" }}>
+    <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,560px)] gap-5 items-start" style={{ paddingTop: "12px" }}>
 
       {/* ─── COL GAUCHE ──────────────────────────────────────────────── */}
       <div className="space-y-4">

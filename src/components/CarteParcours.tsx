@@ -6,6 +6,10 @@ import L from "leaflet";
 import { useEffect } from "react";
 import type { Point, EtapeParcours } from "@/lib/itineraire";
 
+// France métropolitaine (Corse incluse) : cadrage par défaut + limites de déplacement
+const FRANCE_FIT = L.latLngBounds([41.3, -5.2], [51.1, 9.7]);
+const FRANCE_MAX = L.latLngBounds([40.2, -7.5], [52.2, 11.5]);
+
 function iconDepart(): L.DivIcon {
   return L.divIcon({
     html: `<div style="width:34px;height:34px;border-radius:50%;background:#16a34a;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:13px;line-height:1;">D</div>`,
@@ -41,8 +45,8 @@ function iconRecharge(estWarning: boolean): L.DivIcon {
 function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
-    if (points.length === 0) return;
-    if (points.length === 1) { map.setView(points[0], 12); return; }
+    if (points.length === 0) { map.fitBounds(FRANCE_FIT, { padding: [10, 10] }); return; }
+    if (points.length === 1) { map.setView(points[0], 11); return; }
     map.fitBounds(L.latLngBounds(points), { padding: [40, 40] });
   }, [map, points]);
   return null;
@@ -82,7 +86,10 @@ export default function CarteParcours({ depart, etapes, retour }: Props) {
     <MapContainer
       center={center}
       zoom={6}
-      style={{ height: "420px", width: "100%", borderRadius: "16px" }}
+      minZoom={5}
+      maxBounds={FRANCE_MAX}
+      maxBoundsViscosity={1}
+      style={{ height: "500px", width: "100%", borderRadius: "16px" }}
       scrollWheelZoom={true}
     >
       <TileLayer
