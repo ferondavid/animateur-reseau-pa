@@ -11,7 +11,8 @@ export default function FormulaireRealiser({ id }: { id: string }) {
       <button
         type="button"
         onClick={() => setOuvert(true)}
-        className="px-4 py-2 rounded-lg border border-green-200 bg-green-50 text-green-800 text-sm font-medium hover:bg-green-100 transition-colors"
+        className="px-4 py-2 rounded-xl text-sm font-semibold transition-transform active:scale-95"
+        style={{ background: "#D2F2E7", color: "#0F8C68" }}
       >
         Marquer réalisée
       </button>
@@ -23,9 +24,9 @@ export default function FormulaireRealiser({ id }: { id: string }) {
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="statut" value="realisee" />
       <div>
-        <label className="block text-xs font-medium text-slate-600 mb-1">
+        <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>
           Commentaire de réalisation{" "}
-          <span className="font-normal text-slate-400">(optionnel)</span>
+          <span className="font-normal" style={{ color: "var(--pa-muted)" }}>(optionnel)</span>
         </label>
         <textarea
           name="commentaire_realisation"
@@ -38,14 +39,16 @@ export default function FormulaireRealiser({ id }: { id: string }) {
       <div className="flex gap-2">
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-green-800 transition-colors"
+          className="px-4 py-2 rounded-xl text-white text-sm font-semibold transition-transform active:scale-95"
+          style={{ background: "linear-gradient(135deg,#34C9A3,#1FA98A)", boxShadow: "0 4px 10px -4px rgba(31,169,138,.5)" }}
         >
           Confirmer la réalisation
         </button>
         <button
           type="button"
           onClick={() => setOuvert(false)}
-          className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+          className="px-4 py-2 rounded-xl text-sm font-semibold transition-transform active:scale-95"
+          style={{ background: "#ECEAF3", color: "#6F6982" }}
         >
           Annuler
         </button>
