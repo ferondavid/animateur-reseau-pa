@@ -165,15 +165,22 @@ function Origine({ source, date, label = "Demandé par" }: { source: string | un
 
 // ─── COMPOSANT PRINCIPAL ─────────────────────────────────────
 
+export type VisiteAVenirItem = {
+  id: string;
+  date_prevue: string;
+  objectif: string | null;
+};
+
 type Props = {
   actions: ActionItem[];
   rdvs: RDVItem[];
   remontees: RemonteeItem[];
   visites: VisiteItem[];
+  visitesAVenir?: VisiteAVenirItem[];
   historique?: EvtHistorique[];
 };
 
-export default function TabsMembre({ actions, rdvs, remontees, visites, historique = [] }: Props) {
+export default function TabsMembre({ actions, rdvs, remontees, visites, visitesAVenir = [], historique = [] }: Props) {
   const defaultTab: Tab =
     actions.length > 0 ? "actions" :
     rdvs.length > 0 ? "rdv" :
@@ -366,9 +373,28 @@ export default function TabsMembre({ actions, rdvs, remontees, visites, historiq
 
         {/* ── VISITES ─────────────────────────────────────────── */}
         {tab === "visites" && (
-          visites.length === 0 ? <Empty msg="Aucune visite enregistrée" />
+          visites.length === 0 && visitesAVenir.length === 0 ? <Empty msg="Aucune visite enregistrée" />
           : (
             <div className="space-y-2">
+              {visitesAVenir.length > 0 && (
+                <>
+                  <p className="text-[11px] font-bold uppercase tracking-wide px-1" style={{ color: "var(--pa-muted)" }}>À venir</p>
+                  {visitesAVenir.map((v) => (
+                    <div key={`avenir-${v.id}`} className="rounded-xl border px-3 py-2.5 flex items-start gap-3" style={{ borderColor: "rgba(45,111,208,.22)", background: "#EFF6FD" }}>
+                      <div className="shrink-0 text-xs w-20 pt-0.5 font-medium" style={{ color: "#2D6FD0" }}>
+                        {new Date(v.date_prevue).toLocaleDateString("fr-FR")}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm truncate" style={{ color: "var(--pa-ink)" }}>{v.objectif ?? "Visite planifiée"}</p>
+                      </div>
+                      <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#E4F0FB", color: "#2D6FD0" }}>Planifiée</span>
+                    </div>
+                  ))}
+                  {visites.length > 0 && (
+                    <p className="text-[11px] font-bold uppercase tracking-wide px-1 pt-2" style={{ color: "var(--pa-muted)" }}>Réalisées</p>
+                  )}
+                </>
+              )}
               {visites.map((v) => {
                 const key = `visite-${v.id}`;
                 const open = expanded.has(key);

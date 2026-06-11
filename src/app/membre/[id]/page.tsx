@@ -138,11 +138,13 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     { data: histActions },
     { data: histRemontees },
     { data: histRDV },
+    { data: visitesAVenirData },
   ] = await Promise.all([
     supabase.from("visites").select("id, statut, date_realisee, date_prevue, objectif, points_cles, note_confiance, note_business").eq("magasin_id", id).or(`date_realisee.gte.${il12mois.slice(0,10)},date_prevue.gte.${il12mois.slice(0,10)}`).order("date_realisee", { ascending: false, nullsFirst: false }),
     supabase.from("actions").select("id, titre, description, statut, niveau_urgence, deadline, created_at").eq("magasin_id", id).gte("created_at", il12mois).order("created_at", { ascending: false }),
     supabase.from("remontees").select("id, titre, description, gravite, statut, source, type, photo_url, reponse_animateur, date_traitement, created_at").eq("magasin_id", id).gte("created_at", il12mois).order("created_at", { ascending: false }),
     supabase.from("rendez_vous").select("id, type, statut, date_souhaitee, heure_souhaitee, objet, message, lieu, lien_visio, demandeur_type, created_at").eq("magasin_id", id).gte("created_at", il12mois).order("created_at", { ascending: false }),
+    supabase.from("visites").select("id, date_prevue, objectif").eq("magasin_id", id).eq("statut", "planifiee").eq("accepte_par_membre", true).gte("date_prevue", today).order("date_prevue", { ascending: true }),
   ]);
 
   const historique: EvtHistorique[] = [];
@@ -283,6 +285,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
               rdvs={(rdvData ?? []) as { id: string; type: string; date_souhaitee: string; heure_souhaitee: string | null; objet: string; statut: string; message: string | null; lieu: string | null; demandeur_type: string; created_at: string }[]}
               remontees={(remontees ?? []) as { id: string; titre: string; gravite: string; statut: string; created_at: string; description: string | null; photo_url: string | null; source: string | null; type: string | null }[]}
               visites={trois}
+              visitesAVenir={(visitesAVenirData ?? []) as { id: string; date_prevue: string; objectif: string | null }[]}
               historique={historique}
             />
           </Tuile>
