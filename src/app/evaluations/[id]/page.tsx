@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { QUESTIONS_EVAL, moyenneNotes } from "@/lib/evaluations";
 import EtoilesNote from "@/components/EtoilesNote";
 
@@ -46,28 +47,30 @@ export default async function EvaluationDetailPage({
     <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-3xl mx-auto">
         {/* En-tête */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
           <div>
             <Link
               href="/evaluations"
-              className="text-slate-500 hover:text-slate-900 text-sm transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm transition-colors"
+              style={{ color: "var(--pa-muted)" }}
             >
-              ← Évaluations
+              <ArrowLeft size={15} strokeWidth={2.5} />
+              Évaluations
             </Link>
-            <h1 className="mt-2 text-2xl font-semibold text-slate-900">
+            <h1 className="mt-2 text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>
               {nomMagasin}
             </h1>
-            <p className="text-slate-500 text-sm mt-0.5">
+            <p className="text-sm mt-0.5" style={{ color: "var(--pa-muted)" }}>
               Reçue le{" "}
               {new Date(e.created_at).toLocaleDateString("fr-FR")}
             </p>
           </div>
           {moy !== null && (
             <div className="mt-6 text-right">
-              <p className="text-xs text-slate-400 mb-1">Moyenne</p>
-              <p className="text-3xl font-bold text-amber-500">
+              <p className="text-xs mb-1" style={{ color: "var(--pa-muted)" }}>Moyenne</p>
+              <p className="text-3xl font-bold" style={{ color: "#E8B43A" }}>
                 {moy.toFixed(1)}
-                <span className="text-base font-normal text-amber-300">/5</span>
+                <span className="text-base font-normal" style={{ color: "#EAD9A8" }}>/5</span>
               </p>
             </div>
           )}
@@ -76,10 +79,10 @@ export default async function EvaluationDetailPage({
         <div className="space-y-4">
           {/* Notes par question */}
           <div className="pa-card p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
               Notes détaillées
             </h2>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y" style={{ borderColor: "var(--pa-line)" }}>
               {QUESTIONS_EVAL.map((q) => {
                 const note = (e as Record<string, number | null>)[q.key];
                 return (
@@ -87,11 +90,11 @@ export default async function EvaluationDetailPage({
                     key={q.key}
                     className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
                   >
-                    <span className="text-sm text-slate-700">{q.label}</span>
+                    <span className="text-sm" style={{ color: "var(--pa-ink)" }}>{q.label}</span>
                     <div className="flex items-center gap-2 shrink-0">
                       <EtoilesNote note={note} mode="display" taille="sm" />
                       {note && (
-                        <span className="text-sm font-semibold text-slate-700 w-6 text-right">
+                        <span className="text-sm font-bold w-6 text-right" style={{ color: "var(--pa-ink)" }}>
                           {note}
                         </span>
                       )}
@@ -105,10 +108,10 @@ export default async function EvaluationDetailPage({
           {/* Commentaire */}
           {e.commentaire_texte && (
             <div className="pa-card p-6">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+              <h2 className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: "var(--pa-muted)" }}>
                 Commentaire
               </h2>
-              <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+              <p className="leading-relaxed whitespace-pre-wrap" style={{ color: "var(--pa-ink)" }}>
                 {e.commentaire_texte}
               </p>
             </div>
@@ -116,17 +119,18 @@ export default async function EvaluationDetailPage({
 
           {/* Informations liées */}
           <div className="pa-card p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
               Informations
             </h2>
             <dl className="space-y-3">
               {magasin && (
                 <div>
-                  <dt className="text-xs text-slate-400 mb-0.5">Magasin</dt>
+                  <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Magasin</dt>
                   <dd>
                     <Link
                       href={`/magasins/${magasin.id}`}
-                      className="text-slate-900 hover:underline"
+                      className="hover:underline text-sm font-semibold"
+                      style={{ color: "#6B4FD8" }}
                     >
                       {nomMagasin}
                       {magasin.ville ? ` (${magasin.ville})` : ""}
@@ -136,13 +140,14 @@ export default async function EvaluationDetailPage({
               )}
               {visite && (
                 <div>
-                  <dt className="text-xs text-slate-400 mb-0.5">
+                  <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>
                     Visite associée
                   </dt>
                   <dd>
                     <Link
                       href={`/visites/${visite.id}`}
-                      className="text-slate-900 hover:underline"
+                      className="hover:underline text-sm font-semibold"
+                      style={{ color: "#6B4FD8" }}
                     >
                       {dateVisite
                         ? new Date(dateVisite).toLocaleDateString("fr-FR", {
@@ -156,10 +161,10 @@ export default async function EvaluationDetailPage({
                 </div>
               )}
               <div>
-                <dt className="text-xs text-slate-400 mb-0.5">
+                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>
                   Date de réception
                 </dt>
-                <dd className="text-slate-900">
+                <dd className="text-sm" style={{ color: "var(--pa-ink)" }}>
                   {new Date(e.created_at).toLocaleDateString("fr-FR", {
                     day: "numeric",
                     month: "long",

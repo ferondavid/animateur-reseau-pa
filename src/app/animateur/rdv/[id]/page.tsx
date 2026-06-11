@@ -5,15 +5,23 @@ import { confirmerRDV, annulerRDV, marquerFait } from "../actions";
 import { redirect } from "next/navigation";
 import { getParametre, getParametreNumber, getParametreFloat } from "@/lib/parametres";
 import { calculerPreparation } from "@/lib/preparation-rdv";
+import { ArrowLeft, Store, Phone, Monitor, Check, X, Sunrise } from "lucide-react";
 
-const TYPE_ICON: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
-const TYPE_LABEL: Record<string, string> = { physique: "Physique", tel: "Téléphone", visio: "Visio" };
-const STATUT_BADGE: Record<string, string> = {
-  demande: "bg-amber-100 text-amber-700",
-  reporte: "bg-blue-100 text-blue-700",
-  confirme: "bg-emerald-100 text-emerald-700",
-  annule: "bg-red-100 text-red-700",
-  fait: "bg-slate-100 text-slate-600",
+type Badge = { label: string; bg: string; fg: string };
+const GRAY = { bg: "#ECEAF3", fg: "#6F6982" };
+
+const TYPE_CONFIG: Record<string, { label: string; Icon: React.ComponentType<{ size?: number }> }> = {
+  physique: { label: "Physique", Icon: Store },
+  tel: { label: "Téléphone", Icon: Phone },
+  visio: { label: "Visio", Icon: Monitor },
+};
+
+const STATUT_BADGE: Record<string, Badge> = {
+  demande:  { label: "Demande",  bg: "#FBF1D8", fg: "#B07D14" },
+  reporte:  { label: "Reporté",  bg: "#E4F0FB", fg: "#2D6FD0" },
+  confirme: { label: "Confirmé", bg: "#D2F2E7", fg: "#0F8C68" },
+  annule:   { label: "Annulé",   bg: "#FBE0E8", fg: "#C0476E" },
+  fait:     { label: "Fait",     ...GRAY },
 };
 
 function normalizeTel(tel: string): string {
@@ -75,6 +83,9 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
   const isConfirme = rdv.statut === "confirme";
   const rdvFutur = ["confirme", "demande"].includes(rdv.statut) && rdv.date_souhaitee >= today;
 
+  const statutBadge = STATUT_BADGE[rdv.statut] ?? { label: rdv.statut, ...GRAY };
+  const typeConf = TYPE_CONFIG[rdv.type] ?? { label: rdv.type, Icon: Store };
+
   // Calcul préparation veille
   const departOk = !!(latDep && lngDep);
   const magCoords = mag?.latitude && mag?.longitude;
@@ -99,19 +110,20 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
     <main className="min-h-screen p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-          <Link href="/animateur/rdv" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">
-            ← Retour aux RDV
+          <Link href="/animateur/rdv" className="inline-flex items-center gap-1.5 text-sm transition-colors" style={{ color: "var(--pa-muted)" }}>
+            <ArrowLeft size={15} strokeWidth={2.5} />
+            Retour aux RDV
           </Link>
-          <h1 className="mt-2 text-2xl font-semibold text-slate-900">{rdv.objet}</h1>
+          <h1 className="mt-2 text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>{rdv.objet}</h1>
         </div>
 
         {/* Statut + type */}
         <div className="flex flex-wrap gap-2">
-          <span className={`text-sm font-semibold px-3 py-1 rounded-full ${STATUT_BADGE[rdv.statut] ?? "bg-slate-100 text-slate-600"}`}>
-            {rdv.statut.charAt(0).toUpperCase() + rdv.statut.slice(1)}
+          <span className="text-sm font-semibold px-3 py-1 rounded-full" style={{ background: statutBadge.bg, color: statutBadge.fg }}>
+            {statutBadge.label}
           </span>
-          <span className="text-sm font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-700">
-            {TYPE_ICON[rdv.type]} {TYPE_LABEL[rdv.type] ?? rdv.type}
+          <span className="text-sm font-semibold px-3 py-1 rounded-full inline-flex items-center gap-1.5" style={{ background: "#ECEAF3", color: "#6F6982" }}>
+            <typeConf.Icon size={13} /> {typeConf.label}
           </span>
         </div>
 
@@ -130,12 +142,13 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
         {/* Contact magasin */}
         {mag?.contact_telephone && (
           <div className="pa-card p-5">
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Contact — {nomMag}</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: "var(--pa-muted)" }}>Contact — {nomMag}</h2>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-700 tabular-nums">{formatTel(mag.contact_telephone)}</span>
+              <span className="text-sm tabular-nums" style={{ color: "var(--pa-ink)" }}>{formatTel(mag.contact_telephone)}</span>
               <a href={`tel:${normalizeTel(mag.contact_telephone)}`}
-                className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-3 py-1.5 text-xs font-semibold transition-colors shadow-sm">
-                📞 Appel
+                className="inline-flex items-center gap-1.5 text-white rounded-full px-3 py-1.5 text-xs font-semibold transition-transform active:scale-95"
+                style={{ background: "linear-gradient(135deg,#34C9A3,#1FA98A)", boxShadow: "0 4px 10px -4px rgba(31,169,138,.5)" }}>
+                <Phone size={12} /> Appel
               </a>
             </div>
           </div>
@@ -144,7 +157,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
         {/* Invités */}
         {invites.length > 0 && (
           <div className="pa-card p-5">
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+            <h2 className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: "var(--pa-muted)" }}>
               Invités ({invites.length})
             </h2>
             <div className="space-y-3">
@@ -155,15 +168,16 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
                 return (
                   <div key={inv.magasin_id} className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-medium text-slate-800">{nom}</p>
-                      {m.ville && <p className="text-xs text-slate-400">{m.ville}</p>}
+                      <p className="text-sm font-semibold" style={{ color: "var(--pa-ink)" }}>{nom}</p>
+                      {m.ville && <p className="text-xs" style={{ color: "var(--pa-muted)" }}>{m.ville}</p>}
                     </div>
                     {m.contact_telephone && (
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs text-slate-600 tabular-nums">{formatTel(m.contact_telephone)}</span>
+                        <span className="text-xs tabular-nums" style={{ color: "var(--pa-muted)" }}>{formatTel(m.contact_telephone)}</span>
                         <a href={`tel:${normalizeTel(m.contact_telephone)}`}
-                          className="inline-flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-2.5 py-1 text-xs font-semibold transition-colors">
-                          📞
+                          className="inline-flex items-center gap-1 text-white rounded-full px-2.5 py-1 text-xs font-semibold transition-transform active:scale-95"
+                          style={{ background: "linear-gradient(135deg,#34C9A3,#1FA98A)" }}>
+                          <Phone size={12} />
                         </a>
                       </div>
                     )}
@@ -177,20 +191,22 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
         {/* Préparation veille */}
         {rdvFutur && (
           <div className="pa-card p-5 space-y-3">
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">🌅 Préparation veille</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wide inline-flex items-center gap-1.5" style={{ color: "var(--pa-muted)" }}>
+              <Sunrise size={14} strokeWidth={2.5} style={{ color: "#E8943A" }} /> Préparation veille
+            </h2>
 
             {!departOk ? (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
                 Configure ton{" "}
-                <Link href="/animateur/parametres" className="text-blue-600 underline font-medium">
+                <Link href="/animateur/parametres" className="underline font-semibold" style={{ color: "#6B4FD8" }}>
                   point de départ habituel
                 </Link>{" "}
                 pour voir la préparation détaillée.
               </p>
             ) : !magCoords ? (
-              <p className="text-sm text-slate-400">Coordonnées du magasin non renseignées.</p>
+              <p className="text-sm" style={{ color: "var(--pa-muted)" }}>Coordonnées du magasin non renseignées.</p>
             ) : prep ? (
-              <div className="space-y-2 text-sm text-slate-700">
+              <div className="space-y-2 text-sm" style={{ color: "var(--pa-ink)" }}>
                 <p>
                   🛣️ <strong>{Math.round(prep.distanceKm)} km</strong> — {
                     prep.dureeRouteMinutes < 60
@@ -205,20 +221,20 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
                     {" "}pour arriver avec {bufferMin} min de marge
                   </p>
                 ) : (
-                  <p className="text-slate-400">Heure RDV non précisée — calcul impossible</p>
+                  <p style={{ color: "var(--pa-muted)" }}>Heure RDV non précisée — calcul impossible</p>
                 )}
                 {prep.chargeRecommandeePct > 0 && (
                   <p>
                     🔋 Charger ce soir jusqu&apos;à <strong>{prep.chargeRecommandeePct}%</strong>
                     {prep.nbArretsEstime > 0 && (
-                      <span className="text-amber-600"> · {prep.nbArretsEstime} arrêt{prep.nbArretsEstime > 1 ? "s" : ""} borne à prévoir</span>
+                      <span style={{ color: "#B07D14" }}> · {prep.nbArretsEstime} arrêt{prep.nbArretsEstime > 1 ? "s" : ""} borne à prévoir</span>
                     )}
                   </p>
                 )}
                 {prep.alertes.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {prep.alertes.map((a, i) => (
-                      <span key={i} className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                      <span key={i} className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#FBF1D8", color: "#B07D14" }}>
                         ⚠️ {a}
                       </span>
                     ))}
@@ -234,22 +250,24 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
           <div className="flex flex-wrap gap-3">
             {isActionnable && (
               <form action={async () => { "use server"; await confirmerRDV(id); redirect(`/animateur/rdv/${id}`); }}>
-                <button type="submit" className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold shadow-sm transition-colors">
-                  ✓ Confirmer
+                <button type="submit" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-transform active:scale-95"
+                  style={{ background: "linear-gradient(135deg,#34C9A3,#1FA98A)", boxShadow: "0 4px 10px -4px rgba(31,169,138,.5)" }}>
+                  <Check size={15} strokeWidth={2.5} /> Confirmer
                 </button>
               </form>
             )}
             {isConfirme && (
               <form action={async () => { "use server"; await marquerFait(id); redirect("/animateur/rdv"); }}>
-                <button type="submit" className="pa-btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
-                  ✓ Marquer comme fait
+                <button type="submit" className="inline-flex items-center gap-1.5 pa-btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold">
+                  <Check size={15} strokeWidth={2.5} /> Marquer comme fait
                 </button>
               </form>
             )}
             {(isActionnable || isConfirme) && (
               <form action={async () => { "use server"; await annulerRDV(id); redirect("/animateur/rdv"); }}>
-                <button type="submit" className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold shadow-sm transition-colors">
-                  ✕ Annuler
+                <button type="submit" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold transition-transform active:scale-95"
+                  style={{ background: "#ECEAF3", color: "#6F6982" }}>
+                  <X size={15} strokeWidth={2.5} /> Annuler
                 </button>
               </form>
             )}
@@ -263,8 +281,8 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-3">
-      <dt className="text-xs text-slate-400 w-32 shrink-0 pt-0.5">{label}</dt>
-      <dd className="text-sm text-slate-800 flex-1">{value}</dd>
+      <dt className="text-xs w-32 shrink-0 pt-0.5" style={{ color: "var(--pa-muted)" }}>{label}</dt>
+      <dd className="text-sm flex-1" style={{ color: "var(--pa-ink)" }}>{value}</dd>
     </div>
   );
 }
