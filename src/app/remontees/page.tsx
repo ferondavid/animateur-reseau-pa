@@ -1,11 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import Navigation from "@/components/Navigation";
 import Link from "next/link";
+import { Plus, ArrowRight } from "lucide-react";
 
-export const graviteConfig: Record<string, { label: string; style: string }> = {
-  normale: { label: "Normale", style: "bg-slate-100 text-slate-600" },
-  attention: { label: "Attention", style: "bg-orange-100 text-orange-800" },
-  urgente: { label: "Urgente", style: "bg-red-100 text-red-800" },
+type Badge = { label: string; bg: string; fg: string };
+
+export const graviteConfig: Record<string, Badge> = {
+  normale:   { label: "Normale",   bg: "#ECEAF3", fg: "#6F6982" },
+  attention: { label: "Attention", bg: "#FBF1D8", fg: "#B07D14" },
+  urgente:   { label: "Urgente",   bg: "#FBE0E8", fg: "#C0476E" },
 };
 
 export const typeLabels: Record<string, string> = {
@@ -16,12 +19,23 @@ export const typeLabels: Record<string, string> = {
   autre: "Autre",
 };
 
-export const statutConfig: Record<string, { label: string; style: string }> = {
-  nouvelle: { label: "Nouvelle", style: "bg-blue-100 text-blue-800" },
-  en_cours: { label: "En cours", style: "bg-orange-100 text-orange-800" },
-  traitee: { label: "Traitée", style: "bg-green-100 text-green-800" },
-  archivee: { label: "Archivée", style: "bg-slate-100 text-slate-600" },
+export const statutConfig: Record<string, Badge> = {
+  nouvelle:  { label: "Nouvelle", bg: "#E4F0FB", fg: "#2D6FD0" },
+  en_cours:  { label: "En cours", bg: "#FBF1D8", fg: "#B07D14" },
+  traitee:   { label: "Traitée",  bg: "#D2F2E7", fg: "#0F8C68" },
+  archivee:  { label: "Archivée", bg: "#ECEAF3", fg: "#6F6982" },
 };
+
+const NEUTRAL: Badge = { label: "—", bg: "#ECEAF3", fg: "#6F6982" };
+
+function Pill({ b }: { b: Badge | undefined }) {
+  const m = b ?? NEUTRAL;
+  return (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ background: m.bg, color: m.fg }}>
+      {m.label}
+    </span>
+  );
+}
 
 const statutOrdre: Record<string, number> = {
   nouvelle: 0,
@@ -89,24 +103,25 @@ export default async function RemonteesPage({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-2xl font-semibold text-slate-900">
+              <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>
                 Remontées terrain
               </h1>
-              <p className="text-slate-500 mt-1">
+              <p className="mt-1" style={{ color: "var(--pa-muted)" }}>
                 {triees.length} remontée{triees.length !== 1 ? "s" : ""}
               </p>
             </div>
             {(nbNouvelles ?? 0) > 0 && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#FBE0E8", color: "#C0476E" }}>
                 {nbNouvelles} nouvelle{(nbNouvelles ?? 0) > 1 ? "s" : ""}
               </span>
             )}
           </div>
           <Link
             href="/remontees/nouvelle"
-            className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors shrink-0"
+            className="inline-flex items-center gap-1.5 px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold shrink-0"
           >
-            + Nouvelle remontée
+            <Plus size={16} strokeWidth={2.5} />
+            Nouvelle remontée
           </Link>
         </div>
 
@@ -121,11 +136,12 @@ export default async function RemonteesPage({
               <Link
                 key={f.label}
                 href={href}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className="px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all"
+                style={
                   actif
-                    ? "bg-violet-600 text-white"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
+                    ? { background: "#7C6BE8", color: "#fff", boxShadow: "0 4px 12px -4px #7C6BE8" }
+                    : { background: "#EDEBFB", color: "#6B4FD8" }
+                }
               >
                 {f.label}
               </Link>
@@ -136,14 +152,16 @@ export default async function RemonteesPage({
         {/* État vide */}
         {triees.length === 0 && (
           <div className="pa-card p-16 text-center">
-            <p className="text-slate-400 mb-3 text-sm">
+            <p className="mb-3 text-sm" style={{ color: "var(--pa-muted)" }}>
               Aucune remontée trouvée
             </p>
             <Link
               href="/remontees/nouvelle"
-              className="text-sm text-blue-600 hover:underline font-medium"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold"
+              style={{ color: "#6B4FD8" }}
             >
-              Créer une nouvelle remontée →
+              <Plus size={15} strokeWidth={2.5} />
+              Créer une nouvelle remontée
             </Link>
           </div>
         )}
@@ -151,23 +169,21 @@ export default async function RemonteesPage({
         {triees.length > 0 && (
           <>
             {/* Vue desktop : tableau */}
-            <div className="hidden md:block pa-card rounded-xl overflow-hidden">
+            <div className="hidden md:block pa-card overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b" style={{ borderColor: "var(--pa-line)" }}>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Gravité</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Type</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Titre</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Magasin</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Statut</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Date</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Gravité</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Type</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Titre</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Magasin</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Statut</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Date</th>
                     <th className="px-6 py-3.5" />
                   </tr>
                 </thead>
                 <tbody>
                   {triees.map((r) => {
-                    const gravite = graviteConfig[r.gravite];
-                    const statut = statutConfig[r.statut];
                     const magasin = r.magasins as unknown as {
                       nom: string;
                       enseigne: string | null;
@@ -175,37 +191,28 @@ export default async function RemonteesPage({
                     return (
                       <tr
                         key={r.id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
+                        className="border-b last:border-0 transition-colors hover:bg-white/40"
+                        style={{ borderColor: "var(--pa-line)" }}
                       >
+                        <td className="px-6 py-4"><Pill b={graviteConfig[r.gravite]} /></td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gravite?.style ?? "bg-slate-100 text-slate-600"}`}>
-                            {gravite?.label ?? r.gravite}
-                          </span>
+                          <Pill b={{ label: typeLabels[r.type] ?? r.type, bg: "#ECEAF3", fg: "#6F6982" }} />
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                            {typeLabels[r.type] ?? r.type}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 font-medium text-slate-900 max-w-xs truncate">
+                        <td className="px-6 py-4 font-semibold max-w-xs truncate" style={{ color: "var(--pa-ink)" }}>
                           {r.titre}
                         </td>
-                        <td className="px-6 py-4 text-slate-600 text-sm">
+                        <td className="px-6 py-4 text-sm" style={{ color: "var(--pa-ink)" }}>
                           {magasin
                             ? `${magasin.enseigne ? magasin.enseigne + " — " : ""}${magasin.nom}`
                             : "—"}
                         </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}>
-                            {statut?.label ?? r.statut}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">
+                        <td className="px-6 py-4"><Pill b={statutConfig[r.statut]} /></td>
+                        <td className="px-6 py-4 text-xs whitespace-nowrap" style={{ color: "var(--pa-muted)" }}>
                           {new Date(r.created_at).toLocaleDateString("fr-FR")}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <Link href={`/remontees/${r.id}`} className="text-slate-900 hover:underline font-medium">
-                            Voir →
+                          <Link href={`/remontees/${r.id}`} className="inline-flex items-center gap-1 font-semibold" style={{ color: "#6B4FD8", textDecoration: "none" }}>
+                            Voir <ArrowRight size={14} strokeWidth={2.5} />
                           </Link>
                         </td>
                       </tr>
@@ -218,8 +225,6 @@ export default async function RemonteesPage({
             {/* Vue mobile : cartes empilées */}
             <div className="md:hidden space-y-3">
               {triees.map((r) => {
-                const gravite = graviteConfig[r.gravite];
-                const statut = statutConfig[r.statut];
                 const magasin = r.magasins as unknown as {
                   nom: string;
                   enseigne: string | null;
@@ -230,30 +235,20 @@ export default async function RemonteesPage({
                     href={`/remontees/${r.id}`}
                     className="block pa-card p-4 transition-all active:scale-[.99]"
                   >
-                    {/* Gravité + statut */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gravite?.style ?? "bg-slate-100 text-slate-600"}`}>
-                        {gravite?.label ?? r.gravite}
-                      </span>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}>
-                        {statut?.label ?? r.statut}
-                      </span>
+                      <Pill b={graviteConfig[r.gravite]} />
+                      <Pill b={statutConfig[r.statut]} />
                     </div>
-                    {/* Titre */}
-                    <p className="font-semibold text-slate-900 mb-1.5 leading-snug">
+                    <p className="font-bold mb-1.5 leading-snug" style={{ color: "var(--pa-ink)" }}>
                       {r.titre}
                     </p>
-                    {/* Type + magasin */}
-                    <p className="text-sm text-slate-500 mb-3">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mr-2">
-                        {typeLabels[r.type] ?? r.type}
-                      </span>
+                    <p className="text-sm mb-3 flex items-center flex-wrap gap-2" style={{ color: "var(--pa-muted)" }}>
+                      <Pill b={{ label: typeLabels[r.type] ?? r.type, bg: "#ECEAF3", fg: "#6F6982" }} />
                       {magasin
                         ? `${magasin.enseigne ? magasin.enseigne + " — " : ""}${magasin.nom}`
                         : ""}
                     </p>
-                    {/* Date */}
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs" style={{ color: "var(--pa-muted)" }}>
                       {new Date(r.created_at).toLocaleDateString("fr-FR")}
                     </p>
                   </Link>
