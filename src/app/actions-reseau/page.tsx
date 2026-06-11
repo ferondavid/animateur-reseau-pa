@@ -1,19 +1,31 @@
 import { createClient } from "@/lib/supabase/server";
 import Navigation from "@/components/Navigation";
 import Link from "next/link";
+import { Plus, ArrowRight } from "lucide-react";
 
-const urgenceConfig: Record<number, { label: string; style: string }> = {
-  1: { label: "Info", style: "bg-slate-100 text-slate-600" },
-  2: { label: "Important", style: "bg-orange-100 text-orange-800" },
-  3: { label: "Urgent", style: "bg-red-100 text-red-800" },
+type Badge = { label: string; bg: string; fg: string };
+
+const urgenceConfig: Record<number, Badge> = {
+  1: { label: "Info",      bg: "#ECEAF3", fg: "#6F6982" },
+  2: { label: "Important", bg: "#FBF1D8", fg: "#B07D14" },
+  3: { label: "Urgent",    bg: "#FBE0E8", fg: "#C0476E" },
 };
 
-const statutConfig: Record<string, { label: string; style: string }> = {
-  ouverte: { label: "Ouverte", style: "bg-blue-100 text-blue-800" },
-  en_cours: { label: "En cours", style: "bg-orange-100 text-orange-800" },
-  realisee: { label: "Réalisée", style: "bg-green-100 text-green-800" },
-  annulee: { label: "Annulée", style: "bg-slate-100 text-slate-600" },
+const statutConfig: Record<string, Badge> = {
+  ouverte:  { label: "Ouverte",  bg: "#E4F0FB", fg: "#2D6FD0" },
+  en_cours: { label: "En cours", bg: "#FBF1D8", fg: "#B07D14" },
+  realisee: { label: "Réalisée", bg: "#D2F2E7", fg: "#0F8C68" },
+  annulee:  { label: "Annulée",  bg: "#ECEAF3", fg: "#6F6982" },
 };
+
+function Pill({ b }: { b: Badge | undefined }) {
+  const m = b ?? { label: "—", bg: "#ECEAF3", fg: "#6F6982" };
+  return (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ background: m.bg, color: m.fg }}>
+      {m.label}
+    </span>
+  );
+}
 
 const statutOrdre: Record<string, number> = {
   ouverte: 0,
@@ -68,16 +80,17 @@ export default async function ActionsPage({
         {/* En-tête */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Actions</h1>
-            <p className="text-slate-500 mt-1">
+            <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>Actions</h1>
+            <p className="mt-1" style={{ color: "var(--pa-muted)" }}>
               {triees.length} action{triees.length !== 1 ? "s" : ""}
             </p>
           </div>
           <Link
             href="/actions-reseau/nouvelle"
-            className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors shrink-0"
+            className="inline-flex items-center gap-1.5 px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold shrink-0"
           >
-            + Nouvelle action
+            <Plus size={16} strokeWidth={2.5} />
+            Nouvelle action
           </Link>
         </div>
 
@@ -92,11 +105,12 @@ export default async function ActionsPage({
               <Link
                 key={f.label}
                 href={href}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className="px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all"
+                style={
                   actif
-                    ? "bg-violet-600 text-white"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
+                    ? { background: "#7C6BE8", color: "#fff", boxShadow: "0 4px 12px -4px #7C6BE8" }
+                    : { background: "#EDEBFB", color: "#6B4FD8" }
+                }
               >
                 {f.label}
               </Link>
@@ -107,12 +121,14 @@ export default async function ActionsPage({
         {/* État vide */}
         {triees.length === 0 && (
           <div className="pa-card p-16 text-center">
-            <p className="text-slate-400 mb-3 text-sm">Aucune action trouvée</p>
+            <p className="mb-3 text-sm" style={{ color: "var(--pa-muted)" }}>Aucune action trouvée</p>
             <Link
               href="/actions-reseau/nouvelle"
-              className="text-sm text-blue-600 hover:underline font-medium"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold"
+              style={{ color: "#6B4FD8" }}
             >
-              Créer une nouvelle action →
+              <Plus size={15} strokeWidth={2.5} />
+              Créer une nouvelle action
             </Link>
           </div>
         )}
@@ -120,22 +136,20 @@ export default async function ActionsPage({
         {triees.length > 0 && (
           <>
             {/* Vue desktop : tableau */}
-            <div className="hidden md:block pa-card rounded-xl overflow-hidden">
+            <div className="hidden md:block pa-card overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b" style={{ borderColor: "var(--pa-line)" }}>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Urgence</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Titre</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Portée</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Deadline</th>
-                    <th className="text-left px-6 py-3.5 font-medium text-slate-600">Statut</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Urgence</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Titre</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Portée</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Deadline</th>
+                    <th className="text-left px-6 py-3.5 font-semibold" style={{ color: "var(--pa-muted)" }}>Statut</th>
                     <th className="px-6 py-3.5" />
                   </tr>
                 </thead>
                 <tbody>
                   {triees.map((action) => {
-                    const urgence = urgenceConfig[action.niveau_urgence];
-                    const statut = statutConfig[action.statut];
                     const magasin = action.magasins as unknown as { nom: string } | null;
                     const deadlineDepasse =
                       action.deadline &&
@@ -144,42 +158,31 @@ export default async function ActionsPage({
                     return (
                       <tr
                         key={action.id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
+                        className="border-b last:border-0 transition-colors hover:bg-white/40"
+                        style={{ borderColor: "var(--pa-line)" }}
                       >
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${urgence?.style ?? "bg-slate-100 text-slate-600"}`}>
-                            {urgence?.label ?? action.niveau_urgence}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 font-medium text-slate-900 max-w-xs truncate">
+                        <td className="px-6 py-4"><Pill b={urgenceConfig[action.niveau_urgence]} /></td>
+                        <td className="px-6 py-4 font-semibold max-w-xs truncate" style={{ color: "var(--pa-ink)" }}>
                           {action.titre}
                         </td>
                         <td className="px-6 py-4">
                           {action.portee === "reseau" ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">
-                              Réseau
-                            </span>
+                            <Pill b={{ label: "Réseau", bg: "#EDEBFB", fg: "#6B4FD8" }} />
                           ) : magasin ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                              {magasin.nom}
-                            </span>
+                            <Pill b={{ label: magasin.nom, bg: "#ECEAF3", fg: "#6F6982" }} />
                           ) : (
-                            <span className="text-slate-400 text-xs">—</span>
+                            <span className="text-xs" style={{ color: "var(--pa-muted)" }}>—</span>
                           )}
                         </td>
-                        <td className={`px-6 py-4 ${deadlineDepasse ? "text-red-600 font-medium" : "text-slate-700"}`}>
+                        <td className="px-6 py-4 font-medium" style={{ color: deadlineDepasse ? "#C0476E" : "var(--pa-ink)" }}>
                           {action.deadline
                             ? new Date(action.deadline).toLocaleDateString("fr-FR")
                             : "—"}
                         </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}>
-                            {statut?.label ?? action.statut}
-                          </span>
-                        </td>
+                        <td className="px-6 py-4"><Pill b={statutConfig[action.statut]} /></td>
                         <td className="px-6 py-4 text-right">
-                          <Link href={`/actions-reseau/${action.id}`} className="text-slate-900 hover:underline font-medium">
-                            Voir →
+                          <Link href={`/actions-reseau/${action.id}`} className="inline-flex items-center gap-1 font-semibold" style={{ color: "#6B4FD8", textDecoration: "none" }}>
+                            Voir <ArrowRight size={14} strokeWidth={2.5} />
                           </Link>
                         </td>
                       </tr>
@@ -192,8 +195,6 @@ export default async function ActionsPage({
             {/* Vue mobile : cartes empilées */}
             <div className="md:hidden space-y-3">
               {triees.map((action) => {
-                const urgence = urgenceConfig[action.niveau_urgence];
-                const statut = statutConfig[action.statut];
                 const magasin = action.magasins as unknown as { nom: string } | null;
                 const deadlineDepasse =
                   action.deadline &&
@@ -205,32 +206,21 @@ export default async function ActionsPage({
                     href={`/actions-reseau/${action.id}`}
                     className="block pa-card p-4 transition-all active:scale-[.99]"
                   >
-                    {/* Urgence + statut */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${urgence?.style ?? "bg-slate-100 text-slate-600"}`}>
-                        {urgence?.label ?? action.niveau_urgence}
-                      </span>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statut?.style ?? "bg-slate-100 text-slate-600"}`}>
-                        {statut?.label ?? action.statut}
-                      </span>
+                      <Pill b={urgenceConfig[action.niveau_urgence]} />
+                      <Pill b={statutConfig[action.statut]} />
                     </div>
-                    {/* Titre */}
-                    <p className="font-semibold text-slate-900 mb-1.5 leading-snug">
+                    <p className="font-bold mb-1.5 leading-snug" style={{ color: "var(--pa-ink)" }}>
                       {action.titre}
                     </p>
-                    {/* Portée + deadline */}
                     <div className="flex items-center gap-2 flex-wrap">
                       {action.portee === "reseau" ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">
-                          Réseau
-                        </span>
+                        <Pill b={{ label: "Réseau", bg: "#EDEBFB", fg: "#6B4FD8" }} />
                       ) : magasin ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                          {magasin.nom}
-                        </span>
+                        <Pill b={{ label: magasin.nom, bg: "#ECEAF3", fg: "#6F6982" }} />
                       ) : null}
                       {action.deadline && (
-                        <span className={`text-xs ${deadlineDepasse ? "text-red-600 font-medium" : "text-slate-400"}`}>
+                        <span className="text-xs font-medium" style={{ color: deadlineDepasse ? "#C0476E" : "var(--pa-muted)" }}>
                           {new Date(action.deadline).toLocaleDateString("fr-FR")}
                         </span>
                       )}
