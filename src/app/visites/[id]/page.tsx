@@ -354,7 +354,7 @@ export default async function VisiteDetailPage({
                     </p>
                   )}
                   <Link
-                    href={`/evaluations/${evalExistante.id}`}
+                    href={`/evaluations/${id}`}
                     className="inline-flex items-center gap-1 text-sm hover:underline font-semibold"
                     style={{ color: "#6B4FD8" }}
                   >

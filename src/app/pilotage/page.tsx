@@ -411,7 +411,7 @@ export default async function PilotagePage({
       label: `Évaluation${e.q6_satisfaction_globale ? ` · ${e.q6_satisfaction_globale}/5` : ""}`,
       sousTitre:
         `${magasinMap[e.magasin_id]?.enseigne ? magasinMap[e.magasin_id].enseigne + " — " : ""}${magasinMap[e.magasin_id]?.nom ?? "—"}`,
-      href: `/evaluations/${e.id}`,
+      href: `/evaluations/${e.visite_id ?? e.id}`,
       badgeLabel: "Évaluation",
       badge: BADGE_EVAL,
     })),
