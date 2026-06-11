@@ -53,3 +53,18 @@ export async function deleteVisite(formData: FormData) {
   if (magasin_id) revalidatePath(`/magasins/${magasin_id}`);
   redirect("/visites");
 }
+
+export async function supprimerVisitesEnLot(ids: string[], magasinIds: string[]) {
+  if (ids.length === 0) return;
+  const supabase = await createClient();
+  await supabase.from("visites").delete().in("id", ids);
+  revalidatePath("/visites");
+  revalidatePath("/animateur");
+  const seen = new Set<string>();
+  for (const mid of magasinIds) {
+    if (mid && !seen.has(mid)) {
+      seen.add(mid);
+      revalidatePath(`/magasins/${mid}`);
+    }
+  }
+}

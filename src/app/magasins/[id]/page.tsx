@@ -79,12 +79,14 @@ export default async function MagasinDetailPage({
 }) {
   const { id } = await params;
 
+  const today = new Date().toISOString().split("T")[0];
   const supabase = await createClient();
   const [
     { data: m },
     { data: visites },
     { data: actionsOuvertes },
     { data: remonteesActives },
+    { data: visitesPlanifiees },
   ] = await Promise.all([
       supabase.from("magasins").select("*").eq("id", id).single(),
       supabase
@@ -93,6 +95,7 @@ export default async function MagasinDetailPage({
           "id, date_prevue, date_realisee, statut, note_confiance, note_business"
         )
         .eq("magasin_id", id)
+        .neq("statut", "planifiee")
         .order("date_realisee", { ascending: false, nullsFirst: false })
         .order("date_prevue", { ascending: false })
         .limit(5),
@@ -110,6 +113,13 @@ export default async function MagasinDetailPage({
         .neq("statut", "archivee")
         .order("created_at", { ascending: false })
         .limit(5),
+      supabase
+        .from("visites")
+        .select("id, date_prevue, objectif, statut")
+        .eq("magasin_id", id)
+        .eq("statut", "planifiee")
+        .gte("date_prevue", today)
+        .order("date_prevue", { ascending: true }),
     ]);
 
   if (!m) notFound();
@@ -342,47 +352,113 @@ export default async function MagasinDetailPage({
               </Link>
             </div>
 
-            {(visites ?? []).length === 0 ? (
+            {(visites ?? []).length === 0 && (visitesPlanifiees ?? []).length === 0 ? (
               <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
                 Aucune visite enregistrée.
               </p>
             ) : (
-              <div className="divide-y" style={{ borderColor: "var(--pa-line)" }}>
-                {(visites ?? []).map((v) => {
-                  const date = v.date_realisee ?? v.date_prevue;
-                  return (
-                    <div
-                      key={v.id}
-                      className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+              <div className="space-y-4">
+                {/* À venir — visites planifiées */}
+                {(visitesPlanifiees ?? []).length > 0 && (
+                  <div>
+                    <p
+                      className="text-xs font-bold uppercase tracking-wide mb-2"
+                      style={{ color: "#2D6FD0" }}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm" style={{ color: "var(--pa-ink)" }}>
-                          {date
-                            ? new Date(date).toLocaleDateString("fr-FR")
-                            : "—"}
-                        </span>
-                        <Pill {...(statutVisite[v.statut] ?? { label: v.statut, ...GRAY })} />
-                        {v.note_confiance && (
-                          <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
-                            C&nbsp;<span style={{ color: "#EF9F27" }}>{"★".repeat(v.note_confiance)}</span>
-                          </span>
-                        )}
-                        {v.note_business && (
-                          <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
-                            B&nbsp;<span style={{ color: "#EF9F27" }}>{"★".repeat(v.note_business)}</span>
-                          </span>
-                        )}
-                      </div>
-                      <Link
-                        href={`/visites/${v.id}`}
-                        className="inline-flex items-center gap-1 text-sm font-semibold"
-                        style={{ color: "#6B4FD8", textDecoration: "none" }}
-                      >
-                        Voir <ArrowRight size={13} strokeWidth={2.5} />
-                      </Link>
+                      À venir
+                    </p>
+                    <div
+                      className="rounded-xl overflow-hidden"
+                      style={{ border: "1px solid #C8DFF8" }}
+                    >
+                      {(visitesPlanifiees ?? []).map((v, idx) => (
+                        <div
+                          key={v.id}
+                          className="flex items-center justify-between px-4 py-2.5"
+                          style={{
+                            background: idx % 2 === 0 ? "#EDF5FD" : "#F4F9FE",
+                            borderTop: idx > 0 ? "1px solid #C8DFF8" : undefined,
+                          }}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Pill label="Planifiée" {...BLUE} />
+                            <span className="text-sm shrink-0" style={{ color: "var(--pa-ink)" }}>
+                              {v.date_prevue
+                                ? new Date(v.date_prevue).toLocaleDateString("fr-FR")
+                                : "—"}
+                            </span>
+                            {v.objectif && (
+                              <span
+                                className="text-xs truncate"
+                                style={{ color: "var(--pa-muted)" }}
+                              >
+                                {v.objectif}
+                              </span>
+                            )}
+                          </div>
+                          <Link
+                            href={`/visites/${v.id}`}
+                            className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold ml-3"
+                            style={{ color: "#6B4FD8", textDecoration: "none" }}
+                          >
+                            Voir <ArrowRight size={13} strokeWidth={2.5} />
+                          </Link>
+                        </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                )}
+
+                {/* Historique récent */}
+                {(visites ?? []).length > 0 && (
+                  <div>
+                    {(visitesPlanifiees ?? []).length > 0 && (
+                      <p
+                        className="text-xs font-bold uppercase tracking-wide mb-2"
+                        style={{ color: "var(--pa-muted)" }}
+                      >
+                        Historique récent
+                      </p>
+                    )}
+                    <div className="divide-y" style={{ borderColor: "var(--pa-line)" }}>
+                      {(visites ?? []).map((v) => {
+                        const date = v.date_realisee ?? v.date_prevue;
+                        return (
+                          <div
+                            key={v.id}
+                            className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm" style={{ color: "var(--pa-ink)" }}>
+                                {date
+                                  ? new Date(date).toLocaleDateString("fr-FR")
+                                  : "—"}
+                              </span>
+                              <Pill {...(statutVisite[v.statut] ?? { label: v.statut, ...GRAY })} />
+                              {v.note_confiance && (
+                                <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
+                                  C&nbsp;<span style={{ color: "#EF9F27" }}>{"★".repeat(v.note_confiance)}</span>
+                                </span>
+                              )}
+                              {v.note_business && (
+                                <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
+                                  B&nbsp;<span style={{ color: "#EF9F27" }}>{"★".repeat(v.note_business)}</span>
+                                </span>
+                              )}
+                            </div>
+                            <Link
+                              href={`/visites/${v.id}`}
+                              className="inline-flex items-center gap-1 text-sm font-semibold"
+                              style={{ color: "#6B4FD8", textDecoration: "none" }}
+                            >
+                              Voir <ArrowRight size={13} strokeWidth={2.5} />
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
