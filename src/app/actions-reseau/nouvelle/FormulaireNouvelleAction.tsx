@@ -28,12 +28,12 @@ export default function FormulaireNouvelleAction({
     <form action={createAction} className="space-y-4">
       {/* Informations */}
       <div className="pa-card p-6">
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+        <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
           Informations
         </h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pa-ink)" }}>
               Titre <span className="text-red-400 ml-0.5">*</span>
             </label>
             <input
@@ -46,7 +46,7 @@ export default function FormulaireNouvelleAction({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pa-ink)" }}>
               Description
             </label>
             <textarea
@@ -62,12 +62,12 @@ export default function FormulaireNouvelleAction({
 
       {/* Paramètres */}
       <div className="pa-card p-6">
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
+        <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
           Paramètres
         </h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pa-ink)" }}>
               Niveau d'urgence
             </label>
             <select
@@ -82,7 +82,7 @@ export default function FormulaireNouvelleAction({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pa-ink)" }}>
               Portée <span className="text-red-400 ml-0.5">*</span>
             </label>
             <div className="flex gap-6">
@@ -93,9 +93,9 @@ export default function FormulaireNouvelleAction({
                   value="reseau"
                   checked={portee === "reseau"}
                   onChange={() => setPortee("reseau")}
-                  className="accent-slate-900"
+                  className="accent-[#7C6BE8]"
                 />
-                <span className="text-sm text-slate-700">Réseau</span>
+                <span className="text-sm" style={{ color: "var(--pa-ink)" }}>Réseau</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -104,16 +104,16 @@ export default function FormulaireNouvelleAction({
                   value="magasin"
                   checked={portee === "magasin"}
                   onChange={() => setPortee("magasin")}
-                  className="accent-slate-900"
+                  className="accent-[#7C6BE8]"
                 />
-                <span className="text-sm text-slate-700">Magasin</span>
+                <span className="text-sm" style={{ color: "var(--pa-ink)" }}>Magasin</span>
               </label>
             </div>
           </div>
 
           {portee === "magasin" && (
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pa-ink)" }}>
                 Magasin <span className="text-red-400 ml-0.5">*</span>
               </label>
               <select
@@ -133,7 +133,7 @@ export default function FormulaireNouvelleAction({
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--pa-ink)" }}>
               Deadline
             </label>
             <input
@@ -149,13 +149,14 @@ export default function FormulaireNouvelleAction({
       <div className="flex items-center justify-end gap-3">
         <a
           href="/actions-reseau"
-          className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
+          className="px-4 py-2 rounded-xl text-sm font-semibold transition-transform active:scale-95"
+          style={{ background: "#ECEAF3", color: "#6F6982" }}
         >
           Annuler
         </a>
         <button
           type="submit"
-          className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-medium transition-colors"
+          className="px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold"
         >
           Créer l'action
         </button>
