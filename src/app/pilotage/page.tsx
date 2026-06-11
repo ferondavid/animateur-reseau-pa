@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Navigation from "@/components/Navigation";
 import FiltresPilotage from "@/components/FiltresPilotage";
 import Link from "next/link";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -15,21 +16,27 @@ function fmt1(n: number | null): string {
   return n !== null ? n.toFixed(1) : "—";
 }
 
-/** Couleur texte selon la note (1-5) */
+/** Couleur texte (hex) selon la note (1-5) */
 function couleurNote(n: number | null): string {
-  if (n === null) return "text-slate-400";
-  if (n >= 4) return "text-green-600";
-  if (n >= 3) return "text-orange-500";
-  return "text-red-600";
+  if (n === null) return "#9A93AC";
+  if (n >= 4) return "#0F8C68";
+  if (n >= 3) return "#B07D14";
+  return "#C0476E";
 }
 
-/** Bg + border selon la note */
-function bgNote(n: number | null): string {
-  if (n === null) return "bg-slate-50 border-slate-200";
-  if (n >= 4) return "bg-green-50 border-green-200";
-  if (n >= 3) return "bg-orange-50 border-orange-200";
-  return "bg-red-50 border-red-200";
+/** Bg + border (inline style) selon la note */
+function bgNote(n: number | null): { background: string; border: string } {
+  if (n === null) return { background: "#F4F3F9", border: "1px solid #E6E3F0" };
+  if (n >= 4) return { background: "#D2F2E7", border: "1px solid rgba(31,169,138,.25)" };
+  if (n >= 3) return { background: "#FBF1D8", border: "1px solid rgba(176,125,20,.25)" };
+  return { background: "#FBE0E8", border: "1px solid rgba(192,71,110,.25)" };
 }
+
+// Badges pastel pour la timeline d'activité
+const BADGE_VISITE = { bg: "#D2F2E7", fg: "#0F8C68" };
+const BADGE_REMONTEE = { bg: "#FBF1D8", fg: "#B07D14" };
+const BADGE_EVAL = { bg: "#FBF3D8", fg: "#A88A1E" };
+const BADGE_ACTION = { bg: "#E4F0FB", fg: "#2D6FD0" };
 
 /** Calcule la date de début selon la période choisie */
 function computeDateFrom(periode: string): string | null {
@@ -374,7 +381,7 @@ export default async function PilotagePage({
     sousTitre: string;
     href: string;
     badgeLabel: string;
-    badgeStyle: string;
+    badge: { bg: string; fg: string };
   };
 
   const evenements: Evt[] = [
@@ -386,7 +393,7 @@ export default async function PilotagePage({
         `${magasinMap[v.magasin_id]?.enseigne ? magasinMap[v.magasin_id].enseigne + " — " : ""}${magasinMap[v.magasin_id]?.nom ?? "—"}`,
       href: `/visites/${v.id}`,
       badgeLabel: "Visite",
-      badgeStyle: "bg-green-100 text-green-800",
+      badge: BADGE_VISITE,
     })),
     ...(remonteesScope ?? []).map((r) => ({
       id: `r-${r.id}`,
@@ -396,7 +403,7 @@ export default async function PilotagePage({
         `${magasinMap[r.magasin_id]?.enseigne ? magasinMap[r.magasin_id].enseigne + " — " : ""}${magasinMap[r.magasin_id]?.nom ?? "—"}`,
       href: `/remontees/${r.id}`,
       badgeLabel: "Remontée",
-      badgeStyle: "bg-orange-100 text-orange-800",
+      badge: BADGE_REMONTEE,
     })),
     ...(evaluationsScope ?? []).map((e) => ({
       id: `e-${e.id}`,
@@ -406,7 +413,7 @@ export default async function PilotagePage({
         `${magasinMap[e.magasin_id]?.enseigne ? magasinMap[e.magasin_id].enseigne + " — " : ""}${magasinMap[e.magasin_id]?.nom ?? "—"}`,
       href: `/evaluations/${e.id}`,
       badgeLabel: "Évaluation",
-      badgeStyle: "bg-amber-100 text-amber-800",
+      badge: BADGE_EVAL,
     })),
     ...(actionsRecentes ?? []).map((a) => ({
       id: `a-${a.id}`,
@@ -417,7 +424,7 @@ export default async function PilotagePage({
         : "Réseau",
       href: `/actions-reseau/${a.id}`,
       badgeLabel: "Action",
-      badgeStyle: "bg-blue-100 text-blue-800",
+      badge: BADGE_ACTION,
     })),
   ]
     .filter((e) => e.date)
@@ -457,10 +464,10 @@ export default async function PilotagePage({
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-slate-900">
+              <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>
                 Pilotage réseau
               </h1>
-              <p className="text-slate-500 text-sm mt-1">
+              <p className="text-sm mt-1" style={{ color: "var(--pa-muted)" }}>
                 {nbMagasinsScope} magasin{nbMagasinsScope !== 1 ? "s" : ""} ·{" "}
                 {libelleperiode(periode)}
               </p>
@@ -470,7 +477,7 @@ export default async function PilotagePage({
           {/* FiltresPilotage utilise useSearchParams → Suspense recommandé */}
           <Suspense
             fallback={
-              <div className="h-16 rounded-xl bg-white border border-slate-200 animate-pulse" />
+              <div className="h-16 rounded-xl pa-card animate-pulse" />
             }
           >
             <FiltresPilotage
@@ -482,7 +489,7 @@ export default async function PilotagePage({
 
         {/* ── Bandeau Santé réseau ── */}
         <section>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--pa-muted)" }}>
             Santé réseau
           </h2>
           <div className="grid grid-cols-3 gap-3">
@@ -506,7 +513,7 @@ export default async function PilotagePage({
 
         {/* ── Métriques clés ── */}
         <section>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--pa-muted)" }}>
             Métriques clés
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -558,16 +565,16 @@ export default async function PilotagePage({
 
         {/* ── Magasins à risque ── */}
         <section>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
-            ⚠️ Magasins à risque
+          <h2 className="text-xs font-bold uppercase tracking-widest mb-3 inline-flex items-center gap-1.5" style={{ color: "var(--pa-muted)" }}>
+            <AlertTriangle size={13} strokeWidth={2.5} style={{ color: "#C0476E" }} /> Magasins à risque
           </h2>
 
           {magasinsRisque.length === 0 ? (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center shadow-sm">
-              <p className="text-green-700 font-medium">
+            <div className="rounded-2xl p-8 text-center" style={{ background: "#D2F2E7", border: "1px solid rgba(31,169,138,.25)" }}>
+              <p className="font-semibold" style={{ color: "#0F8C68" }}>
                 Aucun magasin à risque sur ce périmètre 👍
               </p>
-              <p className="text-green-600 text-sm mt-1">
+              <p className="text-sm mt-1" style={{ color: "#1A9E78" }}>
                 Tous les indicateurs sont au vert.
               </p>
             </div>
@@ -576,47 +583,46 @@ export default async function PilotagePage({
               {magasinsRisque.map(({ magasin, niveauRisque, raisons }) => (
                 <div
                   key={magasin.id}
-                  className={`bg-white rounded-xl border shadow-sm p-4 flex items-start justify-between gap-4 ${
-                    niveauRisque === "eleve"
-                      ? "border-l-4 border-l-red-400 border-red-200"
-                      : "border-l-4 border-l-orange-300 border-orange-200"
-                  }`}
+                  className="pa-card p-4 flex items-start justify-between gap-4"
+                  style={{ borderLeft: `4px solid ${niveauRisque === "eleve" ? "#E8809C" : "#E8B43A"}` }}
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
+                        style={
                           niveauRisque === "eleve"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-orange-100 text-orange-700"
-                        }`}
+                            ? { background: "#FBE0E8", color: "#C0476E" }
+                            : { background: "#FBF1D8", color: "#B07D14" }
+                        }
                       >
                         {niveauRisque === "eleve" ? "ÉLEVÉ" : "MODÉRÉ"}
                       </span>
-                      <span className="font-semibold text-slate-900 text-sm truncate">
+                      <span className="font-semibold text-sm truncate" style={{ color: "var(--pa-ink)" }}>
                         {magasin.enseigne
                           ? `${magasin.enseigne} — ${magasin.nom}`
                           : magasin.nom}
                       </span>
                       {magasin.ville && (
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
                           {magasin.ville}
                         </span>
                       )}
                     </div>
                     <ul className="flex flex-wrap gap-x-4 gap-y-1">
                       {raisons.map((r, i) => (
-                        <li key={i} className="text-xs text-slate-600 flex items-center gap-1">
-                          <span className="text-slate-300">•</span> {r}
+                        <li key={i} className="text-xs flex items-center gap-1" style={{ color: "var(--pa-muted)" }}>
+                          <span style={{ color: "#C8C4D6" }}>•</span> {r}
                         </li>
                       ))}
                     </ul>
                   </div>
                   <Link
                     href={`/magasins/${magasin.id}`}
-                    className="shrink-0 text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold transition-colors"
+                    style={{ color: "#6B4FD8" }}
                   >
-                    Voir →
+                    Voir <ArrowRight size={13} strokeWidth={2.5} />
                   </Link>
                 </div>
               ))}
@@ -626,44 +632,46 @@ export default async function PilotagePage({
 
         {/* ── Activité récente ── */}
         <section>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--pa-muted)" }}>
             Activité récente
           </h2>
 
           {evenements.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center shadow-sm">
-              <p className="text-slate-400 text-sm">
+            <div className="pa-card p-10 text-center">
+              <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
                 Aucune activité sur cette période.
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100">
+            <div className="pa-card divide-y" style={{ borderColor: "var(--pa-line)" }}>
               {evenements.map((evt) => (
-                <div key={evt.id} className="flex items-start gap-3 px-4 py-3">
-                  <span className="text-xs text-slate-400 whitespace-nowrap mt-0.5 w-16 shrink-0">
+                <div key={evt.id} className="flex items-start gap-3 px-4 py-3" style={{ borderColor: "var(--pa-line)" }}>
+                  <span className="text-xs whitespace-nowrap mt-0.5 w-16 shrink-0" style={{ color: "var(--pa-muted)" }}>
                     {new Date(evt.date).toLocaleDateString("fr-FR", {
                       day: "numeric",
                       month: "short",
                     })}
                   </span>
                   <span
-                    className={`shrink-0 mt-0.5 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${evt.badgeStyle}`}
+                    className="shrink-0 mt-0.5 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+                    style={{ background: evt.badge.bg, color: evt.badge.fg }}
                   >
                     {evt.badgeLabel}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900 truncate">
+                    <p className="text-sm font-semibold truncate" style={{ color: "var(--pa-ink)" }}>
                       {evt.label}
                     </p>
-                    <p className="text-xs text-slate-500 truncate">
+                    <p className="text-xs truncate" style={{ color: "var(--pa-muted)" }}>
                       {evt.sousTitre}
                     </p>
                   </div>
                   <Link
                     href={evt.href}
-                    className="shrink-0 text-slate-400 hover:text-slate-900 text-sm font-medium transition-colors"
+                    className="shrink-0 transition-colors mt-0.5"
+                    style={{ color: "#9A93AC" }}
                   >
-                    →
+                    <ArrowRight size={15} strokeWidth={2.5} />
                   </Link>
                 </div>
               ))}
@@ -674,31 +682,32 @@ export default async function PilotagePage({
         {/* ── Top 3 / Flop 3 ── */}
         {classementConfiance.length >= 2 && (
           <section>
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--pa-muted)" }}>
               Classement confiance (note moyenne)
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Top 3 */}
               {top3.length > 0 && (
                 <div className="pa-card p-4">
-                  <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-3">
+                  <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: "#0F8C68" }}>
                     Top {top3.length}
                   </p>
                   <ol className="space-y-2">
                     {top3.map((item, i) => (
                       <li key={item.magasin.id} className="flex items-center gap-3">
-                        <span className="text-slate-300 text-sm font-bold w-4">
+                        <span className="text-sm font-bold w-4" style={{ color: "#C8C4D6" }}>
                           {i + 1}.
                         </span>
                         <Link
                           href={`/magasins/${item.magasin.id}`}
-                          className="flex-1 text-sm font-medium text-slate-900 hover:underline truncate"
+                          className="flex-1 text-sm font-semibold hover:underline truncate"
+                          style={{ color: "var(--pa-ink)" }}
                         >
                           {item.magasin.enseigne
                             ? `${item.magasin.enseigne} — ${item.magasin.nom}`
                             : item.magasin.nom}
                         </Link>
-                        <span className="text-sm font-bold text-green-600 shrink-0">
+                        <span className="text-sm font-bold shrink-0" style={{ color: "#0F8C68" }}>
                           {item.moy.toFixed(1)}/5
                         </span>
                       </li>
@@ -710,24 +719,25 @@ export default async function PilotagePage({
               {/* Flop 3 */}
               {flop3.length > 0 && (
                 <div className="pa-card p-4">
-                  <p className="text-xs font-semibold text-red-500 uppercase tracking-wide mb-3">
+                  <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: "#C0476E" }}>
                     Flop {flop3.length}
                   </p>
                   <ol className="space-y-2">
                     {flop3.map((item, i) => (
                       <li key={item.magasin.id} className="flex items-center gap-3">
-                        <span className="text-slate-300 text-sm font-bold w-4">
+                        <span className="text-sm font-bold w-4" style={{ color: "#C8C4D6" }}>
                           {i + 1}.
                         </span>
                         <Link
                           href={`/magasins/${item.magasin.id}`}
-                          className="flex-1 text-sm font-medium text-slate-900 hover:underline truncate"
+                          className="flex-1 text-sm font-semibold hover:underline truncate"
+                          style={{ color: "var(--pa-ink)" }}
                         >
                           {item.magasin.enseigne
                             ? `${item.magasin.enseigne} — ${item.magasin.nom}`
                             : item.magasin.nom}
                         </Link>
-                        <span className="text-sm font-bold text-red-500 shrink-0">
+                        <span className="text-sm font-bold shrink-0" style={{ color: "#C0476E" }}>
                           {item.moy.toFixed(1)}/5
                         </span>
                       </li>
@@ -757,14 +767,15 @@ function CardSante({
 }) {
   return (
     <div
-      className={`rounded-xl border p-4 sm:p-5 shadow-sm text-center ${bgNote(note)}`}
+      className="rounded-2xl p-4 sm:p-5 text-center"
+      style={bgNote(note)}
     >
-      <p className="text-xs font-medium text-slate-500 mb-1">{label}</p>
-      <p className={`text-3xl sm:text-4xl font-bold leading-none ${couleurNote(note)}`}>
+      <p className="text-xs font-semibold mb-1" style={{ color: "var(--pa-muted)" }}>{label}</p>
+      <p className="text-3xl sm:text-4xl font-bold leading-none" style={{ color: couleurNote(note) }}>
         {valeur}
       </p>
       {note !== null && (
-        <p className="text-xs text-slate-400 mt-1">/5</p>
+        <p className="text-xs mt-1" style={{ color: "var(--pa-muted)" }}>/5</p>
       )}
     </div>
   );
@@ -786,17 +797,18 @@ function CardKpi({
   return (
     <Link
       href={href}
-      className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col gap-1 hover:border-slate-300 transition-colors"
+      className="pa-card p-4 flex flex-col gap-1 transition-transform hover:-translate-y-0.5"
     >
-      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide leading-snug">
+      <span className="text-xs font-bold uppercase tracking-wide leading-snug" style={{ color: "var(--pa-muted)" }}>
         {label}
       </span>
-      <span className="text-3xl font-bold text-slate-900 leading-none">
+      <span className="text-3xl font-bold leading-none" style={{ color: "var(--pa-ink)" }}>
         {valeur}
       </span>
       {sub && (
         <span
-          className={`text-xs font-medium ${subRouge ? "text-red-600" : "text-slate-400"}`}
+          className="text-xs font-semibold"
+          style={{ color: subRouge ? "#C0476E" : "var(--pa-muted)" }}
         >
           {sub}
         </span>
