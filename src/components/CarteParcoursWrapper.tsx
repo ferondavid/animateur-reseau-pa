@@ -6,8 +6,8 @@ const CarteParcours = dynamic(() => import("./CarteParcours"), {
   ssr: false,
   loading: () => (
     <div
-      style={{ height: "500px" }}
-      className="w-full rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400"
+      style={{ height: "420px", background: "#EDEBF6", color: "var(--pa-muted)" }}
+      className="w-full rounded-2xl flex items-center justify-center text-sm"
     >
       Chargement de la carte…
     </div>

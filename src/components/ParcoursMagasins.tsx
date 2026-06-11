@@ -9,9 +9,10 @@ import {
   calculerArretsRecharge,
 } from "@/app/animateur/parcours/actions";
 import {
-  MapPin, Compass, Map, CalendarPlus, RefreshCw, Zap,
-  Save, Clock, Check, X,
+  MapPin, Map as MapIcon, CalendarPlus, RefreshCw, Zap,
+  Save, X,
 } from "lucide-react";
+import { titreMagasin } from "@/lib/magasin";
 
 type Magasin = {
   id: string;
@@ -40,10 +41,10 @@ const NIVEAU_FILTRE = [
   { key: "observation", label: "Observation" },
 ] as const;
 
-const NIVEAU_BADGE: Record<string, { label: string; cls: string }> = {
-  strategique: { label: "Stratégique", cls: "bg-amber-100 text-amber-800" },
-  standard:    { label: "Standard",       cls: "bg-slate-100 text-slate-600" },
-  observation: { label: "Observation", cls: "bg-blue-100 text-blue-700" },
+const NIVEAU_BADGE: Record<string, { label: string; bg: string; fg: string }> = {
+  strategique: { label: "Stratégique", bg: "#FBF1D8", fg: "#B07D14" },
+  standard:    { label: "Standard",    bg: "#ECEAF3", fg: "#6F6982" },
+  observation: { label: "Observation", bg: "#E4F0FB", fg: "#2D6FD0" },
 };
 
 function formatDist(km: number): string {
@@ -63,11 +64,11 @@ function formatDuree(min: number): string {
   return h === 0 ? `${j}j` : `${j}j ${h}h`;
 }
 
-function batterieIcon(km: number, maxKm: number): { emoji: string; cls: string } {
+function batterieIcon(km: number, maxKm: number): { emoji: string; color: string } {
   const pct = (km / maxKm) * 100;
-  if (pct > 60) return { emoji: "🔋", cls: "text-emerald-600" };
-  if (pct > 30) return { emoji: "🔋", cls: "text-amber-500" };
-  return { emoji: "🪫", cls: "text-red-500" };
+  if (pct > 60) return { emoji: "🔋", color: "#0F8C68" };
+  if (pct > 30) return { emoji: "🔋", color: "#B07D14" };
+  return { emoji: "🪫", color: "#C0476E" };
 }
 
 function genGoogleMapsUrl(
@@ -133,6 +134,7 @@ export default function ParcoursMagasins({
   const [retourDepart, setRetourDepart] = useState(false);
   const [filtreTexte, setFiltreTexte] = useState("");
   const [filtreNiveau, setFiltreNiveau] = useState("tous");
+  const [filtreRegion, setFiltreRegion] = useState("toutes");
   const [chargeDepart, setChargeDepart] = useState(configVE.chargeDepartPct);
   const [geocoding, setGeocoding] = useState(false);
   const [calculating, setCalculating] = useState(false);
@@ -228,12 +230,33 @@ export default function ParcoursMagasins({
     }
   };
 
+  // Régions disponibles (pour le filtre par zone)
+  const regions = [...new Set(magasins.map((m) => m.region).filter((r): r is string => !!r))].sort((a, b) =>
+    a.localeCompare(b, "fr")
+  );
+
   const magasinsFiltres = magasins.filter((m) => {
     if (filtreNiveau !== "tous" && (m.niveau ?? "standard") !== filtreNiveau) return false;
+    if (filtreRegion !== "toutes" && (m.region ?? "") !== filtreRegion) return false;
     if (!filtreTexte.trim()) return true;
-    const hay = `${m.enseigne ?? ""} ${m.nom} ${m.ville ?? ""}`.toLowerCase();
+    const hay = `${m.enseigne ?? ""} ${m.nom} ${m.ville ?? ""} ${m.region ?? ""}`.toLowerCase();
     return hay.includes(filtreTexte.toLowerCase());
   });
+
+  // Regroupement par région (zones) pour l'affichage de la liste
+  const groupesParRegion = (() => {
+    const map = new Map<string, Magasin[]>();
+    for (const m of magasinsFiltres) {
+      const r = m.region ?? "Sans région";
+      if (!map.has(r)) map.set(r, []);
+      map.get(r)!.push(m);
+    }
+    return [...map.entries()].sort((a, b) => {
+      if (a[0] === "Sans région") return 1;
+      if (b[0] === "Sans région") return -1;
+      return a[0].localeCompare(b[0], "fr");
+    });
+  })();
 
   const nbSel = selectionIds.size;
   const peutCalculer = !!departCoords && nbSel > 0;
@@ -255,7 +278,7 @@ export default function ParcoursMagasins({
   const nbBornes = parcours?.etapes.filter((e) => e.type === "recharge" && !e.label.startsWith("⚠️")).length ?? 0;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[390px_1fr] gap-6 items-start">
+    <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-5 items-start" style={{ paddingTop: "12px" }}>
 
       {/* ─── COL GAUCHE ──────────────────────────────────────────────── */}
       <div className="space-y-4">
@@ -289,9 +312,9 @@ export default function ParcoursMagasins({
               </button>
             )}
           </div>
-          {geocodeErr && <p className="text-xs text-red-600">{geocodeErr}</p>}
+          {geocodeErr && <p className="text-xs font-medium" style={{ color: "#C0476E" }}>{geocodeErr}</p>}
           {departCoords && !geocodeErr && (
-            <p className="text-xs text-emerald-600 font-medium">
+            <p className="text-xs font-medium" style={{ color: "#0F8C68" }}>
               ✓ Position trouvée ({departCoords.lat.toFixed(4)}, {departCoords.lng.toFixed(4)})
             </p>
           )}
@@ -299,29 +322,29 @@ export default function ParcoursMagasins({
 
         {/* Banner clé manquante */}
         {configVE.active && !openChargeMapOk && (
-          <div className="bg-orange-50 border border-orange-300 rounded-2xl p-4">
-            <p className="text-sm font-semibold text-orange-800">⚠️ Clé OpenChargeMap manquante</p>
-            <p className="text-xs text-orange-700 mt-1">
+          <div className="rounded-2xl p-4" style={{ background: "#FBF1D8", border: "1px solid rgba(176,125,20,.25)" }}>
+            <p className="text-sm font-semibold" style={{ color: "#B07D14" }}>⚠️ Clé OpenChargeMap manquante</p>
+            <p className="text-xs mt-1" style={{ color: "#9A7416" }}>
               Les bornes de recharge ne pourront pas être trouvées automatiquement.
-              Ajoutez <code className="font-mono bg-orange-100 px-1 rounded">OPENCHARGEMAP_API_KEY</code> dans les variables d&apos;environnement Vercel.
+              Ajoutez <code className="font-mono px-1 rounded" style={{ background: "rgba(176,125,20,.15)" }}>OPENCHARGEMAP_API_KEY</code> dans les variables d&apos;environnement Vercel.
             </p>
           </div>
         )}
 
         {/* Banner VE */}
         {configVE.active && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: "#FBF7EA", border: "1px solid rgba(176,125,20,.22)" }}>
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold flex items-center gap-1.5 text-amber-800"><Zap size={13} />Véhicule électrique</p>
-              <a href="/animateur/parametres" className="text-xs text-amber-600 hover:underline">
+              <p className="text-sm font-semibold flex items-center gap-1.5" style={{ color: "#B07D14" }}><Zap size={13} />Véhicule électrique</p>
+              <a href="/animateur/parametres" className="text-xs hover:underline font-semibold" style={{ color: "#B07D14" }}>
                 Modifier →
               </a>
             </div>
-            <p className="text-xs text-amber-700">
+            <p className="text-xs" style={{ color: "#9A7416" }}>
               Autonomie {configVE.autonomieKm} km · Seuil {configVE.seuilPct}% · Cible {configVE.ciblePct}%
             </p>
             <div>
-              <label className="block text-xs font-medium text-amber-700 mb-1">
+              <label className="block text-xs font-medium mb-1" style={{ color: "#9A7416" }}>
                 Charge au départ : <strong>{chargeDepart}%</strong> ({Math.round(configVE.autonomieKm * chargeDepart / 100)} km)
               </label>
               <input
@@ -331,7 +354,7 @@ export default function ParcoursMagasins({
                 step={5}
                 value={chargeDepart}
                 onChange={(e) => { setChargeDepart(Number(e.target.value)); setParcours(null); }}
-                className="w-full accent-amber-500"
+                className="w-full accent-[#E8B43A]"
               />
             </div>
           </div>
@@ -340,10 +363,10 @@ export default function ParcoursMagasins({
         {/* Filtres + liste */}
         <div className="pa-card p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Magasins à visiter</h2>
-            <span className="text-xs text-slate-500">
+            <h2 className="text-sm font-bold" style={{ color: "var(--pa-ink)" }}>Magasins à visiter</h2>
+            <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
               {nbSel > 0
-                ? <span className="text-blue-600 font-semibold">{nbSel} sélectionné{nbSel > 1 ? "s" : ""}</span>
+                ? <span className="font-bold" style={{ color: "#6B4FD8" }}>{nbSel} sélectionné{nbSel > 1 ? "s" : ""}</span>
                 : "0 sélectionné"}
             </span>
           </div>
@@ -356,48 +379,100 @@ export default function ParcoursMagasins({
             className="pa-input"
           />
 
+          {/* Filtre par zone / région */}
+          {regions.length > 0 && (
+            <select
+              value={filtreRegion}
+              onChange={(e) => setFiltreRegion(e.target.value)}
+              className="pa-input"
+            >
+              <option value="toutes">Toutes les régions ({magasins.filter((m) => m.region).length})</option>
+              {regions.map((r) => (
+                <option key={r} value={r}>
+                  {r} ({magasins.filter((m) => m.region === r).length})
+                </option>
+              ))}
+            </select>
+          )}
+
           <div className="flex gap-1.5 flex-wrap">
-            {NIVEAU_FILTRE.map(({ key, label }) => (
-              <button key={key} onClick={() => setFiltreNiveau(key)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                  filtreNiveau === key ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}>
-                {label}
-              </button>
-            ))}
+            {NIVEAU_FILTRE.map(({ key, label }) => {
+              const actif = filtreNiveau === key;
+              return (
+                <button key={key} onClick={() => setFiltreNiveau(key)}
+                  className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all"
+                  style={actif
+                    ? { background: "#6B4FD8", color: "#fff", boxShadow: "0 2px 8px -3px rgba(107,79,216,.6)" }
+                    : { background: "#ECEAF3", color: "#6F6982" }}>
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
-          <button onClick={selectionnerTout} className="text-xs text-blue-600 hover:underline">
+          <button onClick={selectionnerTout} className="text-xs font-semibold hover:underline" style={{ color: "#6B4FD8" }}>
             {magasinsFiltres.length > 0 && magasinsFiltres.every((m) => selectionIds.has(m.id))
               ? "Tout désélectionner" : "Tout sélectionner"}
           </button>
 
-          <div className="max-h-[380px] overflow-y-auto space-y-1 pr-1">
+          <div className="max-h-[360px] overflow-y-auto space-y-3 pr-1">
             {magasinsFiltres.length === 0 && (
-              <p className="text-sm text-slate-400 py-2 text-center">Aucun magasin géolocalisé</p>
+              <p className="text-sm py-2 text-center" style={{ color: "var(--pa-muted)" }}>Aucun magasin sur ce filtre</p>
             )}
-            {magasinsFiltres.map((m) => {
-              const sel = selectionIds.has(m.id);
-              const niv = m.niveau ?? "standard";
-              const badge = NIVEAU_BADGE[niv];
+            {groupesParRegion.map(([region, mags]) => {
+              const idsZone = mags.map((m) => m.id);
+              const tousSel = idsZone.every((id) => selectionIds.has(id));
               return (
-                <div key={m.id} onClick={() => toggleSel(m.id)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors ${
-                    sel ? "bg-blue-50 border-l-2 border-blue-500" : "hover:bg-slate-50 border-l-2 border-transparent"
-                  }`}>
-                  <input type="checkbox" checked={sel} onChange={() => toggleSel(m.id)}
-                    onClick={(e) => e.stopPropagation()} className="accent-blue-600 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900 truncate">
-                      {m.enseigne ? `${m.enseigne} — ${m.nom}` : m.nom}
-                    </p>
-                    {m.ville && <p className="text-xs text-slate-500 truncate">{m.ville}</p>}
-                  </div>
-                  {badge && niv !== "standard" && (
-                    <span className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${badge.cls}`}>
-                      {badge.label}
+                <div key={region} className="space-y-1">
+                  {/* En-tête de zone */}
+                  <div className="flex items-center justify-between px-1 sticky top-0 z-10" style={{ background: "linear-gradient(rgba(255,255,255,0.92),rgba(255,255,255,0.92))", backdropFilter: "blur(6px)" }}>
+                    <span className="text-[11px] font-bold uppercase tracking-wide inline-flex items-center gap-1" style={{ color: "var(--pa-muted)" }}>
+                      <MapPin size={11} style={{ color: "#7C6BE8" }} /> {region} <span style={{ color: "#C8C4D6" }}>({mags.length})</span>
                     </span>
-                  )}
+                    <button
+                      onClick={() => {
+                        setSelectionIds((prev) => {
+                          const next = new Set(prev);
+                          if (tousSel) idsZone.forEach((id) => next.delete(id));
+                          else idsZone.forEach((id) => next.add(id));
+                          try { localStorage.setItem(LS_SELECTION, JSON.stringify([...next])); } catch { /* */ }
+                          return next;
+                        });
+                        setParcours(null);
+                      }}
+                      className="text-[11px] font-semibold hover:underline shrink-0"
+                      style={{ color: "#6B4FD8" }}
+                    >
+                      {tousSel ? "Retirer la zone" : "Toute la zone"}
+                    </button>
+                  </div>
+
+                  {mags.map((m) => {
+                    const sel = selectionIds.has(m.id);
+                    const niv = m.niveau ?? "standard";
+                    const badge = NIVEAU_BADGE[niv];
+                    return (
+                      <div key={m.id} onClick={() => toggleSel(m.id)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors"
+                        style={sel
+                          ? { background: "#EDEBFB", borderLeft: "3px solid #7C6BE8" }
+                          : { borderLeft: "3px solid transparent" }}>
+                        <input type="checkbox" checked={sel} onChange={() => toggleSel(m.id)}
+                          onClick={(e) => e.stopPropagation()} className="accent-[#7C6BE8] shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold truncate" style={{ color: "var(--pa-ink)" }}>
+                            {titreMagasin(m.enseigne, m.nom)}
+                          </p>
+                          {m.ville && <p className="text-xs truncate" style={{ color: "var(--pa-muted)" }}>{m.ville}</p>}
+                        </div>
+                        {badge && niv !== "standard" && (
+                          <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: badge.bg, color: badge.fg }}>
+                            {badge.label}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
@@ -409,19 +484,19 @@ export default function ParcoursMagasins({
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={retourDepart}
               onChange={(e) => { setRetourDepart(e.target.checked); setParcours(null); }}
-              className="accent-slate-900" />
-            <span className="text-sm text-slate-700">Retour au point de départ</span>
+              className="accent-[#7C6BE8]" />
+            <span className="text-sm" style={{ color: "var(--pa-ink)" }}>Retour au point de départ</span>
           </label>
 
           <button onClick={calculer} disabled={!peutCalculer || calculating}
-            className="pa-btn-primary w-full py-3 rounded-xl text-sm">
+            className="pa-btn-primary w-full py-3 rounded-xl text-sm font-semibold">
             {calculating
               ? configVE.active ? "Calcul + bornes…" : "Calcul en cours…"
               : "Calculer l'itinéraire"}
           </button>
 
-          {!departCoords && <p className="text-xs text-slate-400 text-center">Géocode un point de départ d'abord</p>}
-          {departCoords && nbSel === 0 && <p className="text-xs text-slate-400 text-center">Sélectionne au moins un magasin</p>}
+          {!departCoords && <p className="text-xs text-center" style={{ color: "var(--pa-muted)" }}>Géocode un point de départ d&apos;abord</p>}
+          {departCoords && nbSel === 0 && <p className="text-xs text-center" style={{ color: "var(--pa-muted)" }}>Sélectionne au moins un magasin</p>}
         </div>
       </div>
 
@@ -440,30 +515,30 @@ export default function ParcoursMagasins({
             {/* Stats */}
             <div className={`grid gap-4 ${configVE.active && nbBornes > 0 ? "grid-cols-4" : "grid-cols-3"}`}>
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{distAffichee}</p>
+                <p className="text-2xl font-bold" style={{ color: "var(--pa-ink)" }}>{distAffichee}</p>
                 <p className="text-xs mt-0.5" style={{ color: "var(--pa-muted)" }}>Distance</p>
               </div>
-              <div className="text-center border-x border-slate-100">
-                <p className="text-2xl font-bold text-slate-900">{dureeRouteAffichee}</p>
+              <div className="text-center" style={{ borderLeft: "1px solid var(--pa-line)", borderRight: "1px solid var(--pa-line)" }}>
+                <p className="text-2xl font-bold" style={{ color: "var(--pa-ink)" }}>{dureeRouteAffichee}</p>
                 <p className="text-xs mt-0.5" style={{ color: "var(--pa-muted)" }}>Temps route</p>
               </div>
               {configVE.active && nbBornes > 0 && (
-                <div className="text-center border-r border-slate-100">
-                  <p className="text-2xl font-bold text-amber-600">
+                <div className="text-center" style={{ borderRight: "1px solid var(--pa-line)" }}>
+                  <p className="text-2xl font-bold" style={{ color: "#B07D14" }}>
                     {formatDuree(parcours.dureeArretsMinutes)}
                   </p>
                   <p className="text-xs mt-0.5 flex items-center justify-center gap-0.5" style={{ color: "var(--pa-muted)" }}><Zap size={10} />Arrêts</p>
                 </div>
               )}
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold" style={{ color: "var(--pa-ink)" }}>
                   {parcours.etapes.filter((e) => e.type === "magasin").length}
                 </p>
                 <p className="text-xs mt-0.5 flex items-center justify-center gap-0.5" style={{ color: "var(--pa-muted)" }}><MapPin size={10} />Magasins</p>
               </div>
             </div>
-            <p className="text-xs text-slate-400 text-center">
-              Estimation à vol d'oiseau · 60 km/h{retourDepart ? " · retour inclus" : ""}
+            <p className="text-xs text-center" style={{ color: "var(--pa-muted)" }}>
+              Estimation à vol d&apos;oiseau · 60 km/h{retourDepart ? " · retour inclus" : ""}
               {configVE.active && nbBornes > 0 ? ` · ${nbBornes} borne${nbBornes > 1 ? "s" : ""} de recharge` : ""}
             </p>
 
@@ -481,18 +556,18 @@ export default function ParcoursMagasins({
                         : null;
                     return (
                       <div key={i} className="flex items-center gap-2 text-sm">
-                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                        <span className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "#3D7BE8" }}>
                           {idx}
                         </span>
-                        <span className="text-slate-700 truncate flex-1">
+                        <span className="truncate flex-1" style={{ color: "var(--pa-ink)" }}>
                           {e.label}{e.sousLabel ? ` · ${e.sousLabel}` : ""}
                         </span>
                         {batIcon && (
-                          <span className={`text-xs shrink-0 ${batIcon.cls}`}>
+                          <span className="text-xs shrink-0 font-semibold" style={{ color: batIcon.color }}>
                             {batIcon.emoji} {Math.round(e.autonomieRestanteAvant!)} km
                           </span>
                         )}
-                        <span className="text-xs text-slate-400 shrink-0">
+                        <span className="text-xs shrink-0" style={{ color: "var(--pa-muted)" }}>
                           {e.distanceDepuisPrec.toFixed(1)} km
                         </span>
                       </div>
@@ -502,14 +577,14 @@ export default function ParcoursMagasins({
                   if (e.type === "recharge") {
                     const estWarning = e.label.startsWith("⚠️");
                     return (
-                      <div key={i} className={`flex items-center gap-2 text-sm pl-1 ${estWarning ? "text-red-600" : "text-violet-700"}`}>
+                      <div key={i} className="flex items-center gap-2 text-sm pl-1" style={{ color: estWarning ? "#C0476E" : "#6B4FD8" }}>
                         <span className="text-base shrink-0">{estWarning ? "⚠️" : "⚡"}</span>
                         <span className="truncate flex-1 text-xs">
                           {e.label}
                           {e.tempsArretMin ? ` · ${e.tempsArretMin} min` : ""}
                           {e.sousLabel ? ` · ${e.sousLabel}` : ""}
                         </span>
-                        <span className="text-xs text-slate-400 shrink-0">
+                        <span className="text-xs shrink-0" style={{ color: "var(--pa-muted)" }}>
                           {e.distanceDepuisPrec.toFixed(1)} km
                         </span>
                       </div>
@@ -521,21 +596,21 @@ export default function ParcoursMagasins({
               })()}
               {retourDepart && departCoords && (
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">D</span>
-                  <span className="text-slate-500 italic">Retour au départ</span>
-                  <span className="text-xs text-slate-400 shrink-0">{formatDist(retourKm)}</span>
+                  <span className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "#1FA98A" }}>D</span>
+                  <span className="italic" style={{ color: "var(--pa-muted)" }}>Retour au départ</span>
+                  <span className="text-xs shrink-0" style={{ color: "var(--pa-muted)" }}>{formatDist(retourKm)}</span>
                 </div>
               )}
             </div>
 
             {/* Actions */}
-            <div className="flex flex-wrap gap-3 pt-2 border-t border-slate-100">
+            <div className="flex flex-wrap gap-3 pt-2 border-t" style={{ borderColor: "var(--pa-line)" }}>
               {departCoords && (
                 <a href={genGoogleMapsUrl(departCoords, parcours.etapes, retourDepart)}
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors"
                   style={{ background: "linear-gradient(135deg,#34C9A3,#1FA98A)", boxShadow: "0 6px 16px -6px rgba(31,169,138,.5)" }}>
-                  <Map size={14} /> Ouvrir dans Maps
+                  <MapIcon size={14} /> Ouvrir dans Maps
                 </a>
               )}
               <button onClick={() => { setModalPlanif(true); setPlanifResult(null); }}
@@ -557,29 +632,29 @@ export default function ParcoursMagasins({
           <div className="pa-modal-content max-w-sm w-full p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--pa-ink)" }}><CalendarPlus size={16} style={{ color: "#7C6BE8" }} />Planifier les visites</h3>
-              <button onClick={() => setModalPlanif(false)} className="text-slate-400 hover:text-slate-700" aria-label="Fermer"><X size={16} /></button>
+              <button onClick={() => setModalPlanif(false)} style={{ color: "var(--pa-muted)" }} aria-label="Fermer"><X size={16} /></button>
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
               {parcours.etapes.filter((e) => e.type === "magasin").length} visite{parcours.etapes.filter((e) => e.type === "magasin").length > 1 ? "s" : ""} créées, 1 par jour.
             </p>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Premier jour</label>
+                <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>Premier jour</label>
                 <input type="date" value={datePlanif} onChange={(e) => setDatePlanif(e.target.value)}
                   className="pa-input" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Objectif</label>
+                <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>Objectif</label>
                 <input type="text" value={objectifPlanif} onChange={(e) => setObjectifPlanif(e.target.value)}
                   className="pa-input" />
               </div>
             </div>
             {planifResult && (
               planifResult.ok
-                ? <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700">
+                ? <div className="rounded-xl px-4 py-2 text-sm font-medium" style={{ background: "#D2F2E7", border: "1px solid rgba(31,169,138,.25)", color: "#0F8C68" }}>
                     {planifResult.nb} visite{(planifResult.nb ?? 0) > 1 ? "s" : ""} créée{(planifResult.nb ?? 0) > 1 ? "s" : ""}
                   </div>
-                : <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">{planifResult.error}</div>
+                : <div className="rounded-xl px-4 py-2 text-sm" style={{ background: "#FBE0E8", border: "1px solid rgba(192,71,110,.25)", color: "#C0476E" }}>{planifResult.error}</div>
             )}
             <div className="flex gap-3">
               <button onClick={() => setModalPlanif(false)}

@@ -82,7 +82,7 @@ export default function CarteParcours({ depart, etapes, retour }: Props) {
     <MapContainer
       center={center}
       zoom={6}
-      style={{ height: "500px", width: "100%", borderRadius: "16px" }}
+      style={{ height: "420px", width: "100%", borderRadius: "16px" }}
       scrollWheelZoom={true}
     >
       <TileLayer
