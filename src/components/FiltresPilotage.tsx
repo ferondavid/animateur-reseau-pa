@@ -58,44 +58,45 @@ export default function FiltresPilotage({ regions, magasins }: Props) {
     router.push(`${pathname}${qs ? "?" + qs : ""}`);
   }
 
-  const btnActif = "bg-violet-600 text-white";
-  const btnInactif = "text-slate-600 hover:bg-slate-100";
-
-  const btnActifViolet = "bg-violet-800 text-white";
-  const btnInactifViolet = "text-slate-600 hover:bg-slate-100";
+  const segWrap = "flex items-center gap-1 p-1 rounded-[14px]";
+  const segWrapStyle = { background: "rgba(255,255,255,0.65)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: "1px solid rgba(255,255,255,0.7)" } as const;
 
   return (
     <div className="space-y-2">
       {/* Filtres prioritaires */}
       <div className="flex flex-wrap gap-2">
         {/* Période */}
-        <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white shadow-sm text-sm">
-          {PERIODES.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => update({ periode: p.key })}
-              className={`px-3 py-1.5 font-medium transition-colors ${
-                periode === p.key ? btnActif : btnInactif
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+        <div className={segWrap} style={segWrapStyle}>
+          {PERIODES.map((p) => {
+            const actif = periode === p.key;
+            return (
+              <button
+                key={p.key}
+                onClick={() => update({ periode: p.key })}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
+                style={actif ? { background: "#fff", color: "#534AB7", boxShadow: "0 2px 8px -2px rgba(80,60,140,0.18)" } : { color: "var(--pa-muted)" }}
+              >
+                {p.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Niveau */}
-        <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white shadow-sm text-sm">
-          {NIVEAUX.map((n) => (
-            <button
-              key={n.key}
-              onClick={() => update({ niveau: n.key })}
-              className={`px-3 py-1.5 font-medium transition-colors ${
-                niveau === n.key ? btnActifViolet : btnInactifViolet
-              }`}
-            >
-              {n.label}
-            </button>
-          ))}
+        <div className={segWrap} style={segWrapStyle}>
+          {NIVEAUX.map((n) => {
+            const actif = niveau === n.key;
+            return (
+              <button
+                key={n.key}
+                onClick={() => update({ niveau: n.key })}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
+                style={actif ? { background: "#fff", color: "#534AB7", boxShadow: "0 2px 8px -2px rgba(80,60,140,0.18)" } : { color: "var(--pa-muted)" }}
+              >
+                {n.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -106,7 +107,7 @@ export default function FiltresPilotage({ regions, magasins }: Props) {
           <select
             value={region}
             onChange={(e) => update({ region: e.target.value, magasin_id: "" })}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+            className="pa-input"
           >
             <option value="toutes">Toutes les régions</option>
             {regions.map((r) => (
@@ -121,7 +122,7 @@ export default function FiltresPilotage({ regions, magasins }: Props) {
         <select
           value={magasin_id}
           onChange={(e) => update({ magasin_id: e.target.value })}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300 max-w-xs truncate"
+          className="pa-input max-w-xs truncate"
         >
           <option value="">Tous les magasins</option>
           {magasins.map((m) => (
@@ -136,7 +137,8 @@ export default function FiltresPilotage({ regions, magasins }: Props) {
         {aClesFiltres && (
           <button
             onClick={() => router.push(pathname)}
-            className="text-xs text-slate-400 hover:text-slate-700 underline transition-colors"
+            className="text-xs underline transition-colors"
+            style={{ color: "var(--pa-muted)" }}
           >
             Réinitialiser
           </button>
