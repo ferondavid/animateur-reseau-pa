@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { createPortal } from "react-dom";
 import type { Point, EtapeParcours, Parcours } from "@/lib/itineraire";
 import { calculerParcoursDeBase, construireParcours, haversineKm } from "@/lib/itineraire";
 import CarteParcoursWrapper from "./CarteParcoursWrapper";
@@ -645,7 +646,7 @@ export default function ParcoursMagasins({
       </div>
 
       {/* ─── MODALE PLANIFIER ──────────────────────────────────────── */}
-      {modalPlanif && parcours && (
+      {modalPlanif && parcours && createPortal(
         <div className="pa-modal-overlay">
           <div className="pa-modal-content max-w-sm w-full p-6 space-y-4">
             <div className="flex items-center justify-between">
@@ -694,7 +695,8 @@ export default function ParcoursMagasins({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

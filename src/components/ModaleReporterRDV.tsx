@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { reporterRDV } from "@/app/animateur/rdv/actions";
 import { RefreshCw, X } from "lucide-react";
 
@@ -8,6 +9,8 @@ type Props = { rdvId: string; onClose: () => void };
 
 export default function ModaleReporterRDV({ rdvId, onClose }: Props) {
   const [loading, setLoading] = useState(false);
+  const [monte, setMonte] = useState(false);
+  useEffect(() => setMonte(true), []);
   const today = new Date().toISOString().split("T")[0];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -24,7 +27,9 @@ export default function ModaleReporterRDV({ rdvId, onClose }: Props) {
     onClose();
   }
 
-  return (
+  if (!monte) return null;
+
+  return createPortal(
     <div className="pa-modal-overlay">
       <div className="pa-modal-content w-full max-w-md p-6 space-y-4">
         <div className="flex items-center justify-between">
@@ -72,6 +77,7 @@ export default function ModaleReporterRDV({ rdvId, onClose }: Props) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
