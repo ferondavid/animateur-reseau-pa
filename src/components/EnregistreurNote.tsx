@@ -45,6 +45,7 @@ export default function EnregistreurNote({ autoStart }: { autoStart?: boolean })
   const recorderRef    = useRef<MediaRecorder | null>(null);
   const chunksRef      = useRef<Blob[]>([]);
   const mimeTypeRef    = useRef("audio/webm");
+  const startTimeRef   = useRef(0);
 
   // Chronomètre pendant l'enregistrement
   useEffect(() => {
@@ -88,12 +89,23 @@ export default function EnregistreurNote({ autoStart }: { autoStart?: boolean })
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, {
-          type: mimeTypeRef.current || "audio/webm",
-        });
-        uploadNote(blob);
+        // Couper le micro APRÈS la capture (le faire avant tronque/vide l'audio)
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+
+        const actualType = recorderRef.current?.mimeType || mimeTypeRef.current || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: actualType });
+        const dureeSec = Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000));
+
+        if (blob.size === 0) {
+          setErreurMsg("Enregistrement vide — vérifiez l'accès au micro et réessayez.");
+          setEtat("error");
+          return;
+        }
+        uploadNote(blob, dureeSec);
       };
 
+      startTimeRef.current = Date.now();
       recorder.start(250);
       setEtat("recording");
     } catch (err) {
@@ -110,22 +122,23 @@ export default function EnregistreurNote({ autoStart }: { autoStart?: boolean })
   }, []);
 
   function stopRecording() {
-    recorderRef.current?.stop();
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
     setEtat("uploading");
+    // Déclenche onstop → coupe le micro, construit le blob et lance l'upload
+    try { recorderRef.current?.stop(); } catch { /* déjà arrêté */ }
   }
 
-  async function uploadNote(blob: Blob) {
+  async function uploadNote(blob: Blob, dureeSec: number) {
     setEtat("uploading");
     try {
       const supabase = createClient();
-      const ext = mimeTypeRef.current.includes("mp4") ? "m4a" : "webm";
+      // Content-type sans ";codecs=…" pour matcher allowed_mime_types du bucket
+      const baseType = (blob.type || "audio/webm").split(";")[0];
+      const ext = baseType.includes("mp4") ? "m4a" : baseType.includes("ogg") ? "ogg" : "webm";
       const path = `note-${Date.now()}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from("notes-vocales")
-        .upload(path, blob, { contentType: blob.type, upsert: false });
+        .upload(path, blob, { contentType: baseType, upsert: false });
 
       if (upErr) throw new Error(`Upload : ${upErr.message}`);
 
@@ -135,7 +148,7 @@ export default function EnregistreurNote({ autoStart }: { autoStart?: boolean })
 
       const result = await creerNote({
         audioUrl:  pub.publicUrl,
-        dureeSec:  seconds,
+        dureeSec:  dureeSec,
         titre:     titreAuto(),
       });
 
