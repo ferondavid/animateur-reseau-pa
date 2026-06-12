@@ -188,6 +188,13 @@ export default function ParcoursMagasins({
     setParcours(null);
   };
 
+  // Efface toute la sélection (tous magasins, tous filtres confondus)
+  const viderSelection = () => {
+    setSelectionIds(new Set());
+    try { localStorage.setItem(LS_SELECTION, JSON.stringify([])); } catch { /* ignore */ }
+    setParcours(null);
+  };
+
   const geocoder = async () => {
     if (!departTexte.trim()) return;
     setGeocoding(true); setGeocodeErr(null);
@@ -410,10 +417,21 @@ export default function ParcoursMagasins({
             })}
           </div>
 
-          <button onClick={selectionnerTout} className="text-xs font-semibold hover:underline" style={{ color: "#6B4FD8" }}>
-            {magasinsFiltres.length > 0 && magasinsFiltres.every((m) => selectionIds.has(m.id))
-              ? "Tout désélectionner" : "Tout sélectionner"}
-          </button>
+          <div className="flex items-center justify-between gap-2">
+            <button onClick={selectionnerTout} className="text-xs font-semibold hover:underline" style={{ color: "#6B4FD8" }}>
+              {magasinsFiltres.length > 0 && magasinsFiltres.every((m) => selectionIds.has(m.id))
+                ? "Tout désélectionner" : "Tout sélectionner"}
+            </button>
+            {nbSel > 0 && (
+              <button
+                onClick={viderSelection}
+                className="inline-flex items-center gap-1 text-xs font-semibold transition-transform active:scale-95"
+                style={{ color: "#C0476E" }}
+              >
+                <X size={12} strokeWidth={2.5} /> Effacer la sélection ({nbSel})
+              </button>
+            )}
+          </div>
 
           <div className="max-h-[360px] overflow-y-auto space-y-3 pr-1">
             {magasinsFiltres.length === 0 && (
