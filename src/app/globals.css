@@ -515,6 +515,18 @@ main {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   Notes vocales — halo pulsant pendant l'enregistrement
+   ══════════════════════════════════════════════════════════════════ */
+
+@keyframes pa-record-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 71, 110, 0.6), 0 8px 28px -8px rgba(192,71,110,0.55); }
+  50%       { box-shadow: 0 0 0 20px rgba(192, 71, 110, 0), 0 8px 28px -8px rgba(192,71,110,0.55); }
+}
+.pa-record-pulse {
+  animation: pa-record-pulse 1.4s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    Impression — rapport d'activité
    ══════════════════════════════════════════════════════════════════ */
 

@@ -16,6 +16,7 @@ type Intention =
   | "magasins_risque"
   | "preparation_demain"
   | "ouvrir_magasin"
+  | "prendre_note"
   | "naviguer"
   | "inconnu";
 
@@ -40,10 +41,13 @@ Intentions disponibles:
 - "magasins_risque" : voir les magasins en risque. params: {}
 - "preparation_demain" : voir la préparation pour demain. params: {}
 - "ouvrir_magasin" : ouvrir la fiche d'un magasin. params: { magasin: string }
-- "naviguer" : ouvrir une page de l'app. params: { cible: "carte"|"pilotage"|"rdv"|"visites"|"parcours"|"actions"|"remontees"|"news"|"evaluations"|"magasins"|"parametres"|"agenda"|"tournee" }
+- "prendre_note" : enregistrer une note vocale audio. params: {}
+- "naviguer" : ouvrir une page de l'app. params: { cible: "carte"|"pilotage"|"rdv"|"visites"|"parcours"|"actions"|"remontees"|"news"|"evaluations"|"magasins"|"parametres"|"agenda"|"tournee"|"notes" }
 - "inconnu" : commande non reconnue. params: {}
 
 Exemples navigation:
+- "ouvre mes notes" / "notes vocales" → {"intention":"naviguer","params":{"cible":"notes"}}
+- "prends une note" / "enregistre un mémo" / "nouvelle note vocale" → {"intention":"prendre_note","params":{}}
 - "ouvre la carte" → {"intention":"naviguer","params":{"cible":"carte"}}
 - "va à la carte" → {"intention":"naviguer","params":{"cible":"carte"}}
 - "montre-moi le pilotage" → {"intention":"naviguer","params":{"cible":"pilotage"}}
@@ -121,7 +125,18 @@ export async function POST(req: NextRequest) {
     { regex: /\b(magasins?|liste|liste des magasins)\b/, cible: "magasins" },
     { regex: /\b(parametres?|reglages?|configuration|settings)\b/, cible: "parametres" },
     { regex: /\b(agenda|calendrier|planning)\b/, cible: "agenda" },
+    { regex: /\b(notes? vocales?|mes? notes?|memo|memos?|enregistrement vocal)\b/, cible: "notes" },
   ];
+  // Prendre une note — détection directe avant Claude
+  const prendreNote = /\b(prends?|prendre|enregistre|enregistrer)\b.*\b(note|memo|memo)\b/i.test(texteLower)
+    || /\b(nouvelle?\s+note|note\s+vocale|memo\s+vocal)\b/i.test(texteLower);
+  if (prendreNote) {
+    return Response.json({
+      reponse: "Je lance l'enregistrement.",
+      action: { type: "navigate", url: "/animateur/notes?record=1" },
+    });
+  }
+
   // Si le texte commence par un verbe de navigation, on cherche la cible
   const verbeNav = /\b(ouvre|ouvrir|va|aller|montre|montrer|affiche|afficher|page|emmene|emmener|retour)\b/.test(texteLower);
   if (verbeNav) {
@@ -131,6 +146,7 @@ export async function POST(req: NextRequest) {
           carte:        { url: "/animateur/carte",      label: "la carte du réseau" },
           accueil:      { url: "/animateur",            label: "l'accueil" },
           agenda:       { url: "/animateur",            label: "l'agenda" },
+          notes:        { url: "/animateur/notes",      label: "les notes vocales" },
           pilotage:     { url: "/pilotage",             label: "le pilotage" },
           rdv:          { url: "/animateur/rdv",        label: "les rendez-vous" },
           visites:      { url: "/visites",              label: "les visites" },
@@ -367,6 +383,12 @@ export async function POST(req: NextRequest) {
       break;
     }
 
+    case "prendre_note": {
+      donnees = "Je lance l'enregistrement de votre note vocale.";
+      actionRetour = { type: "navigate", url: "/animateur/notes?record=1" };
+      break;
+    }
+
     case "naviguer": {
       const cible = (parsed.params.cible ?? "").toLowerCase().trim();
       const MAP_NAV: Record<string, { url: string; label: string }> = {
@@ -374,6 +396,7 @@ export async function POST(req: NextRequest) {
         accueil:      { url: "/animateur",          label: "l'accueil" },
         dashboard:    { url: "/animateur",          label: "le dashboard" },
         agenda:       { url: "/animateur",          label: "l'agenda" },
+        notes:        { url: "/animateur/notes",   label: "les notes vocales" },
         pilotage:     { url: "/pilotage",           label: "le pilotage" },
         rdv:          { url: "/animateur/rdv",      label: "les rendez-vous" },
         "rendez-vous":{ url: "/animateur/rdv",      label: "les rendez-vous" },
