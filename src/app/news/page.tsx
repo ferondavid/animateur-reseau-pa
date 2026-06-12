@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import BoutonRetourNews from "@/components/BoutonRetourNews";
 import { getGradient } from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
 
@@ -39,7 +40,7 @@ export default async function NewsListePage() {
     return (
       <main className="min-h-screen p-6 md:p-10">
         <div className="max-w-6xl mx-auto space-y-6 pt-8">
-          <Link href="/" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">← Retour</Link>
+          <BoutonRetourNews />
           <h1 className="text-2xl font-bold text-slate-900">Actualités du réseau</h1>
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 shadow-sm">
             Aucune actualité publiée pour le moment.
@@ -61,7 +62,7 @@ export default async function NewsListePage() {
         {/* Header */}
         <div className="flex items-end justify-between">
           <div>
-            <Link href="/" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">← Retour</Link>
+            <BoutonRetourNews />
             <h1 className="mt-2 text-2xl font-bold text-slate-900">Actualités du réseau</h1>
             <p className="text-slate-500 text-sm mt-0.5">{liste.length} actualité{liste.length > 1 ? "s" : ""}</p>
           </div>

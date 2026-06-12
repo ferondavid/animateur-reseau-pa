@@ -25,8 +25,8 @@ export default async function NewsDetailPage({
   return (
     <main className="min-h-screen p-6 md:p-10">
       <div className="max-w-2xl mx-auto space-y-6">
-        <Link href="/" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">
-          ← Retour
+        <Link href="/news" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">
+          ← Retour aux actualités
         </Link>
 
         {/* Image / dégradé */}
