@@ -1,6 +1,6 @@
 -- =====================================================
 -- Module Notes vocales
--- À jouer dans Supabase SQL Editor
+-- À JOUER dans Supabase → SQL Editor (idempotent, rejouable)
 -- =====================================================
 
 -- ─── Table ────────────────────────────────────────────────────────────────────
@@ -15,16 +15,18 @@ CREATE TABLE IF NOT EXISTS notes_vocales (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Index pour les requêtes courantes
-CREATE INDEX IF NOT EXISTS notes_vocales_statut_idx    ON notes_vocales(statut);
-CREATE INDEX IF NOT EXISTS notes_vocales_created_idx   ON notes_vocales(created_at DESC);
+CREATE INDEX IF NOT EXISTS notes_vocales_statut_idx  ON notes_vocales(statut);
+CREATE INDEX IF NOT EXISTS notes_vocales_created_idx ON notes_vocales(created_at DESC);
 
--- RLS
+-- ─── RLS table (rôle anon, comme le reste de l'app) ──────────────────────────
+-- NB : Postgres ne supporte PAS "CREATE POLICY IF NOT EXISTS" → on DROP puis CREATE.
+
 ALTER TABLE notes_vocales ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "notes_vocales_auth_all"
+DROP POLICY IF EXISTS "notes_vocales_all" ON notes_vocales;
+CREATE POLICY "notes_vocales_all"
   ON notes_vocales FOR ALL
-  TO authenticated
+  TO anon, authenticated
   USING (true)
   WITH CHECK (true);
 
@@ -38,22 +40,28 @@ VALUES (
   52428800,  -- 50 MB
   ARRAY['audio/webm','audio/mp4','audio/ogg','audio/mpeg','audio/wav','audio/x-m4a']
 )
-ON CONFLICT (id) DO UPDATE SET public = true;
+ON CONFLICT (id) DO UPDATE
+  SET public = true,
+      file_size_limit = EXCLUDED.file_size_limit,
+      allowed_mime_types = EXCLUDED.allowed_mime_types;
 
--- Lecture publique (URL partageable éventuelle)
-CREATE POLICY IF NOT EXISTS "notes_vocales_public_read"
+-- Lecture publique (lecteur audio <audio src>)
+DROP POLICY IF EXISTS "notes_vocales_public_read" ON storage.objects;
+CREATE POLICY "notes_vocales_public_read"
   ON storage.objects FOR SELECT
   TO anon, authenticated
   USING (bucket_id = 'notes-vocales');
 
--- Upload par authentifié
-CREATE POLICY IF NOT EXISTS "notes_vocales_auth_insert"
+-- Upload
+DROP POLICY IF EXISTS "notes_vocales_insert" ON storage.objects;
+CREATE POLICY "notes_vocales_insert"
   ON storage.objects FOR INSERT
-  TO authenticated
+  TO anon, authenticated
   WITH CHECK (bucket_id = 'notes-vocales');
 
--- Suppression par authentifié
-CREATE POLICY IF NOT EXISTS "notes_vocales_auth_delete"
+-- Suppression
+DROP POLICY IF EXISTS "notes_vocales_delete" ON storage.objects;
+CREATE POLICY "notes_vocales_delete"
   ON storage.objects FOR DELETE
-  TO authenticated
+  TO anon, authenticated
   USING (bucket_id = 'notes-vocales');
