@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import BoutonRetourNews from "@/components/BoutonRetourNews";
 import { getGradient } from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
 
@@ -25,9 +25,7 @@ export default async function NewsDetailPage({
   return (
     <main className="min-h-screen p-6 md:p-10">
       <div className="max-w-2xl mx-auto space-y-6">
-        <Link href="/news" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">
-          ← Retour aux actualités
-        </Link>
+        <BoutonRetourNews href="/news" label="Retour aux actualités" />
 
         {/* Image / dégradé */}
         <div className="rounded-2xl overflow-hidden h-48">
