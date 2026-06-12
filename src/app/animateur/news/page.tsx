@@ -2,7 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Plus, Pin, Pencil, ArrowLeft } from "lucide-react";
+import { Plus, Pin, Pencil } from "lucide-react";
+import BoutonAccueil from "@/components/BoutonAccueil";
 import { togglePublication, toggleEpingle } from "./actions";
 import BoutonSupprimerNews from "@/components/BoutonSupprimerNews";
 import { getGradient } from "@/components/CardNews";
@@ -45,6 +46,7 @@ export default async function AdminNewsPage() {
   return (
     <main className="min-h-screen p-6 md:p-10">
       <div className="max-w-5xl mx-auto space-y-6">
+        <BoutonAccueil />
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>Actualités du réseau</h1>
@@ -183,10 +185,6 @@ export default async function AdminNewsPage() {
           </>
         )}
 
-        <Link href="/animateur" className="inline-flex items-center gap-1.5 text-sm transition-colors" style={{ color: "var(--pa-muted)" }}>
-          <ArrowLeft size={15} strokeWidth={2.5} />
-          Retour tableau de bord
-        </Link>
       </div>
     </main>
   );

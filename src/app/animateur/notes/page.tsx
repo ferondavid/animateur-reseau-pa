@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import Navigation from "@/components/Navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import BoutonAccueil from "@/components/BoutonAccueil";
 import EnregistreurNote from "@/components/EnregistreurNote";
 import ListeNotesSelectionnable from "@/components/ListeNotesSelectionnable";
 import type { NoteItem } from "@/components/ListeNotesSelectionnable";
@@ -64,14 +64,7 @@ export default async function NotesVocalesPage({
 
         {/* En-tête */}
         <div>
-          <Link
-            href="/animateur"
-            className="inline-flex items-center gap-1.5 text-sm transition-colors"
-            style={{ color: "var(--pa-muted)" }}
-          >
-            <ArrowLeft size={15} strokeWidth={2.5} />
-            Retour dashboard
-          </Link>
+          <BoutonAccueil />
           <h1
             className="mt-2 text-2xl font-bold"
             style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}

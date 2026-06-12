@@ -5,7 +5,8 @@ import CardRDVDemande from "@/components/CardRDVDemande";
 import type { RDVDemande } from "@/components/CardRDVDemande";
 import Navigation from "@/components/Navigation";
 import Link from "next/link";
-import { Plus, Check, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Plus, Check, AlertTriangle } from "lucide-react";
+import BoutonAccueil from "@/components/BoutonAccueil";
 
 const TABS = [
   { key: "attente",  label: "En attente", statuts: ["demande", "reporte"] },
@@ -59,6 +60,7 @@ export default async function RDVAdminPage({
   return (
     <main className="min-h-screen p-6 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
+        <BoutonAccueil />
         {ok && (
           <div className="rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2" style={{ background: "#D2F2E7", color: "#0F8C68" }}>
             <Check size={16} strokeWidth={2.5} />
@@ -148,14 +150,6 @@ export default async function RDVAdminPage({
           </div>
         )}
 
-        <Link
-          href="/animateur"
-          className="inline-flex items-center gap-1.5 text-sm transition-colors"
-          style={{ color: "var(--pa-muted)" }}
-        >
-          <ArrowLeft size={15} strokeWidth={2.5} />
-          Retour tableau de bord
-        </Link>
       </div>
     </main>
   );

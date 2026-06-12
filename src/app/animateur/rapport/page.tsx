@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import Navigation from "@/components/Navigation";
 import BarreRapport from "@/components/BarreRapport";
 import Link from "next/link";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import BoutonAccueil from "@/components/BoutonAccueil";
+import { AlertTriangle } from "lucide-react";
 
 // ─── Helpers date ─────────────────────────────────────────────────────────────
 
@@ -377,6 +378,7 @@ export default async function RapportPage({
 
         {/* En-tête */}
         <div className="space-y-4">
+          <div className="no-print"><BoutonAccueil /></div>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h1
@@ -392,14 +394,6 @@ export default async function RapportPage({
                 Réseau Piscinistes Associés · {nbMagasinsActifs} magasin{nbMagasinsActifs !== 1 ? "s" : ""} actifs · généré le {dateGeneree}
               </p>
             </div>
-            <Link
-              href="/animateur"
-              className="no-print inline-flex items-center gap-1.5 text-sm transition-colors"
-              style={{ color: "var(--pa-muted)" }}
-            >
-              <ArrowLeft size={15} strokeWidth={2.5} />
-              Retour dashboard
-            </Link>
           </div>
 
           <div className="no-print">

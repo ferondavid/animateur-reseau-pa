@@ -152,6 +152,14 @@ main {
 }
 .pa-ghost-btn:active { transform: scale(0.96); }
 
+/* Bouton accueil (icône maison, haut-gauche des pages) */
+.pa-home-btn:hover {
+  background: #fff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px -8px rgba(80, 60, 140, 0.45) !important;
+}
+.pa-home-btn:active { transform: scale(0.95); }
+
 /* Label de formulaire */
 .pa-label {
   display: block;

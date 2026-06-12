@@ -1,9 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import { getParametre, getParametreNumber } from "@/lib/parametres";
-import Link from "next/link";
 import Navigation from "@/components/Navigation";
-import { ArrowLeft } from "lucide-react";
+import BoutonAccueil from "@/components/BoutonAccueil";
 import FormulaireGCal from "./FormulaireGCal";
 import ExportCalendar from "./ExportCalendar";
 import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
@@ -40,12 +39,9 @@ export default async function ParametresPage() {
     <main className="min-h-screen p-6 md:p-10">
       <div className="max-w-3xl mx-auto space-y-8">
 
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>⚙️ Paramètres</h1>
-          <Link href="/animateur" className="inline-flex items-center gap-1.5 text-sm transition-colors" style={{ color: "var(--pa-muted)" }}>
-            <ArrowLeft size={15} strokeWidth={2.5} />
-            Retour dashboard
-          </Link>
+        <div>
+          <BoutonAccueil />
+          <h1 className="mt-2 text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>⚙️ Paramètres</h1>
         </div>
 
         <Navigation />
@@ -233,11 +229,6 @@ export default async function ParametresPage() {
             Il est visible sous forme de badge sur la carte du réseau (étoile dorée pour stratégique, loupe bleue pour observation).
           </div>
         </div>
-
-        <Link href="/animateur" className="inline-flex items-center gap-1.5 text-sm transition-colors" style={{ color: "var(--pa-muted)" }}>
-          <ArrowLeft size={15} strokeWidth={2.5} />
-          Retour dashboard
-        </Link>
       </div>
     </main>
   );

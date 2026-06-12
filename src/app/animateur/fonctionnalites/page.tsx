@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
-import { ArrowLeft, ArrowUpRight, ArrowRight, Zap } from "lucide-react";
+import BoutonAccueil from "@/components/BoutonAccueil";
+import { ArrowUpRight, ArrowRight, Zap } from "lucide-react";
 import { Fragment, type ReactNode } from "react";
 
 type Tag = "nouveau" | "stable" | "beta";
@@ -644,14 +645,7 @@ export default function FonctionnalitesPage() {
 
         {/* En-tête */}
         <div>
-          <Link
-            href="/animateur"
-            className="inline-flex items-center gap-1.5 text-sm transition-colors"
-            style={{ color: "var(--pa-muted)" }}
-          >
-            <ArrowLeft size={15} strokeWidth={2.5} />
-            Retour dashboard
-          </Link>
+          <BoutonAccueil />
           <div className="flex items-center gap-2.5 mt-2">
             <Zap size={22} strokeWidth={2} style={{ color: "#534AB7", flexShrink: 0 }} />
             <h1
