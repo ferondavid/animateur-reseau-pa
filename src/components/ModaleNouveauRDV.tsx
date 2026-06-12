@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CalendarPlus, Store, Phone, Monitor, X } from "lucide-react";
@@ -28,6 +29,8 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
+  const [monte, setMonte] = useState(false);
+  useEffect(() => setMonte(true), []);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -93,7 +96,9 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
     }, 1200);
   }
 
-  return (
+  if (!monte) return null;
+
+  return createPortal(
     <div className="pa-modal-overlay">
       <div className="pa-modal-content w-full max-w-lg p-6 space-y-4">
         {/* Header */}
@@ -229,6 +234,7 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
