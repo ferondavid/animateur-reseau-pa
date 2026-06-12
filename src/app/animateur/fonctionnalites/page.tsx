@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
-import { ArrowLeft, ArrowUpRight, Zap } from "lucide-react";
-import type { ReactNode } from "react";
+import { ArrowLeft, ArrowUpRight, ArrowRight, Zap } from "lucide-react";
+import { Fragment, type ReactNode } from "react";
 
 type Tag = "nouveau" | "stable" | "beta";
 
@@ -560,6 +560,75 @@ function TagBadge({ tag }: { tag: Tag }) {
   );
 }
 
+// ─── Schéma : flux remontée → action ──────────────────────────────────────────
+
+const FLUX_NODES = [
+  { emoji: "📢", titre: "Remontée", sous: "Le terrain alerte", clair: "#F6C97A", base: "#E8943A" },
+  { emoji: "🧭", titre: "Décision", sous: "Tu évalues",        clair: "#C8C6D6", base: "#8B8699" },
+  { emoji: "📋", titre: "Action",   sous: "Tu crées la tâche", clair: "#8FC0F5", base: "#3D7BE8" },
+  { emoji: "✅", titre: "Clôture",  sous: "Traitée + Réalisée", clair: "#6FD9B0", base: "#1FA98A" },
+];
+
+function FluxRemonteeAction() {
+  return (
+    <section
+      className="rounded-[22px] p-5 space-y-4"
+      style={{
+        background: "rgba(255,255,255,0.52)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        border: "1px solid rgba(255,255,255,0.68)",
+        boxShadow: "0 6px 24px -10px rgba(80,60,140,0.16)",
+      }}
+    >
+      {/* En-tête */}
+      <div className="flex items-center gap-3 pb-3" style={{ borderBottom: "1px solid var(--pa-line)" }}>
+        <GlossyPill width={40} height={40} radius={14} bg="linear-gradient(135deg,#A79BF0,#6B4FD8)" shadow="0 6px 16px -6px #6B4FD8">
+          <span style={{ fontSize: 20 }}>🔄</span>
+        </GlossyPill>
+        <div>
+          <h2 className="font-bold text-base" style={{ color: "var(--pa-ink)" }}>Remontée → Action : comment ça circule</h2>
+          <p className="text-xs" style={{ color: "var(--pa-muted)" }}>Du signal terrain à la tâche réalisée</p>
+        </div>
+      </div>
+
+      {/* Flux glossy */}
+      <div className="flex flex-wrap items-start justify-center gap-2 sm:gap-3 pt-1">
+        {FLUX_NODES.map((n, i) => (
+          <Fragment key={n.titre}>
+            <div className="flex flex-col items-center text-center" style={{ width: 104 }}>
+              <GlossyPill width={52} height={52} radius={17} bg={`linear-gradient(135deg, ${n.clair}, ${n.base})`} shadow={`0 6px 16px -6px ${n.base}`}>
+                <span style={{ fontSize: 22 }}>{n.emoji}</span>
+              </GlossyPill>
+              <p className="text-sm font-bold mt-2" style={{ color: "var(--pa-ink)" }}>{n.titre}</p>
+              <p className="text-[11px] leading-tight mt-0.5" style={{ color: "var(--pa-muted)" }}>{n.sous}</p>
+            </div>
+            {i < FLUX_NODES.length - 1 && (
+              <ArrowRight size={18} strokeWidth={2.5} style={{ color: "#C8C4D6", marginTop: 18, flexShrink: 0 }} />
+            )}
+          </Fragment>
+        ))}
+      </div>
+
+      {/* Cycles de vie */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="rounded-xl px-3 py-2.5" style={{ background: "#FBF1D8", border: "1px solid rgba(176,125,20,.2)" }}>
+          <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "#B07D14" }}>Cycle remontée</p>
+          <p className="text-xs mt-0.5" style={{ color: "#9A7416" }}>nouvelle → en cours → traitée → archivée</p>
+        </div>
+        <div className="rounded-xl px-3 py-2.5" style={{ background: "#E4F0FB", border: "1px solid rgba(45,111,208,.2)" }}>
+          <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "#2D6FD0" }}>Cycle action</p>
+          <p className="text-xs mt-0.5" style={{ color: "#2D6FD0" }}>ouverte → en cours → réalisée</p>
+        </div>
+      </div>
+
+      <p className="text-xs text-center" style={{ color: "var(--pa-muted)" }}>
+        💡 Une remontée peut <strong style={{ color: "var(--pa-ink)" }}>déclencher une action</strong> — ou se clore par une simple réponse.
+      </p>
+    </section>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FonctionnalitesPage() {
@@ -609,6 +678,9 @@ export default function FonctionnalitesPage() {
         <div style={{ paddingTop: "12px" }}>
           <Navigation />
         </div>
+
+        {/* Schéma : flux remontée → action */}
+        <FluxRemonteeAction />
 
         {/* Grille des catégories */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
