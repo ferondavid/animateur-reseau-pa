@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.backup.example
+
+# backups (dumps base + fichiers storage — jamais dans git)
+/backups/
 
 # vercel
 .vercel
@@ -40,3 +44,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
