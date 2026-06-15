@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { enregistrerNews } from "@/app/animateur/news/actions";
 import Link from "next/link";
 import { getGradient } from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
@@ -63,44 +63,22 @@ export default function FormulaireNews({ mode, newsInitiale }: Props) {
     setBusy(true);
 
     try {
-      const form = new FormData(e.currentTarget);
-      const supabase = createClient();
-      let imageUrl = imageActuelle;
+      const fd = new FormData(e.currentTarget);
+      // Champs gérés par état (non inclus nativement dans FormData)
+      fd.append("type", type);
+      fd.append("mode", mode);
+      if (mode === "modifier" && newsInitiale) fd.append("news_id", newsInitiale.id);
+      if (imageActuelle && !fichier) fd.append("image_actuelle", imageActuelle);
+      if (fichier) fd.append("image", fichier);
 
-      if (fichier) {
-        const ext = fichier.name.split(".").pop() ?? "bin";
-        const path = `news_${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("news-images")
-          .upload(path, fichier, { upsert: false, contentType: fichier.type });
-        if (upErr) throw new Error(`Upload image : ${upErr.message}`);
-        const { data: pub } = supabase.storage.from("news-images").getPublicUrl(path);
-        imageUrl = pub.publicUrl;
-      }
-
-      const payload = {
-        titre: form.get("titre") as string,
-        contenu: form.get("contenu") as string,
-        type,
-        auteur: (form.get("auteur") as string) || "Animateur",
-        image_url: imageUrl,
-        epinglee: form.get("epinglee") === "on",
-        publie: form.get("publie") === "on",
-        date_publication: (form.get("date_publication") as string) || new Date().toISOString(),
-      };
-
-      if (mode === "creer") {
-        const { error } = await supabase.from("news").insert(payload);
-        if (error) throw new Error(`Création : ${error.message}`);
-      } else {
-        const { error } = await supabase.from("news").update(payload).eq("id", newsInitiale!.id);
-        if (error) throw new Error(`Mise à jour : ${error.message}`);
-      }
-
-      router.push("/animateur/news");
+      const result = await enregistrerNews(fd);
+      if (!result.ok) throw new Error(result.error);
+      // La Server Action fait redirect("/animateur/news") — ce code ne s'exécute pas normalement.
       router.refresh();
     } catch (err) {
-      setErreur(err instanceof Error ? err.message : JSON.stringify(err));
+      // next/navigation.redirect() lance une erreur NEXT_REDIRECT — on l'ignore
+      const msg = err instanceof Error ? err.message : JSON.stringify(err);
+      if (!msg.includes("NEXT_REDIRECT")) setErreur(msg);
     } finally {
       setBusy(false);
     }

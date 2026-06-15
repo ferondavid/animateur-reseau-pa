@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { creerRemontee } from "@/actions/membre";
 import { Megaphone, Paperclip, X } from "lucide-react";
 
 type Props = { magasinId: string; onClose: () => void };
@@ -23,50 +23,12 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
     setBusy(true);
 
     try {
-      const form = new FormData(e.currentTarget);
-      const supabase = createClient();
+      const fd = new FormData(e.currentTarget);
+      fd.append("magasin_id", magasinId);
+      if (fichier) fd.append("photo", fichier);
 
-      let photoUrl: string | null = null;
-
-      if (fichier) {
-        const ext = fichier.name.split(".").pop() ?? "bin";
-        const path = `magasin_${magasinId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("photos-remontees")
-          .upload(path, fichier, { upsert: false, contentType: fichier.type });
-
-        if (upErr) throw new Error(`Upload : ${upErr.message}`);
-
-        const { data: pub } = supabase.storage
-          .from("photos-remontees")
-          .getPublicUrl(path);
-        photoUrl = pub.publicUrl;
-      }
-
-      const { data: nouvelleRemontee, error: insErr } = await supabase
-        .from("remontees")
-        .insert({
-          magasin_id: magasinId,
-          type: form.get("type") as string,
-          titre: form.get("titre") as string,
-          description: form.get("description") as string,
-          gravite: form.get("gravite") as string,
-          statut: "nouvelle",
-          source: "membre",
-          photo_url: photoUrl,
-        })
-        .select("id")
-        .single();
-
-      if (insErr) throw new Error(`Insert : ${insErr.message}`);
-
-      if (form.get("gravite") === "urgente" && nouvelleRemontee?.id) {
-        fetch("/api/notif/remontee-urgente", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: nouvelleRemontee.id }),
-        }).catch(() => {});
-      }
+      const result = await creerRemontee(fd);
+      if (!result.ok) throw new Error(result.error ?? "Erreur");
 
       setSucces(true);
       setTimeout(() => {

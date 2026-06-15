@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { creerRDV } from "@/actions/membre";
 import { CalendarPlus, Store, Phone, Monitor, X } from "lucide-react";
 
 type Magasin = { id: string; nom: string; enseigne: string | null };
@@ -49,44 +49,18 @@ export default function ModaleNouveauRDV({ magasinId, autresMagasins, onClose }:
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    const form = new FormData(e.currentTarget);
-    const supabase = createClient();
-
-    const { data: rdv, error } = await supabase
-      .from("rendez_vous")
-      .insert({
-        magasin_id: magasinId,
-        type,
-        date_souhaitee: form.get("date_souhaitee") as string,
-        heure_souhaitee: (form.get("heure_souhaitee") as string) || null,
-        objet: form.get("objet") as string,
-        message: (form.get("message") as string) || null,
-        lieu: type === "physique" ? ((form.get("lieu") as string) || "Au magasin") : null,
-        statut: "demande",
-        demandeur_type: "magasin",
-      })
-      .select("id")
-      .single();
-
-    if (error || !rdv) {
-      setLoading(false);
-      const msg = error?.message ?? error?.code ?? JSON.stringify(error) ?? "Erreur inconnue";
-      setErreur(`Erreur : ${msg}`);
-      return;
-    }
     setErreur(null);
 
-    if (invites.length > 0) {
-      await supabase.from("rendez_vous_invites").insert(
-        invites.map((mid) => ({ rendez_vous_id: rdv.id, magasin_id: mid }))
-      );
-    }
+    const fd = new FormData(e.currentTarget);
+    fd.append("magasin_id", magasinId);
 
-    fetch("/api/notif/rdv-demande", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: rdv.id }),
-    }).catch(() => {});
+    const result = await creerRDV(fd, type, invites);
+
+    if (!result.ok) {
+      setErreur(`Erreur : ${result.error ?? "Inconnue"}`);
+      setLoading(false);
+      return;
+    }
 
     setLoading(false);
     setToast("Demande de RDV envoyée !");

@@ -4,8 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mic, MicOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { creerNote } from "@/app/animateur/notes/actions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -130,29 +128,18 @@ export default function EnregistreurNote({ autoStart }: { autoStart?: boolean })
   async function uploadNote(blob: Blob, dureeSec: number) {
     setEtat("uploading");
     try {
-      const supabase = createClient();
-      // Content-type sans ";codecs=…" pour matcher allowed_mime_types du bucket
       const baseType = (blob.type || "audio/webm").split(";")[0];
       const ext = baseType.includes("mp4") ? "m4a" : baseType.includes("ogg") ? "ogg" : "webm";
-      const path = `note-${Date.now()}.${ext}`;
 
-      const { error: upErr } = await supabase.storage
-        .from("notes-vocales")
-        .upload(path, blob, { contentType: baseType, upsert: false });
+      const fd = new FormData();
+      fd.append("audio", blob, `note.${ext}`);
+      fd.append("titre", titreAuto());
+      fd.append("duree_sec", String(dureeSec));
 
-      if (upErr) throw new Error(`Upload : ${upErr.message}`);
+      const res = await fetch("/api/notes/upload", { method: "POST", body: fd });
+      const json = await res.json() as { ok?: boolean; id?: string; error?: string };
 
-      const { data: pub } = supabase.storage
-        .from("notes-vocales")
-        .getPublicUrl(path);
-
-      const result = await creerNote({
-        audioUrl:  pub.publicUrl,
-        dureeSec:  dureeSec,
-        titre:     titreAuto(),
-      });
-
-      if (!result.ok) throw new Error(result.error);
+      if (!res.ok || !json.ok) throw new Error(json.error ?? "Erreur upload");
 
       speak("Note enregistrée.");
       setEtat("done");
