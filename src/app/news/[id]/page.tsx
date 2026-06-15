@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import BoutonRetourNews from "@/components/BoutonRetourNews";
 import { getGradient } from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
+import MarkdownContenu from "@/components/MarkdownContenu";
 
 export default async function NewsDetailPage({
   params,
@@ -45,7 +46,7 @@ export default async function NewsDetailPage({
             {n.epinglee && <span className="ml-1">📌 Épinglée</span>}
           </div>
           <h1 className="text-2xl font-bold text-slate-900">{n.titre}</h1>
-          <div className="text-slate-700 leading-relaxed whitespace-pre-wrap">{n.contenu}</div>
+          <MarkdownContenu source={n.contenu} className="pt-1" />
         </div>
       </div>
     </main>

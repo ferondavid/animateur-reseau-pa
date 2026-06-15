@@ -18,6 +18,11 @@ ALTER TABLE IF EXISTS news              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS ca_mensuel        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS parametres        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS notes_vocales     ENABLE ROW LEVEL SECURITY;
+-- Tables présentes en base mais non interrogées par l'app (laissées ouvertes au 1er passage) :
+ALTER TABLE IF EXISTS ca_centrale         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS commentaires_mobile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS parcours_visite     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS profiles            ENABLE ROW LEVEL SECURITY;
 
 -- ─── 2. Supprimer toutes les policies permissives existantes ─────────────────
 

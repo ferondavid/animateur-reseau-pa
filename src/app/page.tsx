@@ -3,6 +3,7 @@ import BoundaryRedirect from "@/components/BoundaryRedirect";
 import LandingCards from "@/components/LandingCards";
 import CardNews from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
+import MarkdownContenu from "@/components/MarkdownContenu";
 import Link from "next/link";
 
 const TYPE_BADGE: Record<string, string> = {
@@ -81,9 +82,7 @@ export default async function Landing() {
                   {newsPrincipale.epinglee && <span className="ml-1">📌 Épinglée</span>}
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">{newsPrincipale.titre}</h2>
-                <div className="text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {newsPrincipale.contenu}
-                </div>
+                <MarkdownContenu source={newsPrincipale.contenu} />
               </div>
             </div>
 

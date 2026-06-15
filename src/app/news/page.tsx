@@ -3,6 +3,7 @@ import Link from "next/link";
 import BoutonRetourNews from "@/components/BoutonRetourNews";
 import { getGradient } from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
+import { stripMarkdown } from "@/lib/markdown";
 
 const TYPE_BADGE: Record<string, string> = {
   info:       "bg-blue-100 text-blue-700",
@@ -100,7 +101,7 @@ export default async function NewsListePage() {
                 </div>
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between">
-                <p className="text-slate-700 text-sm leading-relaxed line-clamp-3">{hero.contenu}</p>
+                <p className="text-slate-700 text-sm leading-relaxed line-clamp-3">{stripMarkdown(hero.contenu)}</p>
                 <span className="inline-block mt-3 text-sm font-medium text-blue-600 group-hover:underline">
                   Lire la suite →
                 </span>
@@ -170,7 +171,7 @@ export default async function NewsListePage() {
                       <div className="space-y-1">
                         <p className="text-xs text-slate-400">{tempsRelatif(n.date_publication)}{n.auteur ? ` · ${n.auteur}` : ""}</p>
                         <h3 className="font-semibold text-slate-900 text-sm leading-snug line-clamp-2">{n.titre}</h3>
-                        <p className="text-xs text-slate-500 line-clamp-2">{n.contenu}</p>
+                        <p className="text-xs text-slate-500 line-clamp-2">{stripMarkdown(n.contenu)}</p>
                       </div>
                       <span className="text-xs font-medium text-blue-600 group-hover:underline mt-3 block">
                         Lire →

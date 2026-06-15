@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { stripMarkdown } from "@/lib/markdown";
 
 export type NewsItem = {
   id: string;
@@ -73,7 +74,7 @@ export default function CardNews({ news, compact = false }: { news: NewsItem; co
             </div>
             <h3 className="text-sm font-semibold text-slate-900 leading-snug line-clamp-2">{news.titre}</h3>
           </div>
-          <p className="text-xs text-slate-500 line-clamp-1">{news.contenu}</p>
+          <p className="text-xs text-slate-500 line-clamp-1">{stripMarkdown(news.contenu)}</p>
         </div>
       </Link>
     );
@@ -103,7 +104,7 @@ export default function CardNews({ news, compact = false }: { news: NewsItem; co
       <div className="p-4 flex flex-col flex-1 gap-2">
         <div className="text-xs text-slate-400">{tempsRelatif(news.date_publication)}</div>
         <h3 className="font-semibold text-slate-900 leading-snug line-clamp-2">{news.titre}</h3>
-        <p className="text-sm text-slate-600 line-clamp-3 flex-1">{news.contenu}</p>
+        <p className="text-sm text-slate-600 line-clamp-3 flex-1">{stripMarkdown(news.contenu)}</p>
         <Link
           href={`/news/${news.id}`}
           className="text-sm font-medium text-blue-600 hover:underline mt-auto"

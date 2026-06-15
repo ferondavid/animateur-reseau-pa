@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { NewsItem } from "@/components/CardNews";
+import MarkdownContenu from "@/components/MarkdownContenu";
 
 function iconType(t: string) {
   return ({ info: "📢", evenement: "🎉", alerte: "⚠️", temoignage: "💬" } as Record<string, string>)[t] ?? "📰";
@@ -58,9 +59,7 @@ export default function HeroNews({ news }: { news: NewsItem }) {
           {news.titre}
         </h1>
         <div className="h-px bg-slate-100 my-3" />
-        <div className="whitespace-pre-wrap text-slate-700 leading-relaxed text-base">
-          {news.contenu}
-        </div>
+        <MarkdownContenu source={news.contenu} />
         <div className="mt-4 flex items-center justify-between">
           <p className="text-xs text-slate-400">
             Publiée le {new Date(news.date_publication).toLocaleDateString("fr-FR")}
