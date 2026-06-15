@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { enregistrerNews } from "@/app/animateur/news/actions";
 import Link from "next/link";
 import MarkdownContenu from "@/components/MarkdownContenu";
+import { compresserImage } from "@/lib/image";
 import type { NewsItem } from "@/components/CardNews";
 import {
   Megaphone, CalendarDays, AlertTriangle, MessageSquareQuote,
@@ -115,7 +116,7 @@ export default function FormulaireNews({ mode, newsInitiale }: Props) {
       fd.set("mode", mode);
       if (mode === "modifier" && newsInitiale) fd.set("news_id", newsInitiale.id);
       if (imageActuelle && !fichier) fd.set("image_actuelle", imageActuelle);
-      if (fichier) fd.set("image", fichier);
+      if (fichier) fd.set("image", await compresserImage(fichier));
 
       const result = await enregistrerNews(fd);
       if (!result.ok) throw new Error(result.error);

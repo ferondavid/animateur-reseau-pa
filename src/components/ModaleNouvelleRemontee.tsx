@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { creerRemontee } from "@/actions/membre";
+import { compresserImage } from "@/lib/image";
 import { Megaphone, Paperclip, X } from "lucide-react";
 
 type Props = { magasinId: string; onClose: () => void };
@@ -25,7 +26,7 @@ export default function ModaleNouvelleRemontee({ magasinId, onClose }: Props) {
     try {
       const fd = new FormData(e.currentTarget);
       fd.append("magasin_id", magasinId);
-      if (fichier) fd.append("photo", fichier);
+      if (fichier) fd.append("photo", await compresserImage(fichier));
 
       const result = await creerRemontee(fd);
       if (!result.ok) throw new Error(result.error ?? "Erreur");
