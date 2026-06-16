@@ -15,6 +15,7 @@ export async function confirmerVisite(
   const { error } = await supabase.from("visites").update({ confirmee: valeur }).eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/animateur/tournee");
+  revalidatePath("/animateur/tournee/semaine");
   return { ok: true };
 }
 
@@ -34,5 +35,6 @@ export async function reporterVisite(
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/animateur/tournee");
+  revalidatePath("/animateur/tournee/semaine");
   return { ok: true };
 }

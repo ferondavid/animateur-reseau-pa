@@ -9,7 +9,7 @@ import ActionsVisiteTournee from "@/components/ActionsVisiteTournee";
 import { titreMagasin } from "@/lib/magasin";
 import {
   Navigation as NavIcon, Phone, ClipboardCheck, Check,
-  Mic, AlertTriangle, MapPin, CalendarDays,
+  Mic, AlertTriangle, MapPin, CalendarDays, CalendarRange,
 } from "lucide-react";
 
 type Magasin = {
@@ -98,6 +98,12 @@ export default async function TourneePage({
         </div>
 
         <Navigation />
+
+        <div className="flex justify-end">
+          <Link href="/animateur/tournee/semaine" className="text-sm font-semibold inline-flex items-center gap-1.5" style={{ color: "#6B4FD8" }}>
+            <CalendarRange size={14} /> Vue semaine
+          </Link>
+        </div>
 
         {/* Progression */}
         {total > 0 && (
