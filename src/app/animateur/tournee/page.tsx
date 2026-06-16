@@ -5,6 +5,7 @@ import Link from "next/link";
 import BoutonAccueil from "@/components/BoutonAccueil";
 import Navigation from "@/components/Navigation";
 import SelecteurDateTournee from "@/components/SelecteurDateTournee";
+import ActionsVisiteTournee from "@/components/ActionsVisiteTournee";
 import { titreMagasin } from "@/lib/magasin";
 import {
   Navigation as NavIcon, Phone, ClipboardCheck, Check,
@@ -25,6 +26,8 @@ type Visite = {
   id: string;
   statut: string;
   date_prevue: string | null;
+  heure_prevue: string | null;
+  confirmee: boolean | null;
   objectif: string | null;
   created_at: string;
   magasins: Magasin | null;
@@ -66,8 +69,9 @@ export default async function TourneePage({
   const supabase = await createClient();
   const { data } = await supabase
     .from("visites")
-    .select("id, statut, date_prevue, objectif, created_at, magasins(id, nom, enseigne, ville, contact_telephone, latitude, longitude, niveau)")
+    .select("id, statut, date_prevue, heure_prevue, confirmee, objectif, created_at, magasins(id, nom, enseigne, ville, contact_telephone, latitude, longitude, niveau)")
     .eq("date_prevue", date)
+    .order("heure_prevue", { ascending: true, nullsFirst: true })
     .order("created_at", { ascending: true });
 
   const visites = (data ?? []) as unknown as Visite[];
@@ -130,6 +134,8 @@ export default async function TourneePage({
               const niv = m?.niveau ? NIVEAU[m.niveau] : null;
               const nom = m ? titreMagasin(m.enseigne, m.nom) : "Magasin";
               const tel = telHref(m?.contact_telephone ?? null);
+              const heure = v.heure_prevue ? v.heure_prevue.slice(0, 5) : null;
+              const conf = !!v.confirmee;
 
               if (faite) {
                 return (
@@ -155,11 +161,18 @@ export default async function TourneePage({
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: "var(--pa-ink)" }}>{nom}</p>
+                      <div className="flex items-center gap-2">
+                        {heure && <span className="text-sm font-bold shrink-0" style={{ color: "#6B4FD8" }}>{heure}</span>}
+                        <p className="text-sm font-semibold truncate" style={{ color: "var(--pa-ink)" }}>{nom}</p>
+                      </div>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                          style={conf ? { background: "#D2F2E7", color: "#0F8C68" } : { background: "#FBF1D8", color: "#B07D14" }}>
+                          {conf ? "Confirmée" : "À confirmer"}
+                        </span>
                         {niv && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: niv.bg, color: niv.fg }}>{niv.label}</span>}
                         {m?.ville && <span className="text-xs" style={{ color: "var(--pa-muted)" }}>{m.ville}</span>}
-                        {estProchaine && <span className="text-xs font-semibold" style={{ color: "#6B4FD8" }}>· prochaine étape</span>}
+                        {estProchaine && <span className="text-xs font-semibold" style={{ color: "#6B4FD8" }}>· prochaine</span>}
                       </div>
                     </div>
                   </div>
@@ -200,6 +213,8 @@ export default async function TourneePage({
                       </Link>
                     )}
                   </div>
+
+                  <ActionsVisiteTournee id={v.id} confirmee={conf} date={v.date_prevue ?? date} heure={v.heure_prevue} />
                 </div>
               );
             })}

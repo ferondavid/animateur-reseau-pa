@@ -146,6 +146,10 @@ export default function ParcoursMagasins({
     return d.toISOString().slice(0, 10);
   });
   const [objectifPlanif, setObjectifPlanif] = useState("Tournée animateur");
+  const [visitesParJour, setVisitesParJour] = useState(2);
+  const [heureDebutPlanif, setHeureDebutPlanif] = useState("09:00");
+  const [intervalleMin, setIntervalleMin] = useState(90);
+  const [sauterWeekend, setSauterWeekend] = useState(true);
   const [planifResult, setPlanifResult] = useState<{ ok: boolean; nb?: number; error?: string } | null>(null);
   const [isPlanif, startPlanif] = useTransition();
 
@@ -653,14 +657,45 @@ export default function ParcoursMagasins({
               <h3 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--pa-ink)" }}><CalendarPlus size={16} style={{ color: "#7C6BE8" }} />Planifier les visites</h3>
               <button onClick={() => setModalPlanif(false)} style={{ color: "var(--pa-muted)" }} aria-label="Fermer"><X size={16} /></button>
             </div>
-            <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
-              {parcours.etapes.filter((e) => e.type === "magasin").length} visite{parcours.etapes.filter((e) => e.type === "magasin").length > 1 ? "s" : ""} créées, 1 par jour.
-            </p>
+            {(() => {
+              const nb = parcours.etapes.filter((e) => e.type === "magasin").length;
+              const jours = Math.ceil(nb / Math.max(1, visitesParJour));
+              return (
+                <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
+                  {nb} visite{nb > 1 ? "s" : ""} · {visitesParJour}/jour · sur {jours} jour{jours > 1 ? "s" : ""}
+                  {sauterWeekend ? ` ouvré${jours > 1 ? "s" : ""}` : ""}.
+                </p>
+              );
+            })()}
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>Premier jour</label>
                 <input type="date" value={datePlanif} onChange={(e) => setDatePlanif(e.target.value)}
                   className="pa-input" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>Visites / jour</label>
+                  <select value={visitesParJour} onChange={(e) => setVisitesParJour(Number(e.target.value))} className="pa-input">
+                    {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>Heure de début</label>
+                  <input type="time" value={heureDebutPlanif} onChange={(e) => setHeureDebutPlanif(e.target.value)} className="pa-input" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 items-end">
+                <div>
+                  <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>Intervalle (min)</label>
+                  <input type="number" min={15} step={15} value={intervalleMin}
+                    onChange={(e) => setIntervalleMin(Number(e.target.value))} className="pa-input" />
+                </div>
+                <label className="flex items-center gap-2 text-sm pb-2.5 cursor-pointer" style={{ color: "var(--pa-ink)" }}>
+                  <input type="checkbox" checked={sauterWeekend} onChange={(e) => setSauterWeekend(e.target.checked)}
+                    className="w-4 h-4" style={{ accentColor: "#6B4FD8" }} />
+                  Sauter les week-ends
+                </label>
               </div>
               <div>
                 <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>Objectif</label>
@@ -684,7 +719,12 @@ export default function ParcoursMagasins({
                 onClick={() =>
                   startPlanif(async () => {
                     const ids = parcours.etapes.filter((e) => e.type === "magasin").map((e) => e.id);
-                    const r = await creerVisitesPlanifieesParcours(ids, datePlanif, objectifPlanif);
+                    const r = await creerVisitesPlanifieesParcours(ids, datePlanif, objectifPlanif, {
+                      visitesParJour,
+                      heureDebut: heureDebutPlanif,
+                      intervalleMin,
+                      sauterWeekend,
+                    });
                     setPlanifResult(r);
                     if (r.ok) setTimeout(() => setModalPlanif(false), 1800);
                   })
