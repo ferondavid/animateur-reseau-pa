@@ -9,12 +9,22 @@ import {
 import TuilesVisites from "@/components/TuilesVisites";
 import type { VisiteTuile } from "@/components/TuilesVisites";
 
-const STATUT: Record<string, { bg: string; fg: string }> = {
-  planifiee: { bg: "#E4F0FB", fg: "#2D6FD0" },
-  realisee:  { bg: "#D2F2E7", fg: "#0F8C68" },
-  annulee:   { bg: "#ECEAF3", fg: "#6F6982" },
-  reportee:  { bg: "#FBF1D8", fg: "#B07D14" },
-};
+// Code couleur selon l'état de validation (pas seulement le statut brut)
+function etatVisite(v: VisiteTuile): { label: string; bg: string; fg: string } {
+  if (v.statut === "realisee") return { label: "Réalisée", bg: "#EDEBFB", fg: "#6B4FD8" };
+  if (v.statut === "annulee")  return { label: "Annulée", bg: "#ECEAF3", fg: "#6F6982" };
+  if (v.statut === "reportee") return { label: "Reportée", bg: "#FBE0E8", fg: "#C0476E" };
+  return v.confirmee
+    ? { label: "Validée", bg: "#D2F2E7", fg: "#0F8C68" }
+    : { label: "À confirmer", bg: "#FBF1D8", fg: "#B07D14" };
+}
+
+const LEGENDE = [
+  { label: "À confirmer", bg: "#FBF1D8", fg: "#B07D14" },
+  { label: "Validée", bg: "#D2F2E7", fg: "#0F8C68" },
+  { label: "Réalisée", bg: "#EDEBFB", fg: "#6B4FD8" },
+  { label: "Reportée", bg: "#FBE0E8", fg: "#C0476E" },
+];
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 function ymd(d: Date): string {
@@ -106,6 +116,18 @@ export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
         )}
       </div>
 
+      {/* Légende code couleur (vues calendrier) */}
+      {vue !== "liste" && (
+        <div className="flex items-center gap-3 flex-wrap">
+          {LEGENDE.map((l) => (
+            <span key={l.label} className="inline-flex items-center gap-1.5 text-xs" style={{ color: "var(--pa-muted)" }}>
+              <span style={{ width: 11, height: 11, borderRadius: 3, background: l.bg, boxShadow: `inset 0 0 0 1px ${l.fg}55` }} />
+              {l.label}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* LISTE */}
       {vue === "liste" && <TuilesVisites visites={listeTriee} />}
 
@@ -160,7 +182,7 @@ export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
                   </span>
                 </div>
                 {vs.slice(0, 3).map((v) => {
-                  const st = STATUT[v.statut] ?? STATUT.annulee;
+                  const st = etatVisite(v);
                   const h = heureCourte(v);
                   return (
                     <button key={v.id} onClick={() => onChip(v.id)}
@@ -207,7 +229,7 @@ export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
                   {vs.length === 0 ? (
                     <p className="text-[11px] text-center py-2" style={{ color: "var(--pa-line)" }}>—</p>
                   ) : vs.map((v) => {
-                    const st = STATUT[v.statut] ?? STATUT.annulee;
+                    const st = etatVisite(v);
                     const h = heureCourte(v);
                     return (
                       <button key={v.id} onClick={() => onChip(v.id)}
