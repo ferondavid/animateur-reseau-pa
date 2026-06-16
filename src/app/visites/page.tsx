@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import { Plus } from "lucide-react";
-import TuilesVisites from "@/components/TuilesVisites";
+import VuesVisites from "@/components/VuesVisites";
 import type { VisiteTuile } from "@/components/TuilesVisites";
 
 export default async function VisitesPage() {
@@ -60,7 +60,7 @@ export default async function VisitesPage() {
             <p style={{ color: "var(--pa-muted)" }}>Aucune visite enregistrée.</p>
           </div>
         ) : (
-          <TuilesVisites visites={liste} />
+          <VuesVisites visites={liste} />
         )}
       </div>
     </main>
