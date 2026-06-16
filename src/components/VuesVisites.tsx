@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import TuilesVisites from "@/components/TuilesVisites";
 import type { VisiteTuile } from "@/components/TuilesVisites";
+import { TYPE_BLOC } from "@/lib/jours-bloques";
 
 // Code couleur selon l'état de validation (pas seulement le statut brut)
 function etatVisite(v: VisiteTuile): { label: string; bg: string; fg: string } {
@@ -48,7 +49,7 @@ function heureCourte(v: VisiteTuile): string | null {
   return v.heure_prevue ? v.heure_prevue.slice(0, 5) : null;
 }
 
-export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
+export default function VuesVisites({ visites, joursBloques = {} }: { visites: VisiteTuile[]; joursBloques?: Record<string, string> }) {
   const router = useRouter();
   const [vue, setVue] = useState<"liste" | "mois" | "semaine">("liste");
   const [sortAsc, setSortAsc] = useState(false);
@@ -134,20 +135,20 @@ export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
 
       {/* MOIS */}
       {vue === "mois" && (
-        <VueMois curseur={curseur} parDate={parDate} today={today}
+        <VueMois curseur={curseur} parDate={parDate} today={today} bloques={joursBloques}
           onChip={(id) => router.push(`/visites/${id}`)} />
       )}
 
       {/* SEMAINE */}
       {vue === "semaine" && (
-        <VueSemaine curseur={curseur} parDate={parDate} today={today}
+        <VueSemaine curseur={curseur} parDate={parDate} today={today} bloques={joursBloques}
           onChip={(id) => router.push(`/visites/${id}`)} />
       )}
     </div>
   );
 
-  function VueMois({ curseur, parDate, today, onChip }: {
-    curseur: Date; parDate: Map<string, VisiteTuile[]>; today: string; onChip: (id: string) => void;
+  function VueMois({ curseur, parDate, today, bloques, onChip }: {
+    curseur: Date; parDate: Map<string, VisiteTuile[]>; today: string; bloques: Record<string, string>; onChip: (id: string) => void;
   }) {
     const premier = new Date(curseur.getFullYear(), curseur.getMonth(), 1);
     const debut = lundi(premier);
@@ -168,11 +169,13 @@ export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
             const horsMois = d.getMonth() !== curseur.getMonth();
             const estToday = k === today;
             const vs = parDate.get(k) ?? [];
+            const bloc = bloques[k];
+            const cb = bloc ? TYPE_BLOC[bloc] : null;
             return (
               <div key={i} className="min-h-[88px] p-1.5 space-y-1" style={{
                 borderRight: (i % 7 !== 6) ? "1px solid var(--pa-line)" : undefined,
                 borderBottom: i < 35 ? "1px solid var(--pa-line)" : undefined,
-                background: horsMois ? "rgba(0,0,0,0.015)" : undefined,
+                background: cb ? `${cb.bg}66` : horsMois ? "rgba(0,0,0,0.015)" : undefined,
               }}>
                 <div className="text-right">
                   <span className="inline-flex items-center justify-center text-xs font-semibold rounded-full"
@@ -182,6 +185,11 @@ export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
                     {d.getDate()}
                   </span>
                 </div>
+                {cb && (
+                  <div className="truncate rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: cb.bg, color: cb.fg }}>
+                    {cb.label}
+                  </div>
+                )}
                 {vs.slice(0, 3).map((v) => {
                   const st = etatVisite(v);
                   const h = heureCourte(v);
@@ -204,8 +212,8 @@ export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
     );
   }
 
-  function VueSemaine({ curseur, parDate, today, onChip }: {
-    curseur: Date; parDate: Map<string, VisiteTuile[]>; today: string; onChip: (id: string) => void;
+  function VueSemaine({ curseur, parDate, today, bloques, onChip }: {
+    curseur: Date; parDate: Map<string, VisiteTuile[]>; today: string; bloques: Record<string, string>; onChip: (id: string) => void;
   }) {
     const debut = lundi(curseur);
     const jours = Array.from({ length: 7 }, (_, i) => addDays(debut, i));
@@ -221,14 +229,18 @@ export default function VuesVisites({ visites }: { visites: VisiteTuile[] }) {
               const k = ymd(d);
               const estToday = k === today;
               const vs = parDate.get(k) ?? [];
+              const cb = bloques[k] ? TYPE_BLOC[bloques[k]] : null;
               return (
-                <div key={i} className="pa-card p-2 space-y-2" style={estToday ? { boxShadow: "inset 0 0 0 2px #6B4FD8" } : undefined}>
+                <div key={i} className="pa-card p-2 space-y-2" style={{ boxShadow: estToday ? "inset 0 0 0 2px #6B4FD8" : undefined, background: cb ? `${cb.bg}66` : undefined }}>
                   <div className="text-center pb-1.5" style={{ borderBottom: "1px solid var(--pa-line)" }}>
                     <p className="text-xs font-semibold" style={{ color: "var(--pa-muted)" }}>{JOURS[i]}</p>
                     <p className="text-sm font-bold" style={{ color: estToday ? "#6B4FD8" : "var(--pa-ink)" }}>{d.getDate()}</p>
                   </div>
+                  {cb && (
+                    <p className="text-[10px] text-center font-semibold rounded px-1 py-0.5" style={{ background: cb.bg, color: cb.fg }}>{cb.label}</p>
+                  )}
                   {vs.length === 0 ? (
-                    <p className="text-[11px] text-center py-2" style={{ color: "var(--pa-line)" }}>—</p>
+                    <p className="text-[11px] text-center py-2" style={{ color: "var(--pa-line)" }}>{cb ? "" : "—"}</p>
                   ) : vs.map((v) => {
                     const st = etatVisite(v);
                     const h = heureCourte(v);

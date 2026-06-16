@@ -4,15 +4,20 @@ import Navigation from "@/components/Navigation";
 import { Plus } from "lucide-react";
 import VuesVisites from "@/components/VuesVisites";
 import type { VisiteTuile } from "@/components/TuilesVisites";
+import { SELECT_JOURS_BLOQUES, mapJoursBloques, type JourBloque } from "@/lib/jours-bloques";
 
 export default async function VisitesPage() {
   const supabase = await createClient();
-  const { data: visites } = await supabase
-    .from("visites")
-    .select(
-      "id, magasin_id, date_prevue, date_realisee, heure_prevue, confirmee, statut, objectif, note_confiance, note_business, magasins(nom, enseigne, ville, adresse, code_postal, contact_telephone)"
-    );
+  const [{ data: visites }, { data: blocRows }] = await Promise.all([
+    supabase
+      .from("visites")
+      .select(
+        "id, magasin_id, date_prevue, date_realisee, heure_prevue, confirmee, statut, objectif, note_confiance, note_business, magasins(nom, enseigne, ville, adresse, code_postal, contact_telephone)"
+      ),
+    supabase.from("jours_bloques").select(SELECT_JOURS_BLOQUES),
+  ]);
 
+  const joursBloques = Object.fromEntries(mapJoursBloques((blocRows ?? []) as JourBloque[]));
   const liste = (visites ?? []) as unknown as VisiteTuile[];
 
   // Tri « du plus proche au plus loin » : prochaines visites en premier (date croissante),
@@ -60,7 +65,7 @@ export default async function VisitesPage() {
             <p style={{ color: "var(--pa-muted)" }}>Aucune visite enregistrée.</p>
           </div>
         ) : (
-          <VuesVisites visites={liste} />
+          <VuesVisites visites={liste} joursBloques={joursBloques} />
         )}
       </div>
     </main>

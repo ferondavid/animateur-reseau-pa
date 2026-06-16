@@ -7,7 +7,7 @@ import { logout } from "@/app/login/actions";
 import BoutonInstallerPWA from "./BoutonInstallerPWA";
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3, Car, Newspaper, Zap, Settings, LogOut, ChevronDown, Menu, FileText, Mic, MapPin,
+  BarChart3, Car, Newspaper, Zap, Settings, LogOut, ChevronDown, Menu, FileText, Mic, MapPin, CalendarOff,
 } from "lucide-react";
 
 type Item =
@@ -21,6 +21,7 @@ const ITEMS: Item[] = [
   { kind: "link", href: "/animateur/notes",            icon: Mic,        label: "Notes vocales",          tone: "primary" },
   { kind: "link", href: "/animateur/parcours",          icon: Car,        label: "Préparer une tournée",  tone: "emerald" },
   { kind: "link", href: "/animateur/tournee",           icon: MapPin,     label: "Tournée du jour",       tone: "emerald" },
+  { kind: "link", href: "/animateur/disponibilites",    icon: CalendarOff, label: "Disponibilités",       tone: "emerald" },
   { kind: "sep" },
   { kind: "link", href: "/animateur/news",              icon: Newspaper,  label: "Gestion des news" },
   { kind: "link", href: "/animateur/fonctionnalites",   icon: Zap,        label: "Fonctionnalités app" },

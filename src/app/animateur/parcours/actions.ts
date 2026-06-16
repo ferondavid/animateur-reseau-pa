@@ -6,6 +6,7 @@ import type { Point, EtapeParcours } from "@/lib/itineraire";
 import type { ConfigVE } from "@/lib/bornes-recharge";
 import { insererArretsRecharge } from "@/lib/bornes-recharge";
 import { titreMagasin } from "@/lib/magasin";
+import { SELECT_JOURS_BLOQUES, mapJoursBloques, type JourBloque } from "@/lib/jours-bloques";
 
 /**
  * Server action : calcule les arrêts de recharge côté serveur
@@ -33,18 +34,16 @@ function estWeekend(d: Date): boolean {
   const j = d.getDay();
   return j === 0 || j === 6;
 }
-// Renvoie le n-ième jour ouvré à partir de `start` (n=0 → start, en sautant les week-ends si demandé)
-function jourOuvre(start: Date, n: number, sauterWeekend: boolean): Date {
+// Renvoie le n-ième jour disponible à partir de `start` (saute le week-end si demandé,
+// et toujours les jours bloqués : home office / congés / journée bureau)
+function jourOuvre(start: Date, n: number, sauterWeekend: boolean, bloques: Set<string>): Date {
   const d = new Date(start);
-  if (!sauterWeekend) {
-    d.setDate(d.getDate() + n);
-    return d;
-  }
-  while (estWeekend(d)) d.setDate(d.getDate() + 1);
+  const indispo = (x: Date) => (sauterWeekend && estWeekend(x)) || bloques.has(x.toISOString().slice(0, 10));
+  while (indispo(d)) d.setDate(d.getDate() + 1);
   let count = 0;
   while (count < n) {
     d.setDate(d.getDate() + 1);
-    if (!estWeekend(d)) count++;
+    if (!indispo(d)) count++;
   }
   return d;
 }
@@ -107,10 +106,17 @@ export async function creerVisitesPlanifieesParcours(
   // La tournée démarre le lundi (quand on saute les week-ends)
   const debut = sauterWeekend ? snapLundi(dateDebut) : new Date(dateDebut + "T12:00:00");
 
+  // Jours bloqués (home office / congés / bureau) → exclus de la planification
+  const debutStr = debut.toISOString().slice(0, 10);
+  const horizonBloc = new Date(debut.getTime() + 120 * 86400_000).toISOString().slice(0, 10);
+  const { data: blocRows } = await supabase.from("jours_bloques")
+    .select(SELECT_JOURS_BLOQUES).gte("date_fin", debutStr).lte("date_debut", horizonBloc);
+  const bloques = new Set(mapJoursBloques((blocRows ?? []) as JourBloque[]).keys());
+
   const rows = aPlanifier.map((mid, i) => {
     const jourIndex = Math.floor(i / vpj);
     const pos = i % vpj;
-    const d = jourOuvre(debut, jourIndex, sauterWeekend);
+    const d = jourOuvre(debut, jourIndex, sauterWeekend, bloques);
     const totalMin = baseMin + pos * intervalle;
     const hh = String(Math.floor(totalMin / 60) % 24).padStart(2, "0");
     const mm = String(totalMin % 60).padStart(2, "0");
