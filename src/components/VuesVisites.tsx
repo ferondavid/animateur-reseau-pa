@@ -14,12 +14,13 @@ function etatVisite(v: VisiteTuile): { label: string; bg: string; fg: string } {
   if (v.statut === "realisee") return { label: "Réalisée", bg: "#EDEBFB", fg: "#6B4FD8" };
   if (v.statut === "annulee")  return { label: "Annulée", bg: "#ECEAF3", fg: "#6F6982" };
   if (v.statut === "reportee") return { label: "Reportée", bg: "#FBE0E8", fg: "#C0476E" };
-  return v.confirmee
-    ? { label: "Validée", bg: "#D2F2E7", fg: "#0F8C68" }
-    : { label: "À confirmer", bg: "#FBF1D8", fg: "#B07D14" };
+  if (v.confirmee)    return { label: "Validée", bg: "#D2F2E7", fg: "#0F8C68" };
+  if (v.heure_prevue) return { label: "À confirmer", bg: "#FBF1D8", fg: "#B07D14" };
+  return { label: "Planifiée", bg: "#E4F0FB", fg: "#2D6FD0" };
 }
 
 const LEGENDE = [
+  { label: "Planifiée", bg: "#E4F0FB", fg: "#2D6FD0" },
   { label: "À confirmer", bg: "#FBF1D8", fg: "#B07D14" },
   { label: "Validée", bg: "#D2F2E7", fg: "#0F8C68" },
   { label: "Réalisée", bg: "#EDEBFB", fg: "#6B4FD8" },
