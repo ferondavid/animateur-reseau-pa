@@ -28,6 +28,7 @@ export type OptionsPlanif = {
   forcer?: boolean;               // passer outre les avertissements (chevauchement / visite récente)
 };
 
+// Jours hors tournée = samedi + dimanche (tournée lun→ven soir, retour le week-end)
 function estWeekend(d: Date): boolean {
   const j = d.getDay();
   return j === 0 || j === 6;
@@ -90,7 +91,7 @@ export async function creerVisitesPlanifieesParcours(
   const [h0, m0] = (options?.heureDebut ?? "09:00").split(":").map(Number);
   const baseMin = (h0 || 9) * 60 + (m0 || 0);
 
-  // Capacité d'une semaine (lun→ven si on saute les week-ends, sinon 7 jours)
+  // Capacité d'une semaine (lun→ven si on saute le week-end, sinon 7 jours)
   const joursParSemaine = sauterWeekend ? 5 : 7;
   const capaciteSemaine = joursParSemaine * vpj;
   const debordement = Math.max(0, magasinIds.length - capaciteSemaine);
