@@ -23,6 +23,7 @@ export type OptionsPlanif = {
   heureDebut?: string;   // "HH:MM"
   intervalleMin?: number;
   sauterWeekend?: boolean;
+  autoriserDebordement?: boolean; // RDV en début de semaine suivante si ça ne rentre pas
 };
 
 function estWeekend(d: Date): boolean {
@@ -45,24 +46,47 @@ function jourOuvre(start: Date, n: number, sauterWeekend: boolean): Date {
   return d;
 }
 
+// Lundi de la semaine contenant `dateStr`
+function snapLundi(dateStr: string): Date {
+  const d = new Date(dateStr + "T12:00:00");
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
+
 export async function creerVisitesPlanifieesParcours(
   magasinIds: string[],
   dateDebut: string,
   objectif: string,
   options?: OptionsPlanif
-): Promise<{ ok: boolean; nb?: number; error?: string }> {
+): Promise<{ ok: boolean; nb?: number; error?: string; debordement?: number; nonPlanifies?: number }> {
   if (!magasinIds.length) return { ok: false, error: "Aucun magasin sélectionné" };
   if (!dateDebut) return { ok: false, error: "Date de début manquante" };
 
   const supabase = await createClient();
-  const debut = new Date(dateDebut + "T12:00:00");
   const vpj = Math.max(1, Math.min(6, options?.visitesParJour ?? 2));
   const intervalle = Math.max(15, options?.intervalleMin ?? 90);
   const sauterWeekend = options?.sauterWeekend ?? true;
+  const autoriserDebordement = options?.autoriserDebordement ?? false;
   const [h0, m0] = (options?.heureDebut ?? "09:00").split(":").map(Number);
   const baseMin = (h0 || 9) * 60 + (m0 || 0);
 
-  const rows = magasinIds.map((mid, i) => {
+  // Capacité d'une semaine (lun→ven si on saute les week-ends, sinon 7 jours)
+  const joursParSemaine = sauterWeekend ? 5 : 7;
+  const capaciteSemaine = joursParSemaine * vpj;
+  const debordement = Math.max(0, magasinIds.length - capaciteSemaine);
+
+  // Si débordement non autorisé : on ne planifie que ce qui rentre dans la semaine
+  let aPlanifier = magasinIds;
+  let nonPlanifies = 0;
+  if (debordement > 0 && !autoriserDebordement) {
+    aPlanifier = magasinIds.slice(0, capaciteSemaine);
+    nonPlanifies = debordement;
+  }
+
+  // La tournée démarre le lundi (quand on saute les week-ends)
+  const debut = sauterWeekend ? snapLundi(dateDebut) : new Date(dateDebut + "T12:00:00");
+
+  const rows = aPlanifier.map((mid, i) => {
     const jourIndex = Math.floor(i / vpj);
     const pos = i % vpj;
     const d = jourOuvre(debut, jourIndex, sauterWeekend);
@@ -85,7 +109,12 @@ export async function creerVisitesPlanifieesParcours(
 
   revalidatePath("/animateur");
   revalidatePath("/visites");
-  for (const mid of magasinIds) revalidatePath(`/magasins/${mid}`);
+  for (const mid of aPlanifier) revalidatePath(`/magasins/${mid}`);
 
-  return { ok: true, nb: data?.length ?? 0 };
+  return {
+    ok: true,
+    nb: data?.length ?? 0,
+    debordement: autoriserDebordement ? debordement : 0,
+    nonPlanifies,
+  };
 }

@@ -11,7 +11,7 @@ import {
 } from "@/app/animateur/parcours/actions";
 import {
   MapPin, Map as MapIcon, CalendarPlus, RefreshCw, Zap,
-  Save, X,
+  Save, X, AlertTriangle,
 } from "lucide-react";
 import { titreMagasin } from "@/lib/magasin";
 
@@ -150,7 +150,8 @@ export default function ParcoursMagasins({
   const [heureDebutPlanif, setHeureDebutPlanif] = useState("09:00");
   const [intervalleMin, setIntervalleMin] = useState(90);
   const [sauterWeekend, setSauterWeekend] = useState(true);
-  const [planifResult, setPlanifResult] = useState<{ ok: boolean; nb?: number; error?: string } | null>(null);
+  const [autoriserDebordement, setAutoriserDebordement] = useState(false);
+  const [planifResult, setPlanifResult] = useState<{ ok: boolean; nb?: number; error?: string; debordement?: number; nonPlanifies?: number } | null>(null);
   const [isPlanif, startPlanif] = useTransition();
 
   useEffect(() => {
@@ -672,6 +673,9 @@ export default function ParcoursMagasins({
                 <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>Premier jour</label>
                 <input type="date" value={datePlanif} onChange={(e) => setDatePlanif(e.target.value)}
                   className="pa-input" />
+                {sauterWeekend && (
+                  <p className="text-xs mt-1" style={{ color: "var(--pa-muted)" }}>La tournée démarre le lundi de la semaine choisie.</p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -703,10 +707,34 @@ export default function ParcoursMagasins({
                   className="pa-input" />
               </div>
             </div>
+
+            {(() => {
+              const nb = parcours.etapes.filter((e) => e.type === "magasin").length;
+              const capacite = (sauterWeekend ? 5 : 7) * Math.max(1, visitesParJour);
+              const surplus = Math.max(0, nb - capacite);
+              if (surplus === 0) return null;
+              return (
+                <div className="rounded-xl px-4 py-3 text-sm space-y-2" style={{ background: "#FBF1D8", border: "1px solid rgba(176,125,20,.3)", color: "#B07D14" }}>
+                  <p className="font-semibold flex items-center gap-1.5"><AlertTriangle size={14} /> Dépassement semaine</p>
+                  <p className="text-xs">{surplus} visite{surplus > 1 ? "s" : ""} ne rentrent pas dans la semaine (lun→ven).</p>
+                  <label className="flex items-center gap-2 text-xs font-medium cursor-pointer" style={{ color: "#7a5810" }}>
+                    <input type="checkbox" checked={autoriserDebordement} onChange={(e) => setAutoriserDebordement(e.target.checked)}
+                      className="w-4 h-4" style={{ accentColor: "#B07D14" }} />
+                    Autoriser les RDV en début de semaine suivante
+                  </label>
+                  {!autoriserDebordement && (
+                    <p className="text-xs" style={{ opacity: 0.85 }}>Sinon, ces {surplus} magasin{surplus > 1 ? "s" : ""} ne seront pas planifiés.</p>
+                  )}
+                </div>
+              );
+            })()}
+
             {planifResult && (
               planifResult.ok
                 ? <div className="rounded-xl px-4 py-2 text-sm font-medium" style={{ background: "#D2F2E7", border: "1px solid rgba(31,169,138,.25)", color: "#0F8C68" }}>
                     {planifResult.nb} visite{(planifResult.nb ?? 0) > 1 ? "s" : ""} créée{(planifResult.nb ?? 0) > 1 ? "s" : ""}
+                    {planifResult.debordement ? ` (dont ${planifResult.debordement} en semaine suivante)` : ""}
+                    {planifResult.nonPlanifies ? ` · ${planifResult.nonPlanifies} non planifiée${planifResult.nonPlanifies > 1 ? "s" : ""}` : ""}
                   </div>
                 : <div className="rounded-xl px-4 py-2 text-sm" style={{ background: "#FBE0E8", border: "1px solid rgba(192,71,110,.25)", color: "#C0476E" }}>{planifResult.error}</div>
             )}
@@ -724,6 +752,7 @@ export default function ParcoursMagasins({
                       heureDebut: heureDebutPlanif,
                       intervalleMin,
                       sauterWeekend,
+                      autoriserDebordement,
                     });
                     setPlanifResult(r);
                     if (r.ok) setTimeout(() => setModalPlanif(false), 1800);
