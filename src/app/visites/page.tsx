@@ -2,23 +2,23 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import { Plus } from "lucide-react";
-import ListeVisitesSelectionnable from "@/components/ListeVisitesSelectionnable";
-import type { VisiteItem } from "@/components/ListeVisitesSelectionnable";
+import TuilesVisites from "@/components/TuilesVisites";
+import type { VisiteTuile } from "@/components/TuilesVisites";
 
 export default async function VisitesPage() {
   const supabase = await createClient();
   const { data: visites } = await supabase
     .from("visites")
     .select(
-      "id, magasin_id, date_prevue, date_realisee, statut, note_confiance, note_business, magasins(nom, enseigne, ville)"
+      "id, magasin_id, date_prevue, date_realisee, heure_prevue, confirmee, statut, objectif, note_confiance, note_business, magasins(nom, enseigne, ville, adresse, code_postal, contact_telephone)"
     );
 
-  const liste = (visites ?? []) as unknown as VisiteItem[];
+  const liste = (visites ?? []) as unknown as VisiteTuile[];
 
   // Tri « du plus proche au plus loin » : prochaines visites en premier (date croissante),
   // puis les visites passées (de la plus récente à la plus ancienne).
   const aujourdhui = new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10);
-  const dateRef = (v: VisiteItem) => v.date_realisee ?? v.date_prevue ?? "";
+  const dateRef = (v: VisiteTuile) => v.date_realisee ?? v.date_prevue ?? "";
   liste.sort((a, b) => {
     const da = dateRef(a), db = dateRef(b);
     if (!da) return 1;
@@ -60,7 +60,7 @@ export default async function VisitesPage() {
             <p style={{ color: "var(--pa-muted)" }}>Aucune visite enregistrée.</p>
           </div>
         ) : (
-          <ListeVisitesSelectionnable visites={liste} />
+          <TuilesVisites visites={liste} />
         )}
       </div>
     </main>
