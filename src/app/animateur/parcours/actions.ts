@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { Point, EtapeParcours } from "@/lib/itineraire";
 import type { ConfigVE } from "@/lib/bornes-recharge";
 import { insererArretsRecharge } from "@/lib/bornes-recharge";
+import { titreMagasin } from "@/lib/magasin";
 
 /**
  * Server action : calcule les arrêts de recharge côté serveur
@@ -24,6 +25,7 @@ export type OptionsPlanif = {
   intervalleMin?: number;
   sauterWeekend?: boolean;
   autoriserDebordement?: boolean; // RDV en début de semaine suivante si ça ne rentre pas
+  forcer?: boolean;               // passer outre les avertissements (chevauchement / visite récente)
 };
 
 function estWeekend(d: Date): boolean {
@@ -52,13 +54,27 @@ function snapLundi(dateStr: string): Date {
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   return d;
 }
+function enMinutes(h: string): number {
+  const [a, b] = h.slice(0, 5).split(":").map(Number);
+  return (a || 0) * 60 + (b || 0);
+}
+function decaleJours(dateStr: string, n: number): string {
+  const d = new Date(dateStr + "T12:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
 
 export async function creerVisitesPlanifieesParcours(
   magasinIds: string[],
   dateDebut: string,
   objectif: string,
   options?: OptionsPlanif
-): Promise<{ ok: boolean; nb?: number; error?: string; debordement?: number; nonPlanifies?: number }> {
+): Promise<{
+  ok: boolean; nb?: number; error?: string; debordement?: number; nonPlanifies?: number;
+  besoinConfirmation?: boolean;
+  recents?: { magasin: string; date: string }[];
+  conflits?: { date: string; heure: string; magasin: string }[];
+}> {
   if (!magasinIds.length) return { ok: false, error: "Aucun magasin sélectionné" };
   if (!dateDebut) return { ok: false, error: "Date de début manquante" };
 
@@ -103,6 +119,67 @@ export async function creerVisitesPlanifieesParcours(
       confirmee: false,
     };
   });
+
+  // ── Vérifications (sautées si forcer) : chevauchement + visite récente ───────
+  if (!options?.forcer) {
+    const magIds = [...new Set(rows.map((r) => r.magasin_id))];
+    const newDates = [...new Set(rows.map((r) => r.date_prevue))];
+    const minDate = newDates.slice().sort()[0];
+    const cutoff = decaleJours(minDate, -15);
+
+    const [{ data: existMag }, { data: existDate }] = await Promise.all([
+      supabase.from("visites")
+        .select("magasin_id, date_prevue, date_realisee")
+        .in("magasin_id", magIds)
+        .neq("statut", "annulee")
+        .or(`date_realisee.gte.${cutoff},date_prevue.gte.${cutoff}`),
+      supabase.from("visites")
+        .select("magasin_id, date_prevue, heure_prevue")
+        .in("date_prevue", newDates)
+        .eq("statut", "planifiee")
+        .not("heure_prevue", "is", null),
+    ]);
+
+    const idsNoms = [...new Set([...magIds, ...((existDate ?? []).map((e) => e.magasin_id as string))])];
+    const { data: noms } = await supabase.from("magasins").select("id, nom, enseigne").in("id", idsNoms);
+    const nomDe = (id: string) => {
+      const m = (noms ?? []).find((n) => n.id === id);
+      return m ? titreMagasin(m.enseigne, m.nom) : "Magasin";
+    };
+
+    // Visite récente : magasin déjà visité dans les 15 j précédant la nouvelle visite
+    const recentsMap = new Map<string, string>();
+    for (const r of rows) {
+      const last = (existMag ?? [])
+        .filter((e) => e.magasin_id === r.magasin_id)
+        .map((e) => (e.date_realisee ?? e.date_prevue) as string | null)
+        .filter((d): d is string => !!d && d < r.date_prevue && d >= decaleJours(r.date_prevue, -15))
+        .sort()
+        .pop();
+      if (last && !recentsMap.has(r.magasin_id)) recentsMap.set(r.magasin_id, last);
+    }
+    const recents = [...recentsMap.entries()].map(([id, date]) => ({ magasin: nomDe(id), date }));
+
+    // Chevauchement horaire avec une visite existante (même date, créneaux à < 60 min)
+    const DUREE = 60;
+    const conflits: { date: string; heure: string; magasin: string }[] = [];
+    for (const r of rows) {
+      const start = enMinutes(r.heure_prevue);
+      for (const e of existDate ?? []) {
+        if (e.date_prevue !== r.date_prevue || !e.heure_prevue) continue;
+        if (Math.abs(start - enMinutes(e.heure_prevue as string)) < DUREE) {
+          conflits.push({ date: r.date_prevue, heure: r.heure_prevue.slice(0, 5), magasin: nomDe(e.magasin_id as string) });
+        }
+      }
+    }
+
+    if (recents.length || conflits.length) {
+      return {
+        ok: false, besoinConfirmation: true, recents, conflits,
+        debordement: autoriserDebordement ? debordement : 0, nonPlanifies,
+      };
+    }
+  }
 
   const { error, data } = await supabase.from("visites").insert(rows).select("id");
   if (error) return { ok: false, error: error.message };

@@ -151,8 +151,30 @@ export default function ParcoursMagasins({
   const [intervalleMin, setIntervalleMin] = useState(90);
   const [sauterWeekend, setSauterWeekend] = useState(true);
   const [autoriserDebordement, setAutoriserDebordement] = useState(false);
-  const [planifResult, setPlanifResult] = useState<{ ok: boolean; nb?: number; error?: string; debordement?: number; nonPlanifies?: number } | null>(null);
+  const [planifResult, setPlanifResult] = useState<{
+    ok: boolean; nb?: number; error?: string; debordement?: number; nonPlanifies?: number;
+    besoinConfirmation?: boolean;
+    recents?: { magasin: string; date: string }[];
+    conflits?: { date: string; heure: string; magasin: string }[];
+  } | null>(null);
   const [isPlanif, startPlanif] = useTransition();
+
+  function planifier(forcer: boolean) {
+    if (!parcours) return;
+    startPlanif(async () => {
+      const ids = parcours.etapes.filter((e) => e.type === "magasin").map((e) => e.id);
+      const r = await creerVisitesPlanifieesParcours(ids, datePlanif, objectifPlanif, {
+        visitesParJour,
+        heureDebut: heureDebutPlanif,
+        intervalleMin,
+        sauterWeekend,
+        autoriserDebordement,
+        forcer,
+      });
+      setPlanifResult(r);
+      if (r.ok) setTimeout(() => setModalPlanif(false), 1800);
+    });
+  }
 
   useEffect(() => {
     try {
@@ -729,7 +751,29 @@ export default function ParcoursMagasins({
               );
             })()}
 
-            {planifResult && (
+            {planifResult?.besoinConfirmation ? (
+              <div className="rounded-xl px-4 py-3 text-sm space-y-2.5" style={{ background: "#FBF1D8", border: "1px solid rgba(176,125,20,.3)", color: "#B07D14" }}>
+                <p className="font-semibold flex items-center gap-1.5"><AlertTriangle size={14} /> À vérifier avant de planifier</p>
+                {(planifResult.conflits?.length ?? 0) > 0 && (
+                  <div className="space-y-1">
+                    {planifResult.conflits!.map((c, i) => (
+                      <p key={i} className="text-xs">Chevauchement le {new Date(c.date + "T12:00:00").toLocaleDateString("fr-FR")} à {c.heure} avec <b>{c.magasin}</b></p>
+                    ))}
+                  </div>
+                )}
+                {(planifResult.recents?.length ?? 0) > 0 && (
+                  <div className="space-y-1">
+                    {planifResult.recents!.map((r, i) => (
+                      <p key={i} className="text-xs"><b>{r.magasin}</b> déjà visité le {new Date(r.date + "T12:00:00").toLocaleDateString("fr-FR")} — ajouter quand même ?</p>
+                    ))}
+                  </div>
+                )}
+                <button onClick={() => planifier(true)} disabled={isPlanif}
+                  className="w-full py-2 rounded-xl text-sm font-semibold" style={{ background: "#B07D14", color: "#fff", opacity: isPlanif ? 0.6 : 1 }}>
+                  {isPlanif ? "Création…" : "Planifier quand même"}
+                </button>
+              </div>
+            ) : planifResult ? (
               planifResult.ok
                 ? <div className="rounded-xl px-4 py-2 text-sm font-medium" style={{ background: "#D2F2E7", border: "1px solid rgba(31,169,138,.25)", color: "#0F8C68" }}>
                     {planifResult.nb} visite{(planifResult.nb ?? 0) > 1 ? "s" : ""} créée{(planifResult.nb ?? 0) > 1 ? "s" : ""}
@@ -737,27 +781,14 @@ export default function ParcoursMagasins({
                     {planifResult.nonPlanifies ? ` · ${planifResult.nonPlanifies} non planifiée${planifResult.nonPlanifies > 1 ? "s" : ""}` : ""}
                   </div>
                 : <div className="rounded-xl px-4 py-2 text-sm" style={{ background: "#FBE0E8", border: "1px solid rgba(192,71,110,.25)", color: "#C0476E" }}>{planifResult.error}</div>
-            )}
+            ) : null}
             <div className="flex gap-3">
               <button onClick={() => setModalPlanif(false)}
                 className="pa-btn-secondary flex-1 py-2.5 rounded-xl text-sm">
                 Annuler
               </button>
               <button
-                onClick={() =>
-                  startPlanif(async () => {
-                    const ids = parcours.etapes.filter((e) => e.type === "magasin").map((e) => e.id);
-                    const r = await creerVisitesPlanifieesParcours(ids, datePlanif, objectifPlanif, {
-                      visitesParJour,
-                      heureDebut: heureDebutPlanif,
-                      intervalleMin,
-                      sauterWeekend,
-                      autoriserDebordement,
-                    });
-                    setPlanifResult(r);
-                    if (r.ok) setTimeout(() => setModalPlanif(false), 1800);
-                  })
-                }
+                onClick={() => planifier(false)}
                 disabled={isPlanif || !datePlanif}
                 className="pa-btn-primary flex-1 py-2.5 rounded-xl text-sm">
                 {isPlanif ? "Création…" : "Créer les visites"}
