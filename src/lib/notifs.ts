@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { envoyerEmail } from "./email";
+import { envoyerPush } from "./push";
 import { genererInvitationIcs } from "./ical-invite";
 import { getParametre } from "./parametres";
 
@@ -37,8 +38,6 @@ function htmlLayout(titre: string, body: string, ctaUrl?: string, ctaLabel?: str
 
 export async function notifierRemonteeUrgente(remonteeId: string): Promise<void> {
   if (!(await notifActive("notif_remontee_urgente"))) return;
-  const animEmail = await emailAnimateur();
-  if (!animEmail) return;
 
   const supabase = await createClient();
   const { data: r } = await supabase
@@ -51,6 +50,16 @@ export async function notifierRemonteeUrgente(remonteeId: string): Promise<void>
 
   const mag = r.magasins as unknown as { nom: string; enseigne?: string | null; ville?: string | null } | null;
   const enseigne = mag?.enseigne || mag?.nom || "Magasin";
+
+  await envoyerPush({
+    title: "🚨 Remontée urgente",
+    body: `${enseigne}${mag?.ville ? ` · ${mag.ville}` : ""} — ${r.titre as string}`,
+    url: `${APP_URL}/animateur`,
+    tag: "remontee-urgente",
+  });
+
+  const animEmail = await emailAnimateur();
+  if (!animEmail) return;
 
   const html = htmlLayout(
     "🚨 Remontée urgente",
@@ -77,8 +86,6 @@ export async function notifierRemonteeUrgente(remonteeId: string): Promise<void>
 
 export async function notifierNouveauRDVMagasin(rdvId: string): Promise<void> {
   if (!(await notifActive("notif_rdv_demande"))) return;
-  const animEmail = await emailAnimateur();
-  if (!animEmail) return;
 
   const supabase = await createClient();
   const { data: r } = await supabase
@@ -103,6 +110,16 @@ export async function notifierNouveauRDVMagasin(rdvId: string): Promise<void> {
     tel: "📞 Téléphone",
     visio: "💻 Visio",
   };
+
+  await envoyerPush({
+    title: "📅 Demande de RDV",
+    body: `${enseigne}${mag?.ville ? ` · ${mag.ville}` : ""} — ${r.objet as string}`,
+    url: `${APP_URL}/animateur/rdv?tab=attente`,
+    tag: "rdv-demande",
+  });
+
+  const animEmail = await emailAnimateur();
+  if (!animEmail) return;
 
   const html = htmlLayout(
     "📅 Demande de RDV",

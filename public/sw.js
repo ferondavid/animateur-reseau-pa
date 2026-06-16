@@ -2,7 +2,7 @@
 //  - le HTML / les pages / les API ne sont JAMAIS mis en cache (toujours frais)
 //  - seuls les assets immuables (/_next/static/* avec hash, /icon*) sont cachés
 //  - à chaque mise à jour du SW, on PURGE tout l'ancien cache (fini les vieilles versions)
-const CACHE = "anim-pa-v3";
+const CACHE = "anim-pa-v4";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -38,4 +38,40 @@ self.addEventListener("fetch", (e) => {
     );
   }
   // Tout le reste (pages HTML, /membre, /animateur, API…) = réseau direct, jamais de cache.
+});
+
+// ── Notifications push ───────────────────────────────────────────────────────
+self.addEventListener("push", (e) => {
+  let data = { title: "Animation réseau PA", body: "", url: "/animateur", tag: undefined };
+  try {
+    if (e.data) data = Object.assign(data, e.data.json());
+  } catch {
+    if (e.data) data.body = e.data.text();
+  }
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/icon",
+      badge: "/icon",
+      tag: data.tag,
+      data: { url: data.url || "/animateur" },
+      vibrate: [120, 60, 120],
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/animateur";
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) {
+        if ("focus" in c) {
+          c.navigate(url);
+          return c.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
 });

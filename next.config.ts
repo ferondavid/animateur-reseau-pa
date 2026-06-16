@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["node-ical"],
+  serverExternalPackages: ["node-ical", "web-push"],
   experimental: {
     // Les uploads (images news, photos remontées) passent par des Server Actions.
     // Limite par défaut = 1 Mo → relevée. Filet de sécurité : les images sont

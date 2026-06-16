@@ -7,6 +7,7 @@ import FormulaireGCal from "./FormulaireGCal";
 import ExportCalendar from "./ExportCalendar";
 import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
 import NotifEmail from "./NotifEmail";
+import BoutonActiverNotifs from "@/components/BoutonActiverNotifs";
 import VehiculeElectrique from "./VehiculeElectrique";
 import AdresseDepart from "./AdresseDepart";
 
@@ -138,6 +139,19 @@ export default async function ParametresPage() {
               notif_rdv_confirme:     notifRdvConfirme !== "false",
             }}
           />
+        </div>
+
+        {/* Notifications push */}
+        <div className="pa-card p-6 space-y-5">
+          <div>
+            <h2 className="text-base font-bold" style={{ color: "var(--pa-ink)" }}>🔔 Notifications push</h2>
+            <p className="text-sm mt-1" style={{ color: "var(--pa-muted)" }}>
+              Reçois une alerte instantanée sur cet appareil (remontée urgente, demande de RDV),
+              même app fermée. À activer sur chaque appareil. Sur iPhone, l&apos;app doit être installée
+              sur l&apos;écran d&apos;accueil.
+            </p>
+          </div>
+          <BoutonActiverNotifs />
         </div>
 
         {/* Affichage news fiche membre */}
