@@ -11,11 +11,22 @@ export default async function VisitesPage() {
     .from("visites")
     .select(
       "id, magasin_id, date_prevue, date_realisee, statut, note_confiance, note_business, magasins(nom, enseigne, ville)"
-    )
-    .order("date_realisee", { ascending: false, nullsFirst: false })
-    .order("date_prevue", { ascending: false });
+    );
 
   const liste = (visites ?? []) as unknown as VisiteItem[];
+
+  // Tri « du plus proche au plus loin » : prochaines visites en premier (date croissante),
+  // puis les visites passées (de la plus récente à la plus ancienne).
+  const aujourdhui = new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10);
+  const dateRef = (v: VisiteItem) => v.date_realisee ?? v.date_prevue ?? "";
+  liste.sort((a, b) => {
+    const da = dateRef(a), db = dateRef(b);
+    if (!da) return 1;
+    if (!db) return -1;
+    const aFutur = da >= aujourdhui, bFutur = db >= aujourdhui;
+    if (aFutur !== bFutur) return aFutur ? -1 : 1;
+    return aFutur ? da.localeCompare(db) : db.localeCompare(da);
+  });
 
   return (
     <main className="min-h-screen p-4 sm:p-8">
