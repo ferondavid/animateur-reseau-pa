@@ -63,6 +63,9 @@ function decaleJours(dateStr: string, n: number): string {
   d.setDate(d.getDate() + n);
   return d.toISOString().slice(0, 10);
 }
+function lundiStr(dateStr: string): string {
+  return snapLundi(dateStr).toISOString().slice(0, 10);
+}
 
 export async function creerVisitesPlanifieesParcours(
   magasinIds: string[],
@@ -74,6 +77,7 @@ export async function creerVisitesPlanifieesParcours(
   besoinConfirmation?: boolean;
   recents?: { magasin: string; date: string }[];
   conflits?: { date: string; heure: string; magasin: string }[];
+  semaineOccupee?: { suggestionLundi: string };
 }> {
   if (!magasinIds.length) return { ok: false, error: "Aucun magasin sélectionné" };
   if (!dateDebut) return { ok: false, error: "Date de début manquante" };
@@ -173,9 +177,30 @@ export async function creerVisitesPlanifieesParcours(
       }
     }
 
-    if (recents.length || conflits.length) {
+    // Semaine déjà occupée par une autre tournée → suggérer la prochaine semaine libre
+    const cibleTriees = [...new Set(newDates.map((d) => lundiStr(d)))].sort();
+    const horizonFin = decaleJours(cibleTriees[cibleTriees.length - 1], 7 * 16);
+    const { data: existPlan } = await supabase.from("visites")
+      .select("date_prevue")
+      .eq("statut", "planifiee")
+      .gte("date_prevue", cibleTriees[0])
+      .lte("date_prevue", horizonFin)
+      .not("date_prevue", "is", null);
+    const semainesOccupees = new Set((existPlan ?? []).map((e) => lundiStr(e.date_prevue as string)));
+    const cibleOccupee = cibleTriees.some((s) => semainesOccupees.has(s));
+    let suggestionLundi: string | null = null;
+    if (cibleOccupee) {
+      let cand = cibleTriees[0];
+      for (let i = 0; i < 26; i++) {
+        if (!semainesOccupees.has(cand)) { suggestionLundi = cand; break; }
+        cand = decaleJours(cand, 7);
+      }
+    }
+
+    if (recents.length || conflits.length || cibleOccupee) {
       return {
         ok: false, besoinConfirmation: true, recents, conflits,
+        semaineOccupee: cibleOccupee ? { suggestionLundi: suggestionLundi ?? "" } : undefined,
         debordement: autoriserDebordement ? debordement : 0, nonPlanifies,
       };
     }

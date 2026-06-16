@@ -156,14 +156,17 @@ export default function ParcoursMagasins({
     besoinConfirmation?: boolean;
     recents?: { magasin: string; date: string }[];
     conflits?: { date: string; heure: string; magasin: string }[];
+    semaineOccupee?: { suggestionLundi: string };
   } | null>(null);
   const [isPlanif, startPlanif] = useTransition();
 
-  function planifier(forcer: boolean) {
+  function planifier(forcer: boolean, dateOverride?: string) {
     if (!parcours) return;
+    const dateDebut = dateOverride ?? datePlanif;
+    if (dateOverride) setDatePlanif(dateOverride);
     startPlanif(async () => {
       const ids = parcours.etapes.filter((e) => e.type === "magasin").map((e) => e.id);
-      const r = await creerVisitesPlanifieesParcours(ids, datePlanif, objectifPlanif, {
+      const r = await creerVisitesPlanifieesParcours(ids, dateDebut, objectifPlanif, {
         visitesParJour,
         heureDebut: heureDebutPlanif,
         intervalleMin,
@@ -754,6 +757,17 @@ export default function ParcoursMagasins({
             {planifResult?.besoinConfirmation ? (
               <div className="rounded-xl px-4 py-3 text-sm space-y-2.5" style={{ background: "#FBF1D8", border: "1px solid rgba(176,125,20,.3)", color: "#B07D14" }}>
                 <p className="font-semibold flex items-center gap-1.5"><AlertTriangle size={14} /> À vérifier avant de planifier</p>
+                {planifResult.semaineOccupee && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs">Une tournée est déjà programmée sur cette période.</p>
+                    {planifResult.semaineOccupee.suggestionLundi && (
+                      <button onClick={() => planifier(false, planifResult.semaineOccupee!.suggestionLundi)} disabled={isPlanif}
+                        className="w-full py-2 rounded-xl text-sm font-semibold" style={{ background: "#6B4FD8", color: "#fff", opacity: isPlanif ? 0.6 : 1 }}>
+                        Placer sur la semaine du {new Date(planifResult.semaineOccupee.suggestionLundi + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
+                      </button>
+                    )}
+                  </div>
+                )}
                 {(planifResult.conflits?.length ?? 0) > 0 && (
                   <div className="space-y-1">
                     {planifResult.conflits!.map((c, i) => (
