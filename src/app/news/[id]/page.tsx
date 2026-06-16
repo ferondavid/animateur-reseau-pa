@@ -4,6 +4,7 @@ import BoutonRetourNews from "@/components/BoutonRetourNews";
 import { getGradient } from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
 import MarkdownContenu from "@/components/MarkdownContenu";
+import { styleImageNews, fondImageNews, hauteurNews } from "@/lib/news-image";
 
 export default async function NewsDetailPage({
   params,
@@ -29,12 +30,12 @@ export default async function NewsDetailPage({
         <BoutonRetourNews href="/news" label="Retour aux actualités" />
 
         {/* Image / dégradé */}
-        <div className="rounded-2xl overflow-hidden h-48">
+        <div className="rounded-2xl overflow-hidden" style={{ background: fondImageNews(n) }}>
           {n.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={n.image_url} alt={n.titre} className="w-full h-full object-cover" />
+            <img src={n.image_url} alt={n.titre} style={styleImageNews(n)} />
           ) : (
-            <div className={`w-full h-full ${getGradient(n.type)}`} />
+            <div className={getGradient(n.type)} style={{ height: hauteurNews(n) }} />
           )}
         </div>
 

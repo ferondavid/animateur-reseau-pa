@@ -16,7 +16,7 @@ export default async function ModifierNewsPage({
 
   return (
     <main className="min-h-screen p-6 md:p-10">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <div>
           <Link href="/animateur/news" className="text-sm text-slate-400 hover:text-slate-700 transition-colors">
             ← Retour aux news
@@ -34,6 +34,9 @@ export default async function ModifierNewsPage({
             epinglee: news.epinglee,
             publie: news.publie,
             auteur: news.auteur,
+            image_hauteur: news.image_hauteur,
+            image_cadrage: news.image_cadrage,
+            image_position: news.image_position,
           }}
         />
       </div>

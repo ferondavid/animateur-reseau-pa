@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { NewsItem } from "@/components/CardNews";
 import MarkdownContenu from "@/components/MarkdownContenu";
+import { styleImageNews, fondImageNews, hauteurNews } from "@/lib/news-image";
 
 function iconType(t: string) {
   return ({ info: "📢", evenement: "🎉", alerte: "⚠️", temoignage: "💬" } as Record<string, string>)[t] ?? "📰";
@@ -28,14 +29,12 @@ export default function HeroNews({ news }: { news: NewsItem }) {
     <article className="w-full bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-200">
 
       {/* Image pleine largeur */}
-      <div className={`relative w-full h-32 md:h-40 lg:h-48 ${!news.image_url ? gradient(news.type) : ""}`}>
-        {news.image_url && (
+      <div className="relative w-full overflow-hidden" style={{ background: news.image_url ? fondImageNews(news) : undefined }}>
+        {news.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={news.image_url}
-            alt={news.titre}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          <img src={news.image_url} alt={news.titre} style={styleImageNews(news)} />
+        ) : (
+          <div className={gradient(news.type)} style={{ height: hauteurNews(news) }} />
         )}
         {news.epinglee && (
           <div className="absolute top-4 left-4 bg-amber-400 text-amber-950 px-3 py-1.5 rounded-full text-xs font-bold shadow-md inline-flex items-center gap-1.5">

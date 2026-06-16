@@ -6,6 +6,7 @@ import { enregistrerNews } from "@/app/animateur/news/actions";
 import Link from "next/link";
 import MarkdownContenu from "@/components/MarkdownContenu";
 import { compresserImage } from "@/lib/image";
+import { styleImageNews, fondImageNews, hauteurNews } from "@/lib/news-image";
 import type { NewsItem } from "@/components/CardNews";
 import {
   Megaphone, CalendarDays, AlertTriangle, MessageSquareQuote,
@@ -33,8 +34,30 @@ type Props = {
     epinglee: boolean;
     publie: boolean;
     auteur: string | null;
+    image_hauteur?: string | null;
+    image_cadrage?: string | null;
+    image_position?: string | null;
   };
 };
+
+function Segmente<T extends string>({
+  options, valeur, onChange,
+}: { options: { v: T; label: string }[]; valeur: T; onChange: (v: T) => void }) {
+  return (
+    <div className="inline-flex p-0.5 rounded-lg" style={{ background: "var(--pa-card)", boxShadow: "inset 0 0 0 1px var(--pa-line)" }}>
+      {options.map(({ v, label }) => {
+        const actif = valeur === v;
+        return (
+          <button key={v} type="button" onClick={() => onChange(v)}
+            className="px-2.5 py-1 rounded-md text-xs font-semibold transition-all"
+            style={actif ? { background: "#EDEBFB", color: "#6B4FD8" } : { background: "transparent", color: "var(--pa-muted)" }}>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 const now = () => {
   const d = new Date();
@@ -53,10 +76,14 @@ export default function FormulaireNews({ mode, newsInitiale }: Props) {
   const [fichier, setFichier] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageActuelle, setImageActuelle] = useState<string | null>(newsInitiale?.image_url ?? null);
+  const [imgHauteur, setImgHauteur] = useState((newsInitiale?.image_hauteur as string) ?? "moyenne");
+  const [imgCadrage, setImgCadrage] = useState((newsInitiale?.image_cadrage as string) ?? "remplir");
+  const [imgPosition, setImgPosition] = useState((newsInitiale?.image_position as string) ?? "centre");
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   const typeCfg = TYPES.find((t) => t.value === type)!;
   const apercu = previewUrl ?? imageActuelle;
+  const imgCfg = { image_hauteur: imgHauteur, image_cadrage: imgCadrage, image_position: imgPosition };
 
   function handleFichier(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
@@ -117,6 +144,9 @@ export default function FormulaireNews({ mode, newsInitiale }: Props) {
       if (mode === "modifier" && newsInitiale) fd.set("news_id", newsInitiale.id);
       if (imageActuelle && !fichier) fd.set("image_actuelle", imageActuelle);
       if (fichier) fd.set("image", await compresserImage(fichier));
+      fd.set("image_hauteur", imgHauteur);
+      fd.set("image_cadrage", imgCadrage);
+      fd.set("image_position", imgPosition);
 
       const result = await enregistrerNews(fd);
       if (!result.ok) throw new Error(result.error);
@@ -225,6 +255,29 @@ export default function FormulaireNews({ mode, newsInitiale }: Props) {
             <p className="text-xs mt-1" style={{ color: "var(--pa-muted)" }}>
               Sans image, un dégradé selon le type s&apos;affichera.
             </p>
+
+            {apercu && (
+              <div className="mt-3 space-y-2.5 rounded-xl p-3" style={{ background: "var(--pa-bg)", border: "1px solid var(--pa-line)" }}>
+                <p className="text-xs font-semibold" style={{ color: "var(--pa-ink)" }}>Affichage de l&apos;image</p>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs" style={{ color: "var(--pa-muted)" }}>Hauteur</span>
+                  <Segmente valeur={imgHauteur} onChange={setImgHauteur}
+                    options={[{ v: "petite", label: "Petite" }, { v: "moyenne", label: "Moyenne" }, { v: "grande", label: "Grande" }]} />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs" style={{ color: "var(--pa-muted)" }}>Cadrage</span>
+                  <Segmente valeur={imgCadrage} onChange={setImgCadrage}
+                    options={[{ v: "remplir", label: "Remplir" }, { v: "entiere", label: "Image entière" }]} />
+                </div>
+                {imgCadrage === "remplir" && (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs" style={{ color: "var(--pa-muted)" }}>Position</span>
+                    <Segmente valeur={imgPosition} onChange={setImgPosition}
+                      options={[{ v: "haut", label: "Haut" }, { v: "centre", label: "Centre" }, { v: "bas", label: "Bas" }]} />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Contenu + barre d'outils Markdown */}
@@ -273,12 +326,12 @@ export default function FormulaireNews({ mode, newsInitiale }: Props) {
           <div className="flex items-center gap-1.5 mb-3 text-xs font-semibold" style={{ color: "var(--pa-muted)" }}>
             <Eye size={13} /> Aperçu
           </div>
-          <div className="rounded-xl overflow-hidden h-40 mb-4" style={{ border: "1px solid var(--pa-line)" }}>
+          <div className="rounded-xl overflow-hidden mb-4" style={{ border: "1px solid var(--pa-line)", background: fondImageNews(imgCfg) }}>
             {apercu ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={apercu} alt="" className="w-full h-full object-cover" />
+              <img src={apercu} alt="" style={styleImageNews(imgCfg)} />
             ) : (
-              <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${typeCfg.bg}, ${typeCfg.fg}33)` }} />
+              <div style={{ height: hauteurNews(imgCfg), background: `linear-gradient(135deg, ${typeCfg.bg}, ${typeCfg.fg}33)` }} />
             )}
           </div>
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full inline-flex items-center gap-1"

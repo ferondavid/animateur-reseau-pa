@@ -4,6 +4,7 @@ import LandingCards from "@/components/LandingCards";
 import CardNews from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
 import MarkdownContenu from "@/components/MarkdownContenu";
+import { styleImageNews, fondImageNews, hauteurNews } from "@/lib/news-image";
 import Link from "next/link";
 
 const TYPE_BADGE: Record<string, string> = {
@@ -57,16 +58,17 @@ export default async function Landing() {
 
             <div className="space-y-6">
               {/* Image / dégradé */}
-              <div className="rounded-2xl overflow-hidden h-40">
+              <div className="rounded-2xl overflow-hidden" style={{ background: fondImageNews(newsPrincipale) }}>
                 {newsPrincipale.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={newsPrincipale.image_url}
                     alt={newsPrincipale.titre}
-                    className="w-full h-full object-cover"
+                    style={styleImageNews(newsPrincipale)}
                   />
                 ) : (
-                  <div className={`w-full h-full ${GRADIENT[newsPrincipale.type] ?? "bg-gradient-to-br from-slate-400 to-slate-600"}`} />
+                  <div className={GRADIENT[newsPrincipale.type] ?? "bg-gradient-to-br from-slate-400 to-slate-600"}
+                       style={{ height: hauteurNews(newsPrincipale) }} />
                 )}
               </div>
 

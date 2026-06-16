@@ -11,6 +11,9 @@ export type NewsItem = {
   epinglee: boolean;
   publie?: boolean;
   date_publication: string;
+  image_hauteur?: string | null;
+  image_cadrage?: string | null;
+  image_position?: string | null;
 };
 
 const TYPE_BADGE: Record<NewsItem["type"], string> = {
