@@ -5,7 +5,7 @@ import PersistRole from "@/components/PersistRole";
 import MenuAnimateur from "@/components/MenuAnimateur";
 import CardRDVDemande from "@/components/CardRDVDemande";
 import type { RDVDemande } from "@/components/CardRDVDemande";
-import CardEvtAgenda from "@/components/CardEvtAgenda";
+import AgendaSemaine from "@/components/AgendaSemaine";
 import { fetchAgendaUnifie } from "@/lib/agenda-unifie";
 import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
@@ -544,17 +544,7 @@ export default async function AnimateurPage() {
                   {gcalError && <div className="text-[11px] mt-1" style={{ color: "#B45309" }}>{gcalLabel} : {gcalError}</div>}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {agendaUnifie.slice(0, 12).map((e) => (
-                    <CardEvtAgenda key={e.id} evt={e} />
-                  ))}
-                </div>
-              )}
-
-              {agendaUnifie.length > 12 && (
-                <p className="text-xs text-center mt-3" style={{ color: "var(--pa-muted)" }}>
-                  + {agendaUnifie.length - 12} autres évènements dans les 30 prochains jours
-                </p>
+                <AgendaSemaine events={agendaUnifie} gcalLabel={gcalLabel} gcalError={gcalError} />
               )}
             </div>
           </Tuile>
