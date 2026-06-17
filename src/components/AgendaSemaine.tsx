@@ -11,6 +11,12 @@ const SOURCE: Record<string, { label: string; bg: string; fg: string }> = {
   google: { label: "Agenda", bg: "#E4F0FB", fg: "#2D6FD0" },
 };
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const FILTRES_SRC: { key: string; label: string; bg?: string; fg?: string }[] = [
+  { key: "tous", label: "Tous" },
+  { key: "rdv", label: "RDV", bg: "#EDEBFB", fg: "#6B4FD8" },
+  { key: "visite", label: "Visite", bg: "#D2F2E7", fg: "#0F8C68" },
+  { key: "google", label: "Agenda", bg: "#E4F0FB", fg: "#2D6FD0" },
+];
 
 function ymd(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -36,19 +42,25 @@ export default function AgendaSemaine({ events, gcalLabel, gcalError }: {
 }) {
   const router = useRouter();
   const [vue, setVue] = useState<"semaine" | "mois" | "liste">("semaine");
+  const [filtreSrc, setFiltreSrc] = useState("tous");
   const [curseur, setCurseur] = useState(() => new Date());
   const today = ymd(new Date());
 
+  const eventsFiltres = useMemo(
+    () => (filtreSrc === "tous" ? events : events.filter((e) => e.source === filtreSrc)),
+    [events, filtreSrc]
+  );
+
   const parJour = useMemo(() => {
     const m = new Map<string, EvtAgenda[]>();
-    for (const e of events) {
+    for (const e of eventsFiltres) {
       const k = ymd(new Date(e.debut));
       if (!m.has(k)) m.set(k, []);
       m.get(k)!.push(e);
     }
     for (const arr of m.values()) arr.sort((a, b) => +new Date(a.debut) - +new Date(b.debut));
     return m;
-  }, [events]);
+  }, [eventsFiltres]);
 
   const ouvrir = (e: EvtAgenda) => { if (e.urlDetail) router.push(e.urlDetail); };
 
@@ -91,13 +103,20 @@ export default function AgendaSemaine({ events, gcalLabel, gcalError }: {
         <p className="text-[11px]" style={{ color: "#B45309" }}>{gcalLabel} : {gcalError}</p>
       )}
 
-      {/* Légende sources */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {Object.values(SOURCE).map((s) => (
-          <span key={s.label} className="inline-flex items-center gap-1.5 text-xs" style={{ color: "var(--pa-muted)" }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: s.bg, boxShadow: `inset 0 0 0 1px ${s.fg}55` }} />{s.label}
-          </span>
-        ))}
+      {/* Filtres par source */}
+      <div className="flex gap-1.5 flex-wrap">
+        {FILTRES_SRC.map((f) => {
+          const actif = filtreSrc === f.key;
+          const style: React.CSSProperties = actif
+            ? (f.bg ? { background: f.bg, color: f.fg, boxShadow: `inset 0 0 0 1.5px ${f.fg}` } : { background: "#EDEBFB", color: "#6B4FD8", boxShadow: "inset 0 0 0 1.5px #6B4FD8" })
+            : { background: "var(--pa-card)", color: "var(--pa-muted)", boxShadow: "inset 0 0 0 1px var(--pa-line)" };
+          return (
+            <button key={f.key} onClick={() => setFiltreSrc(f.key)}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all" style={style}>
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
       {vue === "semaine" ? (
@@ -175,7 +194,7 @@ export default function AgendaSemaine({ events, gcalLabel, gcalError }: {
         })()
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {events.map((e) => {
+          {eventsFiltres.map((e) => {
             const s = SOURCE[e.source] ?? SOURCE.google;
             return (
               <button key={e.id} onClick={() => ouvrir(e)} disabled={!e.urlDetail}

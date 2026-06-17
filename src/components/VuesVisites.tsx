@@ -27,6 +27,25 @@ const LEGENDE = [
   { label: "Réalisée", bg: "#EDEBFB", fg: "#6B4FD8" },
   { label: "Reportée", bg: "#FBE0E8", fg: "#C0476E" },
 ];
+
+// Clé d'état (même logique que etatVisite) pour le filtrage
+function etatKey(v: VisiteTuile): string {
+  if (v.statut === "realisee") return "realisee";
+  if (v.statut === "annulee") return "annulee";
+  if (v.statut === "reportee") return "reportee";
+  if (v.confirmee) return "validee";
+  if (v.heure_prevue) return "a_confirmer";
+  return "planifiee";
+}
+const FILTRES: { key: string; label: string; bg?: string; fg?: string }[] = [
+  { key: "tous", label: "Tous" },
+  { key: "planifiee", label: "Planifiée", bg: "#E4F0FB", fg: "#2D6FD0" },
+  { key: "a_confirmer", label: "À confirmer", bg: "#FBF1D8", fg: "#B07D14" },
+  { key: "validee", label: "Validée", bg: "#D2F2E7", fg: "#0F8C68" },
+  { key: "realisee", label: "Réalisée", bg: "#EDEBFB", fg: "#6B4FD8" },
+  { key: "reportee", label: "Reportée", bg: "#FBE0E8", fg: "#C0476E" },
+  { key: "annulee", label: "Annulée", bg: "#ECEAF3", fg: "#6F6982" },
+];
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 function ymd(d: Date): string {
@@ -53,12 +72,18 @@ export default function VuesVisites({ visites, joursBloques = {} }: { visites: V
   const router = useRouter();
   const [vue, setVue] = useState<"liste" | "mois" | "semaine">("liste");
   const [sortAsc, setSortAsc] = useState(false);
+  const [filtreEtat, setFiltreEtat] = useState("tous");
   const [curseur, setCurseur] = useState(() => new Date());
   const today = ymd(new Date());
 
+  const visitesFiltrees = useMemo(
+    () => (filtreEtat === "tous" ? visites : visites.filter((v) => etatKey(v) === filtreEtat)),
+    [visites, filtreEtat]
+  );
+
   const parDate = useMemo(() => {
     const m = new Map<string, VisiteTuile[]>();
-    for (const v of visites) {
+    for (const v of visitesFiltrees) {
       const k = dateEff(v);
       if (!k) continue;
       if (!m.has(k)) m.set(k, []);
@@ -66,14 +91,14 @@ export default function VuesVisites({ visites, joursBloques = {} }: { visites: V
     }
     for (const arr of m.values()) arr.sort((a, b) => (a.heure_prevue ?? "").localeCompare(b.heure_prevue ?? ""));
     return m;
-  }, [visites]);
+  }, [visitesFiltrees]);
 
   const listeTriee = useMemo(() => {
-    return [...visites].sort((a, b) => {
+    return [...visitesFiltrees].sort((a, b) => {
       const da = dateEff(a) ?? "", db = dateEff(b) ?? "";
       return sortAsc ? da.localeCompare(db) : db.localeCompare(da);
     });
-  }, [visites, sortAsc]);
+  }, [visitesFiltrees, sortAsc]);
 
   const segStyle = (actif: boolean): React.CSSProperties =>
     actif
@@ -116,6 +141,22 @@ export default function VuesVisites({ visites, joursBloques = {} }: { visites: V
             </button>
           </div>
         )}
+      </div>
+
+      {/* Filtres par état */}
+      <div className="flex gap-1.5 flex-wrap">
+        {FILTRES.map((f) => {
+          const actif = filtreEtat === f.key;
+          const style: React.CSSProperties = actif
+            ? (f.bg ? { background: f.bg, color: f.fg, boxShadow: `inset 0 0 0 1.5px ${f.fg}` } : { background: "#EDEBFB", color: "#6B4FD8", boxShadow: "inset 0 0 0 1.5px #6B4FD8" })
+            : { background: "var(--pa-card)", color: "var(--pa-muted)", boxShadow: "inset 0 0 0 1px var(--pa-line)" };
+          return (
+            <button key={f.key} onClick={() => setFiltreEtat(f.key)}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all" style={style}>
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Légende code couleur (vues calendrier) */}
