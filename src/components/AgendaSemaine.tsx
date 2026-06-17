@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarRange, List, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { CalendarRange, CalendarDays, List, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import type { EvtAgenda } from "@/lib/agenda-unifie";
 
 const SOURCE: Record<string, { label: string; bg: string; fg: string }> = {
@@ -21,6 +21,7 @@ function lundi(d: Date): Date {
   return x;
 }
 function addDays(d: Date, n: number): Date { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function addMonths(d: Date, n: number): Date { const x = new Date(d); x.setMonth(x.getMonth() + n); return x; }
 function heure(e: EvtAgenda): string {
   if (e.journeeEntiere) return "Journée";
   const d = new Date(e.debut);
@@ -34,7 +35,7 @@ export default function AgendaSemaine({ events, gcalLabel, gcalError }: {
   events: EvtAgenda[]; gcalLabel?: string; gcalError?: string;
 }) {
   const router = useRouter();
-  const [vue, setVue] = useState<"semaine" | "liste">("semaine");
+  const [vue, setVue] = useState<"semaine" | "mois" | "liste">("semaine");
   const [curseur, setCurseur] = useState(() => new Date());
   const today = ymd(new Date());
 
@@ -63,22 +64,24 @@ export default function AgendaSemaine({ events, gcalLabel, gcalError }: {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="inline-flex p-1 rounded-xl" style={{ background: "var(--pa-card)", boxShadow: "inset 0 0 0 1px var(--pa-line)" }}>
-          {([["semaine", "Semaine", CalendarRange], ["liste", "Liste", List]] as const).map(([v, label, Icon]) => (
+          {([["semaine", "Semaine", CalendarRange], ["mois", "Mois", CalendarDays], ["liste", "Liste", List]] as const).map(([v, label, Icon]) => (
             <button key={v} onClick={() => setVue(v)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all" style={segStyle(vue === v)}>
               <Icon size={14} /> {label}
             </button>
           ))}
         </div>
-        {vue === "semaine" && (
+        {vue !== "liste" && (
           <div className="flex items-center gap-2">
-            <span className="text-xs" style={{ color: "var(--pa-muted)" }}>
-              {debut.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} → {fin.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+            <span className="text-xs capitalize" style={{ color: "var(--pa-muted)" }}>
+              {vue === "mois"
+                ? curseur.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+                : `${debut.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} → ${fin.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`}
             </span>
             <button onClick={() => setCurseur(new Date())} className="pa-btn-secondary px-2.5 py-1 rounded-lg text-xs font-semibold">Auj.</button>
-            <button onClick={() => setCurseur((d) => addDays(d, -7))} aria-label="Précédent"
+            <button onClick={() => setCurseur((d) => (vue === "mois" ? addMonths(d, -1) : addDays(d, -7)))} aria-label="Précédent"
               className="w-8 h-8 inline-flex items-center justify-center rounded-lg" style={{ background: "var(--pa-card)", boxShadow: "inset 0 0 0 1px var(--pa-line)", color: "var(--pa-muted)" }}><ChevronLeft size={15} /></button>
-            <button onClick={() => setCurseur((d) => addDays(d, 7))} aria-label="Suivant"
+            <button onClick={() => setCurseur((d) => (vue === "mois" ? addMonths(d, 1) : addDays(d, 7)))} aria-label="Suivant"
               className="w-8 h-8 inline-flex items-center justify-center rounded-lg" style={{ background: "var(--pa-card)", boxShadow: "inset 0 0 0 1px var(--pa-line)", color: "var(--pa-muted)" }}><ChevronRight size={15} /></button>
           </div>
         )}
@@ -127,6 +130,49 @@ export default function AgendaSemaine({ events, gcalLabel, gcalError }: {
             })}
           </div>
         </div>
+      ) : vue === "mois" ? (
+        (() => {
+          const premier = new Date(curseur.getFullYear(), curseur.getMonth(), 1);
+          const dDebut = lundi(premier);
+          const cellules = Array.from({ length: 42 }, (_, i) => addDays(dDebut, i));
+          return (
+            <div className="pa-card overflow-hidden">
+              <div className="grid grid-cols-7 text-center text-[11px] font-semibold py-1.5" style={{ color: "var(--pa-muted)", borderBottom: "1px solid var(--pa-line)" }}>
+                {JOURS.map((j) => <div key={j}>{j}</div>)}
+              </div>
+              <div className="grid grid-cols-7">
+                {cellules.map((d, i) => {
+                  const k = ymd(d);
+                  const horsMois = d.getMonth() !== curseur.getMonth();
+                  const estToday = k === today;
+                  const evs = parJour.get(k) ?? [];
+                  return (
+                    <div key={i} className="min-h-[68px] p-1 space-y-0.5" style={{
+                      borderRight: (i % 7 !== 6) ? "1px solid var(--pa-line)" : undefined,
+                      borderBottom: i < 35 ? "1px solid var(--pa-line)" : undefined,
+                      background: horsMois ? "rgba(0,0,0,0.015)" : undefined,
+                    }}>
+                      <div className="text-right">
+                        <span className="inline-flex items-center justify-center text-[11px] font-semibold rounded-full"
+                          style={estToday ? { background: "#6B4FD8", color: "#fff", width: 18, height: 18 } : { color: horsMois ? "var(--pa-line)" : "var(--pa-muted)", width: 18, height: 18 }}>{d.getDate()}</span>
+                      </div>
+                      {evs.slice(0, 3).map((e) => {
+                        const s = SOURCE[e.source] ?? SOURCE.google;
+                        return (
+                          <button key={e.id} onClick={() => ouvrir(e)} disabled={!e.urlDetail}
+                            className="w-full text-left truncate rounded px-1 py-0.5" style={{ background: s.bg, color: s.fg, fontSize: 10, lineHeight: 1.3, cursor: e.urlDetail ? "pointer" : "default" }}>
+                            {!e.journeeEntiere && <b>{heure(e)} </b>}{libelle(e)}
+                          </button>
+                        );
+                      })}
+                      {evs.length > 3 && <p className="text-[10px] px-1" style={{ color: "var(--pa-muted)" }}>+{evs.length - 3}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {events.map((e) => {
