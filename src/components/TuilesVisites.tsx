@@ -6,6 +6,7 @@ import {
   ChevronDown, CalendarDays, Clock, MapPin, Phone, Target,
   CheckCircle2, Pencil, ArrowRight, Navigation as NavIcon,
 } from "lucide-react";
+import ActionsStatutVisite from "@/components/ActionsStatutVisite";
 
 export type VisiteTuile = {
   id: string;
@@ -136,6 +137,9 @@ export default function TuilesVisites({ visites }: { visites: VisiteTuile[] }) {
                   )}
                   {v.objectif && <Ligne Icon={Target} label="Objectif">{v.objectif}</Ligne>}
                 </div>
+
+                <ActionsStatutVisite id={v.id} statut={v.statut} confirmee={!!v.confirmee}
+                  date={v.date_prevue ?? v.date_realisee ?? ""} heure={v.heure_prevue} />
 
                 <div className="flex gap-2 pt-1">
                   <Link href={`/visites/${v.id}`} className="pa-btn-secondary flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold">
