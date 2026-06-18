@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
   Home, Map, BarChart3, CalendarDays, Eye, Car, Zap,
-  Megaphone, Newspaper, Star, Store,
+  Megaphone, Newspaper, Star, Store, Activity,
 } from "lucide-react";
 
 const liens: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/animateur",          label: "Accueil",     icon: Home },
   { href: "/animateur/carte",    label: "Carte",       icon: Map },
   { href: "/pilotage",           label: "Pilotage",    icon: BarChart3 },
+  { href: "/animateur/sante",    label: "Santé",       icon: Activity },
   { href: "/animateur/rdv",      label: "RDV",         icon: CalendarDays },
   { href: "/visites",            label: "Visites",     icon: Eye },
   { href: "/animateur/parcours", label: "Parcours",    icon: Car },

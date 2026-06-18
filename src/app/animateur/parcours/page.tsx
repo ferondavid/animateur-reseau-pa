@@ -10,9 +10,12 @@ import BoutonAccueil from "@/components/BoutonAccueil";
 export default async function ParcoursPage({
   searchParams,
 }: {
-  searchParams: Promise<{ prefill_magasin?: string }>;
+  searchParams: Promise<{ prefill_magasin?: string; prefill?: string }>;
 }) {
-  const { prefill_magasin } = await searchParams;
+  const { prefill_magasin, prefill } = await searchParams;
+  const prefillMagasinIds = prefill
+    ? prefill.split(",").map((s) => s.trim()).filter(Boolean)
+    : undefined;
   const supabase = await createClient();
 
   const [
@@ -79,6 +82,7 @@ export default async function ParcoursPage({
           configVE={configVE}
           openChargeMapOk={apiKeyOk}
           prefillMagasinId={prefill_magasin}
+          prefillMagasinIds={prefillMagasinIds}
         />
       </div>
     </main>

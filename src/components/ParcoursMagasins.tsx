@@ -122,11 +122,13 @@ export default function ParcoursMagasins({
   configVE,
   openChargeMapOk,
   prefillMagasinId,
+  prefillMagasinIds,
 }: {
   magasins: Magasin[];
   configVE: ConfigVE;
   openChargeMapOk: boolean;
   prefillMagasinId?: string;
+  prefillMagasinIds?: string[];
 }) {
   const [selectionIds, setSelectionIds] = useState<Set<string>>(new Set());
   const [departTexte, setDepartTexte] = useState("");
@@ -186,10 +188,15 @@ export default function ParcoursMagasins({
       const sel = localStorage.getItem(LS_SELECTION);
       if (sel) setSelectionIds(new Set(JSON.parse(sel) as string[]));
     } catch { /* ignore */ }
-    if (prefillMagasinId) {
+    const aPreremplir = [
+      ...(prefillMagasinId ? [prefillMagasinId] : []),
+      ...(prefillMagasinIds ?? []),
+    ];
+    if (aPreremplir.length > 0) {
       setSelectionIds((prev) => {
         const next = new Set(prev);
-        next.add(prefillMagasinId);
+        aPreremplir.forEach((id) => next.add(id));
+        try { localStorage.setItem(LS_SELECTION, JSON.stringify([...next])); } catch { /* ignore */ }
         return next;
       });
     }

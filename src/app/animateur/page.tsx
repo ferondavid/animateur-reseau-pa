@@ -9,13 +9,14 @@ import AgendaSemaine from "@/components/AgendaSemaine";
 import { fetchAgendaUnifie } from "@/lib/agenda-unifie";
 import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
+import { suggererTournee } from "@/lib/suggestion-tournee";
 import { getParametre, getParametreNumber, getParametreFloat } from "@/lib/parametres";
 import { calculerPreparation } from "@/lib/preparation-rdv";
 import Tuile from "@/components/ui/Tuile";
 import CountUp from "@/components/ui/CountUp";
 import {
   Sun, CalendarDays, MapPin, Calendar, Eye, Star, AlertTriangle,
-  BarChart3, Car, Megaphone, Zap, Activity,
+  BarChart3, Car, Megaphone, Zap, Activity, Sparkles,
 } from "lucide-react";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -212,6 +213,33 @@ export default async function AnimateurPage() {
       const jb = b.joursSansVisite ?? 9999;
       return jb - ja;
     });
+
+  // Suggestion de tournée intelligente (réutilise risqueMap)
+  const { data: visitesPlanifieesAll } = await supabase
+    .from("visites")
+    .select("magasin_id")
+    .eq("statut", "planifiee")
+    .gte("date_prevue", today);
+
+  const departHome = latDep && lngDep ? { lat: parseFloat(latDep), lng: parseFloat(lngDep) } : null;
+  const suggestionTournee = suggererTournee({
+    magasins: magasinsList.map((m) => {
+      const mm = m as unknown as {
+        id: string; nom: string; enseigne?: string | null; ville?: string | null;
+        region?: string | null; latitude: number; longitude: number; niveau?: string | null;
+      };
+      return {
+        id: mm.id, nom: mm.nom, enseigne: mm.enseigne ?? null, ville: mm.ville ?? null,
+        region: mm.region ?? null, lat: mm.latitude, lng: mm.longitude, niveau: mm.niveau ?? null,
+      };
+    }),
+    risqueMap,
+    magasinsDejaPlanifies: new Set(
+      ((visitesPlanifieesAll ?? []) as unknown as { magasin_id: string }[]).map((v) => v.magasin_id)
+    ),
+    depart: departHome,
+    taille: 6,
+  });
 
   const moyConfiance = notesConfiance && notesConfiance.length > 0
     ? (notesConfiance.reduce((s, v) => s + (v.note_confiance ?? 0), 0) / notesConfiance.length).toFixed(1) : null;
@@ -444,6 +472,48 @@ export default async function AnimateurPage() {
                 <Link href="/magasins" className="text-xs font-semibold" style={{ color: "#7C6BE8" }}>
                   Tous les magasins →
                 </Link>
+              </div>
+            </Tuile>
+          </div>
+        )}
+
+        {/* ── Tournée suggérée ─────────────────────────────────────── */}
+        {suggestionTournee.magasins.length > 0 && (
+          <div className="pa-reveal" style={{ animationDelay: ".24s" }}>
+            <Tuile
+              icon={
+                <IcoBox bg="linear-gradient(135deg,#E4DDFB,#D3C7F7)" color="#6B4FD8" Icon={Sparkles} />
+              }
+              titre="Tournée suggérée"
+              sousTitre={`${suggestionTournee.magasins.length} magasins · ~${Math.round(suggestionTournee.distanceTotaleKm)} km · ${suggestionTournee.raisonGroupe}`}
+            >
+              <div className="space-y-2 pt-1">
+                {suggestionTournee.magasins.slice(0, 3).map((m) => (
+                  <div key={m.id} className="flex items-center gap-3">
+                    <span
+                      className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white"
+                      style={{ background: "#6B4FD8" }}
+                    >
+                      {m.ordre}
+                    </span>
+                    <p className="text-sm font-semibold truncate flex-1" style={{ color: "var(--pa-ink)" }}>
+                      {m.enseigne ? `${m.enseigne} — ${m.nom}` : m.nom}
+                    </p>
+                    {m.ville && (
+                      <span className="text-xs shrink-0" style={{ color: "var(--pa-muted)" }}>{m.ville}</span>
+                    )}
+                  </div>
+                ))}
+                {suggestionTournee.magasins.length > 3 && (
+                  <p className="text-xs" style={{ color: "var(--pa-muted)" }}>
+                    + {suggestionTournee.magasins.length - 3} autres
+                  </p>
+                )}
+                <div className="text-right pt-1">
+                  <Link href="/animateur/tournee/suggestion" className="text-xs font-semibold" style={{ color: "#7C6BE8" }}>
+                    Voir la tournée complète →
+                  </Link>
+                </div>
               </div>
             </Tuile>
           </div>
