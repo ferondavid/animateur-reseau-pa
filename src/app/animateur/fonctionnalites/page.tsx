@@ -43,6 +43,20 @@ const CATEGORIES: Categorie[] = [
         url: "/pilotage",
       },
       {
+        icon: "🩺",
+        titre: "Santé réseau 360",
+        description: "Scorecard des 40 magasins : risque, jours sans visite, confiance/business, satisfaction, tendance CA, remontées & actions — triable et filtrable",
+        url: "/animateur/sante",
+        tag: "nouveau",
+      },
+      {
+        icon: "✨",
+        titre: "Tournée suggérée",
+        description: "L'app propose les magasins prioritaires à visiter (risque + ancienneté), regroupés géographiquement, et génère le parcours en 1 clic",
+        url: "/animateur/tournee/suggestion",
+        tag: "nouveau",
+      },
+      {
         icon: "📆",
         titre: "Agenda unifié",
         description: "RDV pro + visites planifiées + Google Calendar dans un seul flux trié",
