@@ -51,12 +51,15 @@ export async function demanderAideConnexion(
   formData: FormData
 ): Promise<{ ok?: boolean; error?: string }> {
   const email = String(formData.get("email") || "").trim();
+  const telephone = String(formData.get("telephone") || "").trim();
   const profil = String(formData.get("profil") || "").trim();
   const message = String(formData.get("message") || "").trim();
 
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return { error: "Renseigne une adresse email valide." };
   }
+
+  const telClean = telephone.replace(/[^\d+]/g, "");
 
   const admin = (await getParametre("animateur_email", "")) || "feron.david@gmail.com";
 
@@ -70,6 +73,7 @@ export async function demanderAideConnexion(
         <p style="margin:0 0 14px;font-size:14px;color:#8B8699">Un utilisateur a oublié ses identifiants et demande de l'aide :</p>
         <table style="width:100%;border-collapse:collapse;font-size:14px">
           <tr><td style="padding:8px 0;color:#8B8699;width:120px">Email</td><td style="padding:8px 0;font-weight:600"><a href="mailto:${escapeHtml(email)}" style="color:#6B4FD8;text-decoration:none">${escapeHtml(email)}</a></td></tr>
+          ${telClean ? `<tr><td style="padding:8px 0;color:#8B8699">Téléphone</td><td style="padding:8px 0;font-weight:700"><a href="tel:${escapeHtml(telClean)}" style="color:#0F8C68;text-decoration:none">📞 ${escapeHtml(telephone)}</a> <span style="color:#8B8699;font-weight:400;font-size:12px">— rappel immédiat</span></td></tr>` : ""}
           ${profil ? `<tr><td style="padding:8px 0;color:#8B8699">Profil</td><td style="padding:8px 0;font-weight:600">${escapeHtml(profil)}</td></tr>` : ""}
           ${message ? `<tr><td style="padding:8px 0;color:#8B8699;vertical-align:top">Message</td><td style="padding:8px 0">${escapeHtml(message)}</td></tr>` : ""}
         </table>

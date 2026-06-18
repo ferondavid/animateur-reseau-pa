@@ -17,7 +17,7 @@ export default function AideConnexion() {
           ✅ Demande envoyée !
         </p>
         <p className="text-xs mt-1" style={{ color: "#1A9E78" }}>
-          L&apos;animateur a reçu ta demande et va te recontacter avec tes accès.
+          L&apos;animateur a reçu ta demande et va te recontacter (email ou téléphone) avec tes accès.
         </p>
       </div>
     );
@@ -37,13 +37,19 @@ export default function AideConnexion() {
       {open && (
         <form action={action} className="pa-card p-5 mt-3 space-y-3 text-left">
           <p className="text-sm" style={{ color: "var(--pa-muted)" }}>
-            Laisse ton email, l&apos;animateur te renverra tes accès.
+            Laisse ton email — et ton <strong style={{ color: "#0F8C68" }}>06 pour un rappel immédiat</strong>. L&apos;animateur te redonne tes accès au plus vite.
           </p>
           <div>
             <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>
               Ton email
             </label>
             <input name="email" type="email" required placeholder="ton.email@exemple.fr" className={INPUT} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>
+              Ton numéro <span className="font-bold" style={{ color: "#0F8C68" }}>📞 pour être rappelé tout de suite</span>
+            </label>
+            <input name="telephone" type="tel" inputMode="tel" placeholder="06 12 34 56 78" className={INPUT} />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1" style={{ color: "var(--pa-ink)" }}>
