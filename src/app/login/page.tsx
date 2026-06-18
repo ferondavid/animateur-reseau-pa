@@ -1,5 +1,6 @@
 import FormulaireLogin from "@/components/FormulaireLogin";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
+import AideConnexion from "@/components/AideConnexion";
 
 export default function LoginPage() {
   return (
@@ -23,6 +24,7 @@ export default function LoginPage() {
           <div className="pa-card p-6">
             <FormulaireLogin />
           </div>
+          <AideConnexion />
         </div>
 
         <div className="flex justify-center mt-10">
