@@ -16,9 +16,10 @@ Ton rôle : comprendre une commande dite à voix haute (en français, parfois ap
 Règles :
 - Choisis le ou les outils adaptés à la demande, même si la formulation est libre ou inhabituelle.
 - Pour ouvrir une PAGE de l'app, utilise "naviguer". Pour ouvrir la FICHE d'un magasin précis, utilise "ouvrir_magasin".
-- Pour créer quelque chose (RDV, visite, remontée, action), utilise l'outil de création correspondant : il ouvre le formulaire pré-rempli.
+- Pour CRÉER quelque chose (RDV, visite, remontée, action) : appelle DIRECTEMENT l'outil de création. N'interroge JAMAIS l'utilisateur sur les détails (magasin, date, heure, objet) — le formulaire qui s'ouvre sert à les saisir. Si un nom de magasin est dit, transmets-le simplement à l'outil.
 - Pour une question (prochain RDV, remontées urgentes, CA du mois, magasins à risque, préparation de demain), utilise l'outil de consultation puis donne la réponse.
-- Réponse finale : une phrase courte et naturelle en français (moins de 25 mots), sans markdown. Confirme l'action ou donne l'info.
+- Demande une précision UNIQUEMENT si c'est vraiment indispensable pour agir (ex. un nom de magasin ambigu pour ouvrir une fiche) — et alors une seule question courte.
+- Réponse finale : UNE phrase courte en français, moins de 20 mots. TEXTE BRUT uniquement : jamais de markdown, d'astérisques, de listes à puces ni de retours à la ligne.
 - Si la demande est incompréhensible, dis-le brièvement et propose un exemple.`;
 
 // ── Cibles de navigation ───────────────────────────────────────────────────────
@@ -130,6 +131,17 @@ function parisYMD(d: Date): string {
 function titreMag(m: { nom: string; enseigne: string | null } | null): string {
   if (!m) return "magasin inconnu";
   return m.enseigne ? `${m.enseigne} ${m.nom}` : m.nom;
+}
+
+/** Nettoie le markdown pour une lecture vocale propre (gras, puces, titres, retours ligne). */
+function nettoyerTexte(t: string): string {
+  return t
+    .replace(/\*\*/g, "")
+    .replace(/[*_`#>]/g, "")
+    .replace(/^\s*[-•]\s+/gm, "")
+    .replace(/\s*\n+\s*/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 async function executeTool(
@@ -301,11 +313,12 @@ export async function POST(req: NextRequest) {
       });
 
       if (resp.stop_reason !== "tool_use") {
-        reponse = resp.content
-          .filter((b): b is Anthropic.TextBlock => b.type === "text")
-          .map((b) => b.text)
-          .join(" ")
-          .trim();
+        reponse = nettoyerTexte(
+          resp.content
+            .filter((b): b is Anthropic.TextBlock => b.type === "text")
+            .map((b) => b.text)
+            .join(" ")
+        );
         messages.push({ role: "assistant", content: resp.content });
         break;
       }
