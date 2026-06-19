@@ -132,17 +132,20 @@ export default async function AnimateurPage() {
     .order("date_souhaitee", { ascending: true })
     .limit(10);
 
-  // Préparation J+1
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split("T")[0];
+  // Préparation J+1 — "demain" en fuseau France (évite le décalage UTC de Vercel),
+  // toutes les sources de l'agenda qui ont une destination : RDV confirmés + visites planifiées.
+  const parisYMD = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+  const tomorrowStr = parisYMD(new Date(Date.now() + 86_400_000));
 
   const [
     { data: rdvsDemain },
+    { data: visitesDemain },
     latDep, lngDep, vitesseKmh, coefRoute, bufferMin, margeCharge,
     veActifJ1, autonomieKmJ1, seuilPctJ1,
   ] = await Promise.all([
     supabase.from("rendez_vous").select("id, type, objet, heure_souhaitee, magasins!rendez_vous_magasin_id_fkey(id, nom, enseigne, ville, latitude, longitude)").eq("statut", "confirme").eq("date_souhaitee", tomorrowStr),
+    supabase.from("visites").select("id, objectif, heure_prevue, magasins(id, nom, enseigne, ville, latitude, longitude)").eq("statut", "planifiee").eq("date_prevue", tomorrowStr),
     getParametre("lat_depart_habituel", ""),
     getParametre("lng_depart_habituel", ""),
     getParametreFloat("vitesse_moyenne_kmh", 70),
@@ -158,14 +161,23 @@ export default async function AnimateurPage() {
   const configCalcJ1 = { vitesseMoyenneKmh: vitesseKmh, coefRoute, bufferMin, margeChargePct: margeCharge, autonomieKm: veActifJ1 === "true" ? autonomieKmJ1 : undefined, seuilPct: veActifJ1 === "true" ? seuilPctJ1 : undefined };
 
   type MagJ1 = { id: string; nom: string; enseigne: string | null; ville: string | null; latitude: number | null; longitude: number | null };
-  type RdvJ1Row = { id: string; type: string; objet: string; heure_souhaitee: string | null; magasins: MagJ1 | null };
+  type ItemJ1 = { id: string; kind: "rdv" | "visite"; type: string; objet: string; heure: string | null; mag: MagJ1 | null };
+
+  const itemsDemain: ItemJ1[] = [
+    ...((rdvsDemain ?? []) as unknown as { id: string; type: string; objet: string; heure_souhaitee: string | null; magasins: MagJ1 | null }[])
+      .map((r) => ({ id: r.id, kind: "rdv" as const, type: r.type, objet: r.objet, heure: r.heure_souhaitee, mag: r.magasins })),
+    ...((visitesDemain ?? []) as unknown as { id: string; objectif: string | null; heure_prevue: string | null; magasins: MagJ1 | null }[])
+      .map((v) => ({ id: v.id, kind: "visite" as const, type: "visite", objet: v.objectif ?? "Visite planifiée", heure: v.heure_prevue, mag: v.magasins })),
+  ].sort((a, b) => (a.heure ?? "99:99").localeCompare(b.heure ?? "99:99"));
+
+  const nbDemain = itemsDemain.length;
 
   const preparationsJ1 = departOk
-    ? ((rdvsDemain ?? []) as unknown as RdvJ1Row[])
-        .filter((r) => r.magasins?.latitude && r.magasins?.longitude)
-        .map((r) => ({
-          rdv: r, mag: r.magasins!,
-          prep: calculerPreparation(parseFloat(latDep), parseFloat(lngDep), r.magasins!.latitude!, r.magasins!.longitude!, r.heure_souhaitee?.slice(0, 5) ?? null, configCalcJ1),
+    ? itemsDemain
+        .filter((it) => it.mag?.latitude && it.mag?.longitude)
+        .map((it) => ({
+          item: it, mag: it.mag!,
+          prep: calculerPreparation(parseFloat(latDep), parseFloat(lngDep), it.mag!.latitude!, it.mag!.longitude!, it.heure?.slice(0, 5) ?? null, configCalcJ1),
         }))
     : [];
 
@@ -288,14 +300,14 @@ export default async function AnimateurPage() {
             }
             titre="Préparation pour demain"
             sousTitre={
-              (rdvsDemain ?? []).length === 0
-                ? "Pas de RDV confirmé"
-                : `${(rdvsDemain ?? []).length} RDV confirmé${(rdvsDemain ?? []).length > 1 ? "s" : ""}`
+              nbDemain === 0
+                ? "Rien de prévu"
+                : `${nbDemain} ${nbDemain > 1 ? "rendez-vous / visites" : "rendez-vous ou visite"}`
             }
           >
-            {(rdvsDemain ?? []).length === 0 ? (
+            {nbDemain === 0 ? (
               <p className="text-sm py-2" style={{ color: "var(--pa-muted)" }}>
-                Pas de RDV confirmé prévu demain 😌
+                Rien de prévu demain 😌
               </p>
             ) : !departOk ? (
               <div
@@ -303,7 +315,7 @@ export default async function AnimateurPage() {
                 style={{ background: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A" }}
               >
                 <span>
-                  {(rdvsDemain ?? []).length} RDV demain — configure ton adresse de départ habituelle.
+                  {nbDemain} prévu{nbDemain > 1 ? "s" : ""} demain — configure ton adresse de départ habituelle.
                 </span>
                 <Link href="/animateur/parametres" className="shrink-0 font-semibold underline">
                   Configurer →
@@ -311,12 +323,12 @@ export default async function AnimateurPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {preparationsJ1.map(({ rdv, mag, prep }) => {
-                  const typeIcon: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻" };
+                {preparationsJ1.map(({ item, mag, prep }) => {
+                  const typeIcon: Record<string, string> = { physique: "🏪", tel: "📞", visio: "💻", visite: "🚗" };
                   const nomMag = mag.enseigne ? `${mag.enseigne} — ${mag.nom}` : mag.nom;
                   return (
                     <div
-                      key={rdv.id}
+                      key={`${item.kind}-${item.id}`}
                       className="rounded-2xl p-4 space-y-2"
                       style={{
                         background: "rgba(255,255,255,0.6)",
@@ -326,10 +338,12 @@ export default async function AnimateurPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold" style={{ color: "var(--pa-ink)" }}>
-                            {rdv.heure_souhaitee ? rdv.heure_souhaitee.slice(0, 5) + " · " : ""}
-                            {typeIcon[rdv.type]} {nomMag}
+                            {item.heure ? item.heure.slice(0, 5) + " · " : ""}
+                            {typeIcon[item.type] ?? "📍"} {nomMag}
                           </p>
-                          <p className="text-xs mt-0.5" style={{ color: "var(--pa-muted)" }}>{rdv.objet}</p>
+                          <p className="text-xs mt-0.5" style={{ color: "var(--pa-muted)" }}>
+                            {item.kind === "visite" ? "Visite · " : ""}{item.objet}
+                          </p>
                         </div>
                         <Link
                           href={`/animateur/parcours?prefill_magasin=${mag.id}`}
@@ -341,7 +355,7 @@ export default async function AnimateurPage() {
                       </div>
                       <div className="space-y-1 text-sm" style={{ color: "var(--pa-ink)" }}>
                         <p>
-                          🚗 {prep.heureDepart ? `Partir à ${prep.heureDepart}${prep.heureDepartVeille ? " (veille)" : ""} · ` : "Heure RDV non précisée · "}
+                          🚗 {prep.heureDepart ? `Partir à ${prep.heureDepart}${prep.heureDepartVeille ? " (veille)" : ""} · ` : "Heure non précisée · "}
                           {Math.round(prep.distanceKm)} km · {
                             prep.dureeRouteMinutes < 60
                               ? `${prep.dureeRouteMinutes} min`
