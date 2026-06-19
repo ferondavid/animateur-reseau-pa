@@ -27,6 +27,13 @@ const RISQUE_BADGE: Record<string, { label: string; bg: string; fg: string }> = 
   ok: { label: "OK", bg: "#D2F2E7", fg: "#0F8C68" },
 };
 
+const CRITERES = [
+  { emoji: "🚨", grad: "linear-gradient(135deg,#F0A0A0,#D85C5C)", shadow: "#D85C5C", t: "Niveau de risque", d: "Non visité hors délai, note faible (< 3/5) ou remontée urgente non traitée." },
+  { emoji: "⏳", grad: "linear-gradient(135deg,#F6C97A,#E8943A)", shadow: "#E8943A", t: "Ancienneté", d: "Plus la dernière visite est lointaine, plus c'est prioritaire (seuils 30 / 60 / 90 j selon observation / stratégique / standard)." },
+  { emoji: "📍", grad: "linear-gradient(135deg,#8FC0F5,#3D7BE8)", shadow: "#3D7BE8", t: "Proximité", d: "Magasins regroupés autour du plus urgent, pour une tournée compacte." },
+  { emoji: "🚗", grad: "linear-gradient(135deg,#6FD9B0,#1FA98A)", shadow: "#1FA98A", t: "Itinéraire", d: "Ordonnés au plus proche depuis ton adresse de départ." },
+] as const;
+
 function fmtKm(km: number): string {
   return `${Math.round(km)} km`;
 }
@@ -226,28 +233,31 @@ export default async function SuggestionTourneePage({
               className="pa-card p-4"
               style={{ background: "linear-gradient(135deg,#F3F0FC,#EDEBFB)", border: "1px solid rgba(124,107,232,.25)" }}
             >
-              <p className="text-sm font-bold flex items-center gap-2 mb-3" style={{ color: "#534AB7" }}>
+              <p className="text-sm font-bold flex items-center gap-2 mb-3.5" style={{ color: "#534AB7" }}>
                 <Info size={16} /> Pourquoi ces magasins ?
               </p>
-              <ul className="space-y-2 text-sm" style={{ color: "var(--pa-ink)" }}>
-                <li className="flex items-start gap-2">
-                  <span className="shrink-0">🔴</span>
-                  <span><strong>Niveau de risque</strong> — non visité hors délai, note faible (&lt; 3/5) ou remontée urgente non traitée.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="shrink-0">⏳</span>
-                  <span><strong>Ancienneté</strong> — plus la dernière visite est lointaine, plus c&apos;est prioritaire (seuils <strong>30 / 60 / 90 j</strong> selon observation / stratégique / standard).</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="shrink-0">📍</span>
-                  <span><strong>Proximité</strong> — magasins regroupés autour du plus urgent, pour une tournée compacte.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="shrink-0">🚗</span>
-                  <span><strong>Itinéraire</strong> — ordonnés au plus proche depuis ton adresse de départ.</span>
-                </li>
-              </ul>
-              <p className="text-xs mt-3" style={{ color: "var(--pa-muted)" }}>
+              <div className="space-y-3">
+                {CRITERES.map((c) => (
+                  <div key={c.t} className="flex items-start gap-3">
+                    <span
+                      className="shrink-0"
+                      style={{
+                        position: "relative", width: 38, height: 38, borderRadius: 12,
+                        background: c.grad, boxShadow: `0 6px 14px -5px ${c.shadow}`,
+                        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
+                      }}
+                    >
+                      <span style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 32% 28%, rgba(255,255,255,0.85), transparent 60%)" }} />
+                      <span style={{ position: "relative", fontSize: 18, lineHeight: 1 }}>{c.emoji}</span>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold" style={{ color: "var(--pa-ink)" }}>{c.t}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--pa-muted)", lineHeight: 1.45 }}>{c.d}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs mt-3.5 pt-3" style={{ color: "var(--pa-muted)", borderTop: "1px solid rgba(124,107,232,.18)" }}>
                 Les étiquettes sous chaque magasin ci-dessous indiquent la ou les raisons retenues.
               </p>
             </div>
