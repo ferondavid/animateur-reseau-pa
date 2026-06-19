@@ -181,6 +181,10 @@ export default async function AnimateurPage() {
         }))
     : [];
 
+  // Tous les magasins de demain (1er programmé puis suivants), pour préremplir le parcours en 1 clic
+  const idsDemain = [...new Set(itemsDemain.filter((it) => it.mag?.id).map((it) => it.mag!.id))];
+  const lienPreparerDemain = `/animateur/parcours?prefill=${idsDemain.join(",")}`;
+
   const rdvsSorted = (rdvsEnAttente ?? []).sort((a, b) => {
     const aUrgent = a.date_souhaitee <= dans7j ? 0 : 1;
     const bUrgent = b.date_souhaitee <= dans7j ? 0 : 1;
@@ -346,7 +350,7 @@ export default async function AnimateurPage() {
                           </p>
                         </div>
                         <Link
-                          href={`/animateur/parcours?prefill_magasin=${mag.id}`}
+                          href={lienPreparerDemain}
                           className="shrink-0 text-xs font-semibold hover:underline whitespace-nowrap"
                           style={{ color: "#7C6BE8" }}
                         >
