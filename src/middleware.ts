@@ -61,6 +61,14 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Racine "/" : un utilisateur déjà connecté va DIRECTEMENT dans son espace,
+  // jamais sur le sélecteur de profil (évite le flash et la dépendance au localStorage).
+  if (pathname === "/") {
+    const url = req.nextUrl.clone();
+    url.pathname = role === "animateur" ? "/animateur" : "/membre";
+    return NextResponse.redirect(url);
+  }
+
   // Protection par rôle
   if (isPrefixMatch(pathname, ANIMATEUR_PREFIXES) && role !== "animateur") {
     // Un membre essaie d'accéder à une page animateur → renvoyé sur sa fiche
