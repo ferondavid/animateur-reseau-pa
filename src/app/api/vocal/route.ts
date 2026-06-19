@@ -268,54 +268,76 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  const body = (await req.json()) as { texte?: string };
+  const body = (await req.json()) as {
+    texte?: string;
+    historique?: Anthropic.MessageParam[];
+  };
   const texte = body.texte?.trim();
   if (!texte) return Response.json({ reponse: "Commande vide, réessayez." });
 
+  // Conversation multi-tours : on reprend l'historique fourni par le client.
+  // Borné pour garder le coût bas ; on coupe sur une frontière "user" pour ne pas
+  // casser l'appairage tool_use / tool_result.
+  let historique = Array.isArray(body.historique) ? body.historique : [];
+  if (historique.length > 24) {
+    const idx = historique.findIndex((m, i) => i >= historique.length - 24 && m.role === "user");
+    historique = idx >= 0 ? historique.slice(idx) : [];
+  }
+
   const supabase = await createClient();
-  const messages: Anthropic.MessageParam[] = [{ role: "user", content: texte }];
+  const messages: Anthropic.MessageParam[] = [...historique, { role: "user", content: texte }];
   let action: NavAction | undefined;
   let reponse = "";
 
-  // Boucle agentique (max 4 tours, suffisant pour 1-2 appels d'outils)
-  for (let i = 0; i < 4; i++) {
-    const resp = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 400,
-      system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
-      tools: TOOLS,
-      messages,
-    });
+  try {
+    // Boucle agentique (max 4 tours, suffisant pour 1-2 appels d'outils)
+    for (let i = 0; i < 4; i++) {
+      const resp = await anthropic.messages.create({
+        model: MODEL,
+        max_tokens: 400,
+        system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
+        tools: TOOLS,
+        messages,
+      });
 
-    if (resp.stop_reason !== "tool_use") {
-      reponse = resp.content
-        .filter((b): b is Anthropic.TextBlock => b.type === "text")
-        .map((b) => b.text)
-        .join(" ")
-        .trim();
-      break;
-    }
-
-    messages.push({ role: "assistant", content: resp.content });
-
-    const toolResults: Anthropic.ToolResultBlockParam[] = [];
-    for (const block of resp.content) {
-      if (block.type === "tool_use") {
-        const { result, action: a } = await executeTool(
-          block.name,
-          (block.input ?? {}) as Record<string, unknown>,
-          supabase
-        );
-        if (a) action = a;
-        toolResults.push({ type: "tool_result", tool_use_id: block.id, content: result });
+      if (resp.stop_reason !== "tool_use") {
+        reponse = resp.content
+          .filter((b): b is Anthropic.TextBlock => b.type === "text")
+          .map((b) => b.text)
+          .join(" ")
+          .trim();
+        messages.push({ role: "assistant", content: resp.content });
+        break;
       }
+
+      messages.push({ role: "assistant", content: resp.content });
+
+      const toolResults: Anthropic.ToolResultBlockParam[] = [];
+      for (const block of resp.content) {
+        if (block.type === "tool_use") {
+          const { result, action: a } = await executeTool(
+            block.name,
+            (block.input ?? {}) as Record<string, unknown>,
+            supabase
+          );
+          if (a) action = a;
+          toolResults.push({ type: "tool_result", tool_use_id: block.id, content: result });
+        }
+      }
+      messages.push({ role: "user", content: toolResults });
     }
-    messages.push({ role: "user", content: toolResults });
+  } catch (e) {
+    console.error("[VOCAL]", e);
+    // En cas d'erreur (ex. historique corrompu), on repart proprement.
+    return Response.json({
+      reponse: "Désolé, j'ai perdu le fil. Reformulez votre demande.",
+      historique: [],
+    });
   }
 
   if (!reponse) {
     reponse = action ? "C'est fait." : "Je n'ai pas compris, reformulez votre demande.";
   }
 
-  return Response.json({ reponse, action });
+  return Response.json({ reponse, action, historique: messages });
 }

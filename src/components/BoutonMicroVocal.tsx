@@ -12,6 +12,7 @@ interface VocalAction {
 interface VocalResponse {
   reponse?: string;
   action?: VocalAction;
+  historique?: unknown[];
 }
 
 // Types Web Speech API — pas inclus dans lib.dom.d.ts par défaut
@@ -43,6 +44,9 @@ export default function BoutonMicroVocal() {
   const reconRef = useRef<SpeechRecognitionLike | null>(null);
   const voixFRRef = useRef<SpeechSynthesisVoice | null>(null);
   const deverroulleeMobileRef = useRef(false);
+  // Historique de la conversation vocale (multi-tours) — permet de répondre
+  // à une question de l'assistant ("quel magasin ?", "tu confirmes ?").
+  const historiqueRef = useRef<unknown[]>([]);
 
   // Précharge les voix disponibles (Android Chrome les charge async)
   useEffect(() => {
@@ -95,9 +99,10 @@ export default function BoutonMicroVocal() {
       const res = await fetch("/api/vocal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texte }),
+        body: JSON.stringify({ texte, historique: historiqueRef.current }),
       });
       const data = (await res.json()) as VocalResponse;
+      historiqueRef.current = Array.isArray(data.historique) ? data.historique : [];
       const rep = data.reponse ?? "Je n'ai pas compris.";
       setReponse(rep);
       setEtat("reponse");
@@ -161,6 +166,7 @@ export default function BoutonMicroVocal() {
   function ouvrirEtEcouter() {
     // Déverrouille l'audio mobile dès l'interaction utilisateur
     deverrouillerAudioMobile();
+    historiqueRef.current = []; // nouvelle conversation
     setOuverte(true);
     demarrerEcoute();
   }
@@ -168,6 +174,7 @@ export default function BoutonMicroVocal() {
   function fermer() {
     reconRef.current?.stop();
     window.speechSynthesis?.cancel();
+    historiqueRef.current = []; // fin de conversation
     setOuverte(false);
     setEtat("idle");
     setTranscription("");
