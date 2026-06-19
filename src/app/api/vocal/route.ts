@@ -4,229 +4,190 @@ import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
 
 const anthropic = new Anthropic();
+const MODEL = "claude-haiku-4-5-20251001";
 
-type Intention =
-  | "creer_rdv"
-  | "creer_remontee"
-  | "creer_action"
-  | "creer_visite"
-  | "prochain_rdv"
-  | "remontees_urgentes"
-  | "ca_du_mois"
-  | "magasins_risque"
-  | "preparation_demain"
-  | "ouvrir_magasin"
-  | "prendre_note"
-  | "naviguer"
-  | "inconnu";
+type NavAction = { type: "navigate"; url: string };
 
-interface ParsedIntention {
-  intention: Intention;
-  params: Record<string, string>;
+// ── Système (mis en cache via prompt caching) ──────────────────────────────────
+const SYSTEM = `Tu es l'assistant vocal de l'animateur du réseau de magasins piscinistes "Piscinistes Associés".
+
+Ton rôle : comprendre une commande dite à voix haute (en français, parfois approximative) et y répondre en utilisant les outils mis à ta disposition.
+
+Règles :
+- Choisis le ou les outils adaptés à la demande, même si la formulation est libre ou inhabituelle.
+- Pour ouvrir une PAGE de l'app, utilise "naviguer". Pour ouvrir la FICHE d'un magasin précis, utilise "ouvrir_magasin".
+- Pour créer quelque chose (RDV, visite, remontée, action), utilise l'outil de création correspondant : il ouvre le formulaire pré-rempli.
+- Pour une question (prochain RDV, remontées urgentes, CA du mois, magasins à risque, préparation de demain), utilise l'outil de consultation puis donne la réponse.
+- Réponse finale : une phrase courte et naturelle en français (moins de 25 mots), sans markdown. Confirme l'action ou donne l'info.
+- Si la demande est incompréhensible, dis-le brièvement et propose un exemple.`;
+
+// ── Cibles de navigation ───────────────────────────────────────────────────────
+const MAP_NAV: Record<string, { url: string; label: string }> = {
+  accueil: { url: "/animateur", label: "l'accueil" },
+  agenda: { url: "/animateur", label: "l'agenda" },
+  carte: { url: "/animateur/carte", label: "la carte du réseau" },
+  notes: { url: "/animateur/notes", label: "les notes vocales" },
+  pilotage: { url: "/pilotage", label: "le pilotage" },
+  sante: { url: "/animateur/sante", label: "la santé réseau" },
+  rdv: { url: "/animateur/rdv", label: "les rendez-vous" },
+  visites: { url: "/visites", label: "les visites" },
+  parcours: { url: "/animateur/parcours", label: "la préparation de tournée" },
+  tournee_suggeree: { url: "/animateur/tournee/suggestion", label: "la tournée suggérée" },
+  actions: { url: "/actions-reseau", label: "les actions" },
+  remontees: { url: "/remontees", label: "les remontées" },
+  news: { url: "/animateur/news", label: "les actualités" },
+  evaluations: { url: "/evaluations", label: "les évaluations" },
+  magasins: { url: "/magasins", label: "la liste des magasins" },
+  parametres: { url: "/animateur/parametres", label: "les paramètres" },
+};
+
+// ── Définition des outils ──────────────────────────────────────────────────────
+const TOOLS: Anthropic.Tool[] = [
+  {
+    name: "naviguer",
+    description: "Ouvrir une page de l'application animateur (pas la fiche d'un magasin précis).",
+    input_schema: {
+      type: "object",
+      properties: { cible: { type: "string", enum: Object.keys(MAP_NAV) } },
+      required: ["cible"],
+    },
+  },
+  {
+    name: "ouvrir_magasin",
+    description: "Ouvrir la fiche détaillée d'un magasin identifié par son nom, enseigne ou ville.",
+    input_schema: {
+      type: "object",
+      properties: { magasin: { type: "string", description: "Nom, enseigne ou ville du magasin" } },
+      required: ["magasin"],
+    },
+  },
+  {
+    name: "creer_rdv",
+    description: "Ouvrir le formulaire de création d'un rendez-vous.",
+    input_schema: {
+      type: "object",
+      properties: {
+        magasin: { type: "string" }, objet: { type: "string" },
+        date: { type: "string" }, heure: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "creer_visite",
+    description: "Ouvrir le formulaire pour planifier une visite.",
+    input_schema: { type: "object", properties: { magasin: { type: "string" } } },
+  },
+  {
+    name: "creer_remontee",
+    description: "Ouvrir le formulaire pour créer une remontée terrain.",
+    input_schema: { type: "object", properties: { magasin: { type: "string" } } },
+  },
+  {
+    name: "creer_action",
+    description: "Ouvrir le formulaire de création d'une action réseau.",
+    input_schema: { type: "object", properties: { titre: { type: "string" } } },
+  },
+  {
+    name: "prendre_note",
+    description: "Lancer l'enregistrement d'une note vocale.",
+    input_schema: { type: "object", properties: {} },
+  },
+  {
+    name: "prochain_rdv",
+    description: "Consulter le prochain rendez-vous à venir.",
+    input_schema: { type: "object", properties: {} },
+  },
+  {
+    name: "remontees_urgentes",
+    description: "Consulter les remontées urgentes non traitées.",
+    input_schema: { type: "object", properties: {} },
+  },
+  {
+    name: "ca_du_mois",
+    description: "Consulter le chiffre d'affaires du réseau pour le mois en cours.",
+    input_schema: { type: "object", properties: {} },
+  },
+  {
+    name: "magasins_risque",
+    description: "Consulter les magasins en risque (remontées urgentes, magasins stratégiques).",
+    input_schema: { type: "object", properties: {} },
+  },
+  {
+    name: "preparation_demain",
+    description: "Consulter ce qui est prévu demain (RDV confirmés et visites planifiées).",
+    input_schema: { type: "object", properties: {} },
+  },
+];
+
+// ── Exécution d'un outil côté serveur ──────────────────────────────────────────
+type Supa = Awaited<ReturnType<typeof createClient>>;
+
+function parisYMD(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(d);
+}
+function titreMag(m: { nom: string; enseigne: string | null } | null): string {
+  if (!m) return "magasin inconnu";
+  return m.enseigne ? `${m.enseigne} ${m.nom}` : m.nom;
 }
 
-const SYSTEM_PARSE = `Tu es un assistant vocal pour un animateur réseau de magasins piscinistes.
-Analyse la commande vocale et retourne UNIQUEMENT un objet JSON valide, sans markdown, sans explication.
+async function executeTool(
+  name: string,
+  input: Record<string, unknown>,
+  supabase: Supa
+): Promise<{ result: string; action?: NavAction }> {
+  const s = (k: string) => String(input[k] ?? "").trim();
 
-Format exact: {"intention":"<intention>","params":{<params>}}
-
-Intentions disponibles:
-- "creer_rdv" : créer un rendez-vous. params: { magasin?: string, objet?: string, date?: string, heure?: string }
-- "creer_remontee" : créer une remontée terrain. params: { magasin?: string, message?: string, gravite?: "normale"|"urgente" }
-- "creer_action" : créer une action réseau. params: { titre?: string, magasin?: string }
-- "creer_visite" : planifier une visite. params: { magasin?: string, date?: string, objectif?: string }
-- "prochain_rdv" : consulter le prochain RDV. params: {}
-- "remontees_urgentes" : voir les remontées urgentes non traitées. params: {}
-- "ca_du_mois" : voir le CA du mois en cours. params: {}
-- "magasins_risque" : voir les magasins en risque. params: {}
-- "preparation_demain" : voir la préparation pour demain. params: {}
-- "ouvrir_magasin" : ouvrir la fiche d'un magasin. params: { magasin: string }
-- "prendre_note" : enregistrer une note vocale audio. params: {}
-- "naviguer" : ouvrir une page de l'app. params: { cible: "carte"|"pilotage"|"rdv"|"visites"|"parcours"|"actions"|"remontees"|"news"|"evaluations"|"magasins"|"parametres"|"agenda"|"tournee"|"notes" }
-- "inconnu" : commande non reconnue. params: {}
-
-Exemples navigation:
-- "ouvre mes notes" / "notes vocales" → {"intention":"naviguer","params":{"cible":"notes"}}
-- "prends une note" / "enregistre un mémo" / "nouvelle note vocale" → {"intention":"prendre_note","params":{}}
-- "ouvre la carte" → {"intention":"naviguer","params":{"cible":"carte"}}
-- "va à la carte" → {"intention":"naviguer","params":{"cible":"carte"}}
-- "montre-moi le pilotage" → {"intention":"naviguer","params":{"cible":"pilotage"}}
-- "ouvre les rendez-vous" / "page rdv" → {"intention":"naviguer","params":{"cible":"rdv"}}
-- "ouvre les visites" → {"intention":"naviguer","params":{"cible":"visites"}}
-- "page parcours" / "ma tournée" → {"intention":"naviguer","params":{"cible":"parcours"}}
-- "ouvre les actions" / "actions réseau" → {"intention":"naviguer","params":{"cible":"actions"}}
-- "remontées" / "voir les remontées" → {"intention":"naviguer","params":{"cible":"remontees"}}
-- "actualités" / "news" → {"intention":"naviguer","params":{"cible":"news"}}
-- "évaluations" → {"intention":"naviguer","params":{"cible":"evaluations"}}
-- "liste des magasins" / "page magasins" → {"intention":"naviguer","params":{"cible":"magasins"}}
-- "paramètres" / "réglages" → {"intention":"naviguer","params":{"cible":"parametres"}}
-- "mon agenda" → {"intention":"naviguer","params":{"cible":"agenda"}}
-
-Exemples autres:
-- "crée un RDV avec Piscine Service Lyon" → {"intention":"creer_rdv","params":{"magasin":"Piscine Service Lyon"}}
-- "montre-moi les remontées urgentes" → {"intention":"remontees_urgentes","params":{}}
-- "ouvre la fiche du magasin Aqua Rêve Strasbourg" → {"intention":"ouvrir_magasin","params":{"magasin":"Aqua Rêve Strasbourg"}}
-- "quel est mon prochain rendez-vous" → {"intention":"prochain_rdv","params":{}}
-- "CA du mois" → {"intention":"ca_du_mois","params":{}}
-
-IMPORTANT: "ouvre/va sur/page [section]" sans nom de magasin = "naviguer".
-"ouvre la fiche [nom magasin]" = "ouvrir_magasin".`;
-
-type MagasinRow = {
-  id: string;
-  nom: string;
-  enseigne: string | null;
-  ville: string | null;
-};
-
-type RdvRow = {
-  date_souhaitee: string;
-  heure_souhaitee: string | null;
-  objet: string;
-  magasins: { nom: string; enseigne: string | null; ville: string | null } | null;
-};
-
-type RemonteeRow = {
-  titre: string;
-  magasins: { nom: string; enseigne: string | null } | null;
-};
-
-type CaRow = { ca_ht: number };
-
-export async function POST(req: NextRequest) {
-  const session = await getSession();
-  if (session?.role !== "animateur") {
-    return Response.json({ error: "Non autorisé" }, { status: 401 });
-  }
-
-  const body = (await req.json()) as { texte?: string };
-  const texte = body.texte?.trim();
-  if (!texte) {
-    return Response.json({ reponse: "Commande vide, réessayez." });
-  }
-
-  // 0. FALLBACK RAPIDE : regex sur les commandes de navigation simples
-  // Évite un appel Claude inutile et garantit que ces commandes marchent
-  const texteLower = texte
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, ""); // supprime accents
-  const REGEX_NAV: Array<{ regex: RegExp; cible: string }> = [
-    { regex: /\b(carte|map|cartographie|reseau)\b/, cible: "carte" },
-    { regex: /\b(accueil|dashboard|home)\b/, cible: "accueil" },
-    { regex: /\b(pilotage|cockpit|tableau de bord)\b/, cible: "pilotage" },
-    { regex: /\b(rendez ?vous|rdv|prochains? rdv|mes? rdv)\b/, cible: "rdv" },
-    { regex: /\b(visites?|liste des visites)\b/, cible: "visites" },
-    { regex: /\b(parcours|tournee|itineraire|preparer une tournee)\b/, cible: "parcours" },
-    { regex: /\b(actions?|actions? reseau)\b/, cible: "actions" },
-    { regex: /\b(remontees?|alertes?|signalements?)\b/, cible: "remontees" },
-    { regex: /\b(news|actualites?|infos? reseau)\b/, cible: "news" },
-    { regex: /\b(evaluations?|notes? visites?)\b/, cible: "evaluations" },
-    { regex: /\b(magasins?|liste|liste des magasins)\b/, cible: "magasins" },
-    { regex: /\b(parametres?|reglages?|configuration|settings)\b/, cible: "parametres" },
-    { regex: /\b(agenda|calendrier|planning)\b/, cible: "agenda" },
-    { regex: /\b(notes? vocales?|mes? notes?|memo|memos?|enregistrement vocal)\b/, cible: "notes" },
-  ];
-  // Prendre une note — détection directe avant Claude
-  const prendreNote = /\b(prends?|prendre|enregistre|enregistrer)\b.*\b(note|memo|memo)\b/i.test(texteLower)
-    || /\b(nouvelle?\s+note|note\s+vocale|memo\s+vocal)\b/i.test(texteLower);
-  if (prendreNote) {
-    return Response.json({
-      reponse: "Je lance l'enregistrement.",
-      action: { type: "navigate", url: "/animateur/notes?record=1" },
-    });
-  }
-
-  // Si le texte commence par un verbe de navigation, on cherche la cible
-  const verbeNav = /\b(ouvre|ouvrir|va|aller|montre|montrer|affiche|afficher|page|emmene|emmener|retour)\b/.test(texteLower);
-  if (verbeNav) {
-    for (const { regex, cible } of REGEX_NAV) {
-      if (regex.test(texteLower)) {
-        const MAP_LABEL: Record<string, { url: string; label: string }> = {
-          carte:        { url: "/animateur/carte",      label: "la carte du réseau" },
-          accueil:      { url: "/animateur",            label: "l'accueil" },
-          agenda:       { url: "/animateur",            label: "l'agenda" },
-          notes:        { url: "/animateur/notes",      label: "les notes vocales" },
-          pilotage:     { url: "/pilotage",             label: "le pilotage" },
-          rdv:          { url: "/animateur/rdv",        label: "les rendez-vous" },
-          visites:      { url: "/visites",              label: "les visites" },
-          parcours:     { url: "/animateur/parcours",   label: "la préparation de tournée" },
-          actions:      { url: "/actions-reseau",       label: "les actions" },
-          remontees:    { url: "/remontees",            label: "les remontées" },
-          news:         { url: "/animateur/news",       label: "les actualités" },
-          evaluations:  { url: "/evaluations",          label: "les évaluations" },
-          magasins:     { url: "/magasins",             label: "la liste des magasins" },
-          parametres:   { url: "/animateur/parametres", label: "les paramètres" },
-        };
-        const match = MAP_LABEL[cible];
-        return Response.json({
-          reponse: `J'ouvre ${match.label}.`,
-          action: { type: "navigate", url: match.url },
-        });
-      }
+  switch (name) {
+    case "naviguer": {
+      const cible = s("cible").toLowerCase();
+      const m = MAP_NAV[cible];
+      if (!m) return { result: `Cible inconnue : ${cible}.` };
+      return { result: `Ouverture de ${m.label}.`, action: { type: "navigate", url: m.url } };
     }
-  }
-
-  // 1. Parsing intention avec cache sur le prompt système
-  const parseMsg = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 200,
-    system: [
-      {
-        type: "text",
-        text: SYSTEM_PARSE,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    messages: [{ role: "user", content: texte }],
-  });
-
-  let parsed: ParsedIntention = { intention: "inconnu", params: {} };
-  try {
-    const c = parseMsg.content[0];
-    if (c.type === "text") {
-      parsed = JSON.parse(c.text.trim()) as ParsedIntention;
+    case "prendre_note":
+      return { result: "Enregistrement lancé.", action: { type: "navigate", url: "/animateur/notes?record=1" } };
+    case "creer_rdv": {
+      const mag = s("magasin");
+      return { result: `Formulaire RDV${mag ? ` avec ${mag}` : ""} ouvert.`, action: { type: "navigate", url: "/animateur/rdv/nouvelle" } };
     }
-  } catch {
-    // garde "inconnu"
-  }
+    case "creer_visite": {
+      const mag = s("magasin");
+      return { result: `Formulaire de visite${mag ? ` chez ${mag}` : ""} ouvert.`, action: { type: "navigate", url: "/visites/nouvelle" } };
+    }
+    case "creer_remontee":
+      return { result: "Formulaire de remontée ouvert.", action: { type: "navigate", url: "/remontees/nouvelle" } };
+    case "creer_action":
+      return { result: "Formulaire d'action réseau ouvert.", action: { type: "navigate", url: "/actions-reseau/nouvelle" } };
 
-  // 2. Exécution sur Supabase
-  const supabase = await createClient();
-  const today = new Date().toISOString().split("T")[0];
-  let donnees = "";
-  let actionRetour: { type: "navigate"; url: string } | undefined;
+    case "ouvrir_magasin": {
+      const q = s("magasin").toLowerCase();
+      if (!q) return { result: "Aucun nom de magasin précisé." };
+      const { data } = await supabase.from("magasins").select("id, nom, enseigne, ville").eq("statut", "actif");
+      const trouve = (data ?? []).find((m) => {
+        const row = m as unknown as { nom: string; enseigne: string | null; ville: string | null };
+        const hay = [row.nom, row.enseigne, row.ville].filter(Boolean).join(" ").toLowerCase();
+        return hay.includes(q) || q.includes(row.nom.toLowerCase());
+      });
+      if (!trouve) return { result: `Aucun magasin trouvé pour "${s("magasin")}".` };
+      const row = trouve as unknown as { id: string; nom: string; enseigne: string | null };
+      return { result: `Ouverture de la fiche ${titreMag(row)}.`, action: { type: "navigate", url: `/magasins/${row.id}` } };
+    }
 
-  switch (parsed.intention) {
     case "prochain_rdv": {
+      const today = parisYMD(new Date());
       const { data } = await supabase
         .from("rendez_vous")
-        .select(
-          "date_souhaitee, heure_souhaitee, objet, magasins!rendez_vous_magasin_id_fkey(nom, enseigne, ville)"
-        )
+        .select("date_souhaitee, heure_souhaitee, objet, magasins!rendez_vous_magasin_id_fkey(nom, enseigne)")
         .in("statut", ["confirme", "demande"])
         .gte("date_souhaitee", today)
         .order("date_souhaitee", { ascending: true })
         .limit(1);
-
-      if (data?.length) {
-        const rdv = data[0] as unknown as RdvRow;
-        const m = rdv.magasins;
-        const nomMag = m
-          ? m.enseigne
-            ? `${m.enseigne} ${m.nom}`
-            : m.nom
-          : "magasin inconnu";
-        const dateF = new Date(rdv.date_souhaitee).toLocaleDateString("fr-FR", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        });
-        donnees = `Prochain RDV : ${rdv.heure_souhaitee ? rdv.heure_souhaitee.slice(0, 5) + " " : ""}le ${dateF} avec ${nomMag}. Objet : ${rdv.objet}.`;
-      } else {
-        donnees = "Aucun RDV à venir.";
-      }
-      break;
+      if (!data?.length) return { result: "Aucun RDV à venir." };
+      const r = data[0] as unknown as { date_souhaitee: string; heure_souhaitee: string | null; objet: string; magasins: { nom: string; enseigne: string | null } | null };
+      const dateF = new Date(r.date_souhaitee + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+      return { result: `Prochain RDV : ${r.heure_souhaitee ? r.heure_souhaitee.slice(0, 5) + " " : ""}le ${dateF} avec ${titreMag(r.magasins)}. Objet : ${r.objet}.` };
     }
 
     case "remontees_urgentes": {
@@ -237,219 +198,124 @@ export async function POST(req: NextRequest) {
         .not("statut", "in", "(traitee,archivee)")
         .order("created_at", { ascending: false })
         .limit(3);
-
-      if (!count) {
-        donnees = "Aucune remontée urgente active.";
-      } else {
-        const titres = (data ?? []).map((r) => {
-          const row = r as unknown as RemonteeRow;
-          const nomMag = row.magasins
-            ? (row.magasins.enseigne ?? row.magasins.nom)
-            : "?";
-          return `${nomMag} : ${row.titre}`;
-        });
-        donnees = `${count} remontée${count > 1 ? "s" : ""} urgente${count > 1 ? "s" : ""} active${count > 1 ? "s" : ""}. ${titres.slice(0, 2).join(". ")}.`;
-      }
-      break;
+      if (!count) return { result: "Aucune remontée urgente active." };
+      const titres = (data ?? []).map((r) => {
+        const row = r as unknown as { titre: string; magasins: { nom: string; enseigne: string | null } | null };
+        return `${titreMag(row.magasins)} : ${row.titre}`;
+      });
+      return { result: `${count} remontée${count > 1 ? "s" : ""} urgente${count > 1 ? "s" : ""}. ${titres.slice(0, 2).join(". ")}.` };
     }
 
     case "ca_du_mois": {
       const now = new Date();
-      const moisStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const annee = now.getFullYear();
+      const mois = now.getMonth() + 1;
       const { data } = await supabase
         .from("ca_mensuel")
-        .select("ca_ht")
-        .like("mois", `${moisStr}%`);
-
-      if (data?.length) {
-        const total = (data as CaRow[]).reduce(
-          (sum, r) => sum + (r.ca_ht ?? 0),
-          0
-        );
-        donnees = `CA du mois en cours : ${total.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })} HT sur ${data.length} magasin${data.length > 1 ? "s" : ""}.`;
-      } else {
-        donnees = `Pas de données CA pour ${moisStr}. Rendez-vous sur le pilotage.`;
-        actionRetour = { type: "navigate", url: "/pilotage" };
-      }
-      break;
+        .select("magasin_id, montant")
+        .eq("segment", "global")
+        .eq("annee", annee)
+        .eq("mois", mois);
+      if (!data?.length) return { result: `Pas encore de données de CA pour le mois en cours.` };
+      const rows = data as unknown as { magasin_id: string; montant: number | string }[];
+      const total = rows.reduce((sum, r) => sum + Number(r.montant ?? 0), 0);
+      const nbMag = new Set(rows.map((r) => r.magasin_id)).size;
+      const montantStr = total.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+      return { result: `CA du mois en cours : ${montantStr} sur ${nbMag} magasin${nbMag > 1 ? "s" : ""}.` };
     }
 
     case "magasins_risque": {
-      const { data: remUrgentes, count: nbUrgentes } = await supabase
+      const { data: remUrg, count: nbUrg } = await supabase
         .from("remontees")
         .select("magasin_id", { count: "exact" })
         .eq("gravite", "urgente")
         .not("statut", "in", "(traitee,archivee)");
-
-      const magIdsUniques = new Set(
-        (remUrgentes ?? []).map(
-          (r: unknown) => (r as { magasin_id: string }).magasin_id
-        )
-      );
-
-      const { count: nbStrategiques } = await supabase
+      const magIds = new Set((remUrg ?? []).map((r) => (r as unknown as { magasin_id: string }).magasin_id));
+      const { count: nbStrat } = await supabase
         .from("magasins")
         .select("*", { count: "exact", head: true })
         .eq("statut", "actif")
         .eq("niveau", "strategique");
-
-      donnees = `${magIdsUniques.size} magasin${magIdsUniques.size > 1 ? "s" : ""} avec remontée urgente active (${nbUrgentes ?? 0} remontée${(nbUrgentes ?? 0) > 1 ? "s" : ""}). ${nbStrategiques ?? 0} magasins stratégiques.`;
-      actionRetour = { type: "navigate", url: "/pilotage" };
-      break;
+      return { result: `${magIds.size} magasin${magIds.size > 1 ? "s" : ""} avec remontée urgente (${nbUrg ?? 0} au total). ${nbStrat ?? 0} magasins stratégiques.` };
     }
 
     case "preparation_demain": {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split("T")[0];
-      const { data } = await supabase
-        .from("rendez_vous")
-        .select(
-          "heure_souhaitee, objet, magasins!rendez_vous_magasin_id_fkey(nom, enseigne, ville)"
-        )
-        .eq("statut", "confirme")
-        .eq("date_souhaitee", tomorrowStr);
-
-      if (!data?.length) {
-        donnees = "Aucun RDV confirmé demain.";
-      } else {
-        const rdvList = (data as unknown as RdvRow[]).map((r) => {
-          const m = r.magasins;
-          const nomMag = m ? (m.enseigne ? `${m.enseigne} ${m.nom}` : m.nom) : "?";
-          return `${r.heure_souhaitee ? r.heure_souhaitee.slice(0, 5) + " " : ""}${nomMag}`;
-        });
-        donnees = `Demain tu as ${data.length} RDV : ${rdvList.join(", ")}.`;
+      const demain = parisYMD(new Date(Date.now() + 86_400_000));
+      const [{ data: rdvs }, { data: visites }] = await Promise.all([
+        supabase.from("rendez_vous").select("heure_souhaitee, magasins!rendez_vous_magasin_id_fkey(nom, enseigne)").eq("statut", "confirme").eq("date_souhaitee", demain),
+        supabase.from("visites").select("heure_prevue, magasins(nom, enseigne)").eq("statut", "planifiee").eq("date_prevue", demain),
+      ]);
+      const items: string[] = [];
+      for (const r of (rdvs ?? []) as unknown as { heure_souhaitee: string | null; magasins: { nom: string; enseigne: string | null } | null }[]) {
+        items.push(`${r.heure_souhaitee ? r.heure_souhaitee.slice(0, 5) + " " : ""}${titreMag(r.magasins)}`);
       }
-      break;
-    }
-
-    case "ouvrir_magasin": {
-      const nomRecherche = (parsed.params.magasin ?? "").toLowerCase().trim();
-      if (!nomRecherche) {
-        donnees = "Aucun nom de magasin précisé.";
-        break;
+      for (const v of (visites ?? []) as unknown as { heure_prevue: string | null; magasins: { nom: string; enseigne: string | null } | null }[]) {
+        items.push(`${v.heure_prevue ? v.heure_prevue.slice(0, 5) + " " : ""}${titreMag(v.magasins)} (visite)`);
       }
-      const { data: magasins } = await supabase
-        .from("magasins")
-        .select("id, nom, enseigne, ville")
-        .eq("statut", "actif");
-
-      const trouve = (magasins ?? []).find((m) => {
-        const row = m as unknown as MagasinRow;
-        const champs = [row.nom, row.enseigne, row.ville]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return (
-          champs.includes(nomRecherche) ||
-          nomRecherche.includes(row.nom.toLowerCase())
-        );
-      });
-
-      if (trouve) {
-        const row = trouve as unknown as MagasinRow;
-        const nomMag = row.enseigne ? `${row.enseigne} ${row.nom}` : row.nom;
-        donnees = `Ouverture de la fiche ${nomMag}.`;
-        actionRetour = { type: "navigate", url: `/magasins/${row.id}` };
-      } else {
-        donnees = `Aucun magasin trouvé pour "${parsed.params.magasin}". Vérifiez le nom.`;
-      }
-      break;
+      if (items.length === 0) return { result: "Rien de prévu demain." };
+      return { result: `Demain : ${items.length} prévu${items.length > 1 ? "s" : ""}. ${items.join(", ")}.` };
     }
 
-    case "creer_rdv": {
-      const magasin = parsed.params.magasin ? ` avec ${parsed.params.magasin}` : "";
-      donnees = `Je t'ouvre le formulaire de création de RDV${magasin}.`;
-      actionRetour = { type: "navigate", url: "/animateur/rdv/nouvelle" };
-      break;
-    }
+    default:
+      return { result: "Outil inconnu." };
+  }
+}
 
-    case "creer_remontee": {
-      donnees = "Je t'ouvre le formulaire pour créer une remontée terrain.";
-      actionRetour = { type: "navigate", url: "/remontees/nouvelle" };
-      break;
-    }
-
-    case "creer_action": {
-      donnees = "Je t'ouvre le formulaire de création d'action réseau.";
-      actionRetour = { type: "navigate", url: "/actions-reseau/nouvelle" };
-      break;
-    }
-
-    case "creer_visite": {
-      const magasin = parsed.params.magasin ? ` chez ${parsed.params.magasin}` : "";
-      donnees = `Je t'ouvre le formulaire pour planifier une visite${magasin}.`;
-      actionRetour = { type: "navigate", url: "/visites/nouvelle" };
-      break;
-    }
-
-    case "prendre_note": {
-      donnees = "Je lance l'enregistrement de votre note vocale.";
-      actionRetour = { type: "navigate", url: "/animateur/notes?record=1" };
-      break;
-    }
-
-    case "naviguer": {
-      const cible = (parsed.params.cible ?? "").toLowerCase().trim();
-      const MAP_NAV: Record<string, { url: string; label: string }> = {
-        carte:        { url: "/animateur",          label: "la carte du réseau" },
-        accueil:      { url: "/animateur",          label: "l'accueil" },
-        dashboard:    { url: "/animateur",          label: "le dashboard" },
-        agenda:       { url: "/animateur",          label: "l'agenda" },
-        notes:        { url: "/animateur/notes",   label: "les notes vocales" },
-        pilotage:     { url: "/pilotage",           label: "le pilotage" },
-        rdv:          { url: "/animateur/rdv",      label: "les rendez-vous" },
-        "rendez-vous":{ url: "/animateur/rdv",      label: "les rendez-vous" },
-        visites:      { url: "/visites",            label: "les visites" },
-        parcours:     { url: "/animateur/parcours", label: "la préparation de tournée" },
-        tournee:      { url: "/animateur/parcours", label: "la préparation de tournée" },
-        itineraire:   { url: "/animateur/parcours", label: "l'itinéraire" },
-        actions:      { url: "/actions-reseau",     label: "les actions" },
-        "actions-reseau": { url: "/actions-reseau", label: "les actions" },
-        remontees:    { url: "/remontees",          label: "les remontées" },
-        remontée:     { url: "/remontees",          label: "les remontées" },
-        news:         { url: "/animateur/news",     label: "les actualités" },
-        actualites:   { url: "/animateur/news",     label: "les actualités" },
-        evaluations:  { url: "/evaluations",        label: "les évaluations" },
-        magasins:     { url: "/magasins",           label: "la liste des magasins" },
-        liste:        { url: "/magasins",           label: "la liste des magasins" },
-        parametres:   { url: "/animateur/parametres", label: "les paramètres" },
-        reglages:     { url: "/animateur/parametres", label: "les réglages" },
-      };
-      // Normalise les accents (é → e, etc.)
-      const cibleNorm = cible.normalize("NFD").replace(/\p{Diacritic}/gu, "");
-      const match = MAP_NAV[cibleNorm] ?? MAP_NAV[cible];
-      if (match) {
-        donnees = `J'ouvre ${match.label}.`;
-        actionRetour = { type: "navigate", url: match.url };
-      } else {
-        donnees = `Je ne sais pas ouvrir "${cible}". Essaye carte, pilotage, RDV, visites, parcours, actions, remontées, news, évaluations, magasins ou paramètres.`;
-      }
-      break;
-    }
-
-    default: {
-      donnees = `Commande non reconnue : "${texte}". Essayez "prochain RDV", "remontées urgentes", ou "ouvre [nom magasin]".`;
-    }
+// ── Handler ────────────────────────────────────────────────────────────────────
+export async function POST(req: NextRequest) {
+  const session = await getSession();
+  if (session?.role !== "animateur") {
+    return Response.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  // 3. Formulation réponse naturelle courte
-  const repMsg = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 100,
-    system: [
-      {
-        type: "text",
-        text: "Tu es un assistant vocal concis pour animateur réseau. Reformule l'info en français naturel et bref (1-2 phrases max, moins de 25 mots). Pas de markdown.",
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    messages: [{ role: "user", content: donnees }],
-  });
+  const body = (await req.json()) as { texte?: string };
+  const texte = body.texte?.trim();
+  if (!texte) return Response.json({ reponse: "Commande vide, réessayez." });
 
-  const repContent = repMsg.content[0];
-  const reponse =
-    repContent.type === "text" ? repContent.text.trim() : donnees;
+  const supabase = await createClient();
+  const messages: Anthropic.MessageParam[] = [{ role: "user", content: texte }];
+  let action: NavAction | undefined;
+  let reponse = "";
 
-  return Response.json({ reponse, action: actionRetour });
+  // Boucle agentique (max 4 tours, suffisant pour 1-2 appels d'outils)
+  for (let i = 0; i < 4; i++) {
+    const resp = await anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 400,
+      system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
+      tools: TOOLS,
+      messages,
+    });
+
+    if (resp.stop_reason !== "tool_use") {
+      reponse = resp.content
+        .filter((b): b is Anthropic.TextBlock => b.type === "text")
+        .map((b) => b.text)
+        .join(" ")
+        .trim();
+      break;
+    }
+
+    messages.push({ role: "assistant", content: resp.content });
+
+    const toolResults: Anthropic.ToolResultBlockParam[] = [];
+    for (const block of resp.content) {
+      if (block.type === "tool_use") {
+        const { result, action: a } = await executeTool(
+          block.name,
+          (block.input ?? {}) as Record<string, unknown>,
+          supabase
+        );
+        if (a) action = a;
+        toolResults.push({ type: "tool_result", tool_use_id: block.id, content: result });
+      }
+    }
+    messages.push({ role: "user", content: toolResults });
+  }
+
+  if (!reponse) {
+    reponse = action ? "C'est fait." : "Je n'ai pas compris, reformulez votre demande.";
+  }
+
+  return Response.json({ reponse, action });
 }
