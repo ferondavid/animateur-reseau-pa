@@ -8,7 +8,7 @@ import { calculerRisqueMagasins } from "@/lib/risque";
 import { suggererTournee } from "@/lib/suggestion-tournee";
 import { getParametre } from "@/lib/parametres";
 import { titreMagasin } from "@/lib/magasin";
-import { Sparkles, Route } from "lucide-react";
+import { Sparkles, Route, Info } from "lucide-react";
 
 type MagasinRow = {
   id: string;
@@ -218,6 +218,37 @@ export default async function SuggestionTourneePage({
               </div>
               <p className="text-xs text-center mt-3" style={{ color: "var(--pa-muted)" }}>
                 {suggestion.raisonGroupe} · estimation à vol d&apos;oiseau (60 km/h)
+              </p>
+            </div>
+
+            {/* Critères de la suggestion */}
+            <div
+              className="pa-card p-4"
+              style={{ background: "linear-gradient(135deg,#F3F0FC,#EDEBFB)", border: "1px solid rgba(124,107,232,.25)" }}
+            >
+              <p className="text-sm font-bold flex items-center gap-2 mb-3" style={{ color: "#534AB7" }}>
+                <Info size={16} /> Pourquoi ces magasins ?
+              </p>
+              <ul className="space-y-2 text-sm" style={{ color: "var(--pa-ink)" }}>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0">🔴</span>
+                  <span><strong>Niveau de risque</strong> — non visité hors délai, note faible (&lt; 3/5) ou remontée urgente non traitée.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0">⏳</span>
+                  <span><strong>Ancienneté</strong> — plus la dernière visite est lointaine, plus c&apos;est prioritaire (seuils <strong>30 / 60 / 90 j</strong> selon observation / stratégique / standard).</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0">📍</span>
+                  <span><strong>Proximité</strong> — magasins regroupés autour du plus urgent, pour une tournée compacte.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0">🚗</span>
+                  <span><strong>Itinéraire</strong> — ordonnés au plus proche depuis ton adresse de départ.</span>
+                </li>
+              </ul>
+              <p className="text-xs mt-3" style={{ color: "var(--pa-muted)" }}>
+                Les étiquettes sous chaque magasin ci-dessous indiquent la ou les raisons retenues.
               </p>
             </div>
 
