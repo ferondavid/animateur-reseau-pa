@@ -1,9 +1,67 @@
 "use server";
 
-import { setSession, clearSession } from "@/lib/auth";
+import { setSession, clearSession, type SessionRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getParametre } from "@/lib/parametres";
 import { envoyerEmail } from "@/lib/email";
+import { createClient } from "@/lib/supabase/server";
+
+/**
+ * Connexion unifiée : un identifiant + un mot de passe.
+ * 1. Cherche dans la table `comptes` (associés, bureau, animateur).
+ * 2. Sinon, fallback codé en dur (rétrocompat) : df/dfdf (animateur), pa/associe (membre).
+ */
+export async function loginCompte(
+  _prev: { error?: string } | null,
+  formData: FormData
+): Promise<{ error?: string }> {
+  const login = String(formData.get("login") || "").trim();
+  const password = String(formData.get("password") || "");
+  if (!login || !password) return { error: "Identifiant et mot de passe requis." };
+
+  // 1. Table comptes (le redirect est HORS du try : il lève une exception qu'il ne faut pas avaler)
+  let matched: { role: SessionRole; magasin_id: string | null } | null = null;
+  let inactif = false;
+  let mauvaisMdp = false;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("comptes")
+      .select("role, magasin_id, mot_de_passe, actif")
+      .eq("login", login)
+      .maybeSingle();
+    const c = data as { role: string; magasin_id: string | null; mot_de_passe: string; actif: boolean } | null;
+    if (c) {
+      if (!c.actif) inactif = true;
+      else if (c.mot_de_passe !== password) mauvaisMdp = true;
+      else matched = { role: c.role as SessionRole, magasin_id: c.magasin_id };
+    }
+  } catch {
+    // table absente ou erreur réseau → fallback ci-dessous
+  }
+
+  if (inactif) return { error: "Ce compte est désactivé." };
+  if (mauvaisMdp) return { error: "Identifiants incorrects" };
+  if (matched) {
+    await setSession({ role: matched.role, magasinId: matched.magasin_id ?? undefined });
+    if (matched.role === "animateur") redirect("/animateur");
+    if (matched.role === "bureau") redirect("/bureau");
+    if (matched.magasin_id) redirect(`/membre/${matched.magasin_id}`);
+    redirect("/membre");
+  }
+
+  // 2. Fallback codé en dur (rétrocompat)
+  if (login.toLowerCase() === "df" && password === "dfdf") {
+    await setSession({ role: "animateur" });
+    redirect("/animateur");
+  }
+  if (login.toLowerCase() === "pa" && password === "associe") {
+    await setSession({ role: "membre" });
+    redirect("/membre");
+  }
+
+  return { error: "Identifiants incorrects" };
+}
 
 export async function loginMembre(
   _prev: { error?: string } | null,

@@ -50,10 +50,12 @@ export function middleware(req: NextRequest) {
   }
 
   // Parse le rôle depuis le cookie
-  let role: "membre" | "animateur" | null = null;
+  let role: "membre" | "animateur" | "bureau" | null = null;
+  let magasinId: string | undefined;
   try {
     const parsed = JSON.parse(sessionCookie.value);
     role = parsed?.role ?? null;
+    magasinId = parsed?.magasinId ?? undefined;
   } catch {
     // Cookie corrompu → redirige vers login pour reset
     const url = req.nextUrl.clone();
@@ -61,23 +63,45 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Racine "/" : un utilisateur déjà connecté va DIRECTEMENT dans son espace,
-  // jamais sur le sélecteur de profil (évite le flash et la dépendance au localStorage).
+  // Espace par défaut selon le rôle
+  const espace =
+    role === "animateur" ? "/animateur"
+    : role === "bureau" ? "/bureau"
+    : magasinId ? `/membre/${magasinId}` : "/membre";
+
+  // Racine "/" : un utilisateur connecté va DIRECTEMENT dans son espace.
   if (pathname === "/") {
     const url = req.nextUrl.clone();
-    url.pathname = role === "animateur" ? "/animateur" : "/membre";
+    url.pathname = espace;
     return NextResponse.redirect(url);
   }
 
-  // Protection par rôle
+  // BUREAU : périmètre lecture seule (tableaux). Tout le reste → renvoyé sur /bureau.
+  if (role === "bureau") {
+    const BUREAU_ALLOWED = [
+      "/bureau", "/pilotage",
+      "/animateur/sante", "/animateur/classement", "/animateur/rapport", "/animateur/notes",
+    ];
+    if (isPrefixMatch(pathname, BUREAU_ALLOWED)) return NextResponse.next();
+    const url = req.nextUrl.clone();
+    url.pathname = "/bureau";
+    return NextResponse.redirect(url);
+  }
+
+  // /bureau réservé au bureau (et à l'animateur). Un membre est renvoyé chez lui.
+  if (isPrefixMatch(pathname, ["/bureau"]) && role !== "animateur") {
+    const url = req.nextUrl.clone();
+    url.pathname = espace;
+    return NextResponse.redirect(url);
+  }
+
+  // Protection par rôle (animateur / membre)
   if (isPrefixMatch(pathname, ANIMATEUR_PREFIXES) && role !== "animateur") {
-    // Un membre essaie d'accéder à une page animateur → renvoyé sur sa fiche
     const url = req.nextUrl.clone();
     url.pathname = "/membre";
     return NextResponse.redirect(url);
   }
   if (isPrefixMatch(pathname, MEMBRE_PREFIXES) && role !== "membre") {
-    // Un animateur essaie d'accéder à la fiche membre → renvoyé sur son dashboard
     const url = req.nextUrl.clone();
     url.pathname = "/animateur";
     return NextResponse.redirect(url);

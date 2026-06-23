@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
-export type SessionRole = "membre" | "animateur";
-export type Session = { role: SessionRole; cp?: string };
+export type SessionRole = "membre" | "animateur" | "bureau";
+export type Session = { role: SessionRole; magasinId?: string; cp?: string };
 
 export const COOKIE_NAME = "pa_session";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 jours
