@@ -48,7 +48,7 @@ export default function LandingCards() {
         </div>
         <div className="text-center">
           <div className="text-lg font-bold mb-1" style={{ color: "var(--pa-ink)" }}>
-            Je suis Membre PA
+            Je suis Associé
           </div>
           <div className="text-sm" style={{ color: "var(--pa-muted)" }}>
             Accédez à votre fiche magasin

@@ -57,7 +57,7 @@ export default function AideConnexion() {
             </label>
             <select name="profil" defaultValue="" className={INPUT}>
               <option value="">— Je préfère ne pas préciser —</option>
-              <option value="Membre PA (magasin)">Membre PA (magasin)</option>
+              <option value="Associé (magasin)">Associé (magasin)</option>
               <option value="Animateur">Animateur</option>
             </select>
           </div>

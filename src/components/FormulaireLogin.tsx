@@ -24,7 +24,7 @@ export default function FormulaireLogin() {
               : "text-slate-500 hover:bg-slate-50"
           }`}
         >
-          🏪 Membre PA
+          🏪 Associé
         </button>
         <button
           type="button"
