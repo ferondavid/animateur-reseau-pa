@@ -81,6 +81,15 @@ function IcoBox({ bg, color, Icon }: {
   );
 }
 
+// ─── Format CA ──────────────────────────────────────────────────────────────
+
+function eur(v: number | null | undefined): string {
+  return v == null ? "—" : Number(v).toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+}
+function pct(v: number | null | undefined): string {
+  return v == null ? "—" : `${Math.round(Number(v) * 100)}%`;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function FicheMembre({ params }: { params: Promise<{ id: string }> }) {
@@ -116,6 +125,16 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
   ]);
 
   if (!magasin) notFound();
+
+  // CA / BFA réel (table ca_bfa, snapshot fin mai 2026)
+  const [{ data: caBfaRow }, { count: nbAssocies }] = await Promise.all([
+    supabase.from("ca_bfa").select("ca_global, ca_leaders, pct_leaders, bfa_associe, rang_ca_leaders").eq("magasin_id", id).eq("periode", "fin mai 2026").maybeSingle(),
+    supabase.from("ca_bfa").select("*", { count: "exact", head: true }).eq("periode", "fin mai 2026"),
+  ]);
+  const cb = caBfaRow as {
+    ca_global: number | null; ca_leaders: number | null; pct_leaders: number | null;
+    bfa_associe: number | null; rang_ca_leaders: number | null;
+  } | null;
 
   const meteo = magasin.latitude && magasin.longitude
     ? await fetchMeteo(Number(magasin.latitude), Number(magasin.longitude))
@@ -325,9 +344,34 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
               <IcoBox bg="linear-gradient(135deg,#D2F2E7,#B5E9D5)" color="#0F8C68" Icon={Coins} />
             }
             titre="Chiffre d'affaires"
-            sousTitre="Évolution annuelle"
+            sousTitre={cb ? "Cumul fin mai 2026" : "Évolution annuelle"}
           >
-            <div className="pt-1">
+            <div className="pt-1 space-y-3">
+              {cb && (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-2xl p-3" style={{ background: "#F4F1FB" }}>
+                      <p className="text-[11px]" style={{ color: "var(--pa-muted)" }}>CA global</p>
+                      <p className="text-lg font-extrabold" style={{ color: "var(--pa-ink)" }}>{eur(cb.ca_global)}</p>
+                    </div>
+                    <div className="rounded-2xl p-3" style={{ background: "#EDEBFB" }}>
+                      <p className="text-[11px]" style={{ color: "var(--pa-muted)" }}>CA Leaders ({pct(cb.pct_leaders)})</p>
+                      <p className="text-lg font-extrabold" style={{ color: "#6B4FD8" }}>{eur(cb.ca_leaders)}</p>
+                    </div>
+                    <div className="rounded-2xl p-3" style={{ background: "#D2F2E7" }}>
+                      <p className="text-[11px]" style={{ color: "var(--pa-muted)" }}>BFA</p>
+                      <p className="text-lg font-extrabold" style={{ color: "#0F8C68" }}>{eur(cb.bfa_associe)}</p>
+                    </div>
+                    <div className="rounded-2xl p-3" style={{ background: "#FBF1D8" }}>
+                      <p className="text-[11px]" style={{ color: "var(--pa-muted)" }}>Classement CA Leaders</p>
+                      <p className="text-lg font-extrabold" style={{ color: "#B07D14" }}>
+                        #{cb.rang_ca_leaders ?? "—"}
+                        <span className="text-xs font-semibold" style={{ color: "var(--pa-muted)" }}> / {nbAssocies ?? 40}</span>
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
               <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
             </div>
           </Tuile>
