@@ -22,6 +22,13 @@ function Pill({ label, bg, fg }: { label: string; bg: string; fg: string }) {
   );
 }
 
+function eur(v: number | null | undefined): string {
+  return v == null ? "—" : Number(v).toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+}
+function pct(v: number | null | undefined): string {
+  return v == null ? "—" : `${Math.round(Number(v) * 100)}%`;
+}
+
 const statutMagasin: Record<string, Badge> = {
   actif:   { label: "Actif",    ...GREEN },
   pause:   { label: "En pause", ...AMBER },
@@ -87,6 +94,8 @@ export default async function MagasinDetailPage({
     { data: actionsOuvertes },
     { data: remonteesActives },
     { data: visitesPlanifiees },
+    { data: caBfa },
+    { count: nbAssocies },
   ] = await Promise.all([
       supabase.from("magasins").select("*").eq("id", id).single(),
       supabase
@@ -120,9 +129,24 @@ export default async function MagasinDetailPage({
         .eq("statut", "planifiee")
         .gte("date_prevue", today)
         .order("date_prevue", { ascending: true }),
+      supabase
+        .from("ca_bfa")
+        .select("ca_global, ca_leaders, pct_leaders, bfa_3pct, bfa_associe, rang_ca_leaders")
+        .eq("magasin_id", id)
+        .eq("periode", "fin mai 2026")
+        .maybeSingle(),
+      supabase
+        .from("ca_bfa")
+        .select("*", { count: "exact", head: true })
+        .eq("periode", "fin mai 2026"),
     ]);
 
   if (!m) notFound();
+
+  const cb = caBfa as {
+    ca_global: number | null; ca_leaders: number | null; pct_leaders: number | null;
+    bfa_3pct: number | null; bfa_associe: number | null; rang_ca_leaders: number | null;
+  } | null;
 
   return (
     <main className="min-h-screen p-8">
@@ -167,6 +191,42 @@ export default async function MagasinDetailPage({
         </div>
 
         <div className="space-y-4">
+          {/* CA & BFA — snapshot réel (fin mai 2026) */}
+          {cb && (
+            <div className="pa-card p-6">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
+                  CA &amp; BFA — fin mai 2026
+                </h2>
+                <Link href="/animateur/classement" className="text-xs font-semibold" style={{ color: "#6B4FD8" }}>
+                  Classement complet →
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-xs" style={{ color: "var(--pa-muted)" }}>CA global</p>
+                  <p className="text-xl font-bold" style={{ color: "var(--pa-ink)" }}>{eur(cb.ca_global)}</p>
+                </div>
+                <div>
+                  <p className="text-xs" style={{ color: "var(--pa-muted)" }}>CA Leaders</p>
+                  <p className="text-xl font-bold" style={{ color: "var(--pa-ink)" }}>{eur(cb.ca_leaders)}</p>
+                  <p className="text-xs" style={{ color: "var(--pa-muted)" }}>{pct(cb.pct_leaders)} du CA</p>
+                </div>
+                <div>
+                  <p className="text-xs" style={{ color: "var(--pa-muted)" }}>BFA associé</p>
+                  <p className="text-xl font-bold" style={{ color: "#0F8C68" }}>{eur(cb.bfa_associe)}</p>
+                </div>
+                <div>
+                  <p className="text-xs" style={{ color: "var(--pa-muted)" }}>Classement CA Leaders</p>
+                  <p className="text-xl font-bold" style={{ color: "#6B4FD8" }}>
+                    #{cb.rang_ca_leaders ?? "—"}
+                    <span className="text-sm font-semibold" style={{ color: "var(--pa-muted)" }}> / {nbAssocies ?? 40}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* CA — bloc CA évolution en haut */}
           <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
 
