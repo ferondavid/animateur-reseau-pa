@@ -4,12 +4,13 @@ import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
 import PersistRole from "@/components/PersistRole";
 import { guardBureau } from "@/lib/visibilite";
+import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function CartePleineEcran() {
   await guardBureau("bureau_carte");
-  const supabase = await createClient();
+  const [session, supabase] = await Promise.all([getSession(), createClient()]);
 
   const [{ data: magasins }, { data: visitesPourRisque }, { data: remonteesUrgentesActives }] =
     await Promise.all([
@@ -51,14 +52,16 @@ export default async function CartePleineEcran() {
     };
   });
 
+  const accueil = session?.role === "bureau" ? "/bureau" : "/animateur";
+
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col">
-      <PersistRole role="animateur" />
+      <PersistRole role={session?.role ?? "animateur"} />
 
       {/* Header compact (sticky) */}
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-slate-200 px-4 py-2.5 flex items-center justify-between gap-3 shadow-sm">
         <Link
-          href="/animateur"
+          href={accueil}
           className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 font-medium"
         >
           <svg
@@ -85,10 +88,10 @@ export default async function CartePleineEcran() {
         </h1>
 
         <Link
-          href="/animateur"
+          href={accueil}
           className="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700"
         >
-          Vue dashboard →
+          Accueil →
         </Link>
       </header>
 
