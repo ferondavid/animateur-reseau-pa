@@ -71,7 +71,7 @@ La colonne **Visible par** liste qui voit la fonctionnalité **en plus de l'anim
 ## News & communication
 | Fonctionnalité | Visible par |
 |---|---|
-| Actualités du réseau (lecture) | 🌍 Tous |
+| Actualités du réseau (lecture, page /news + fiche associé) | 👤 Associé |
 | Gestion des news (CRUD) | Animateur seul |
 | Notifications email (Resend) | Animateur seul |
 | Contact 1-clic (WhatsApp / mail / appel) | 👤 Associé |
