@@ -17,14 +17,20 @@ function config(): boolean {
 
 export type PushPayload = { title: string; body: string; url?: string; tag?: string };
 
-// Envoie un push à tous les appareils abonnés d'un rôle, et purge les abonnements morts.
-export async function envoyerPush(payload: PushPayload, role = "animateur"): Promise<void> {
+// Envoie un push à tous les appareils abonnés d'un rôle (+ magasin optionnel), et purge les morts.
+export async function envoyerPush(
+  payload: PushPayload,
+  role = "animateur",
+  magasinId?: string
+): Promise<void> {
   if (!config()) return;
   const supabase = await createClient();
-  const { data: subs } = await supabase
+  let q = supabase
     .from("push_subscriptions")
     .select("id, endpoint, p256dh, auth")
     .eq("role", role);
+  if (magasinId) q = q.eq("magasin_id", magasinId);
+  const { data: subs } = await q;
   if (!subs?.length) return;
 
   await Promise.all(

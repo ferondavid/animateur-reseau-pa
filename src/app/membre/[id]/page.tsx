@@ -11,6 +11,7 @@ import CAEvolution from "@/components/CAEvolution";
 import { getParametreNumber } from "@/lib/parametres";
 import { getVisibilite, peutVoir } from "@/lib/visibilite";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
+import BoutonActiverNotifsAssoc from "@/components/BoutonActiverNotifsAssoc";
 import CarteDemandeAnimateur, { type RDVEnAttente, type VisiteEnAttente } from "@/components/CarteDemandeAnimateur";
 import TabsMembre from "@/components/TabsMembre";
 import { type EvtHistorique } from "@/components/HistoriqueMembre";
@@ -429,6 +430,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
           }}
         >
           <BoutonInstallerPWA />
+          <BoutonActiverNotifsAssoc magasinId={id} />
           <BoutonChangerMagasin />
           <BoutonChangerRole />
         </div>

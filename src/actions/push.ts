@@ -45,3 +45,38 @@ export async function envoyerPushTest(): Promise<{ ok: boolean; error?: string }
   });
   return { ok: true };
 }
+
+// ── Associé ───────────────────────────────────────────────────────────────────
+
+export async function enregistrerAbonnementPushAssoc(
+  sub: SubInput,
+  magasinId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await getSession();
+  if (session?.role !== "membre") return { ok: false, error: "Non autorisé" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("push_subscriptions").upsert(
+    {
+      endpoint: sub.endpoint,
+      p256dh: sub.keys.p256dh,
+      auth: sub.keys.auth,
+      role: "associe",
+      magasin_id: magasinId,
+    },
+    { onConflict: "endpoint" }
+  );
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function envoyerPushTestAssoc(magasinId: string): Promise<{ ok: boolean; error?: string }> {
+  const session = await getSession();
+  if (session?.role !== "membre") return { ok: false, error: "Non autorisé" };
+  await envoyerPush(
+    { title: "Notifications activées ✅", body: "Vous serez notifié des RDV et actualités.", url: `/membre/${magasinId}`, tag: "test" },
+    "associe",
+    magasinId
+  );
+  return { ok: true };
+}
