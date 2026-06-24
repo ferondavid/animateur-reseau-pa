@@ -259,3 +259,89 @@ export async function notifierConfirmationRDV(rdvId: string): Promise<void> {
   });
   console.log("[NOTIF] confirmation RDV :", result);
 }
+
+// ── 4. RDV CONFIRMÉ → PUSH ASSOCIÉ ──────────────────────────────────────────
+
+export async function notifierRDVConfirmeAssoc(rdvId: string): Promise<void> {
+  if (!(await notifActive("notif_associe_rdv_confirme"))) return;
+
+  const supabase = await createClient();
+  const { data: r } = await supabase
+    .from("rendez_vous")
+    .select("objet, magasin_id, magasins!rendez_vous_magasin_id_fkey(nom, enseigne)")
+    .eq("id", rdvId)
+    .single();
+  if (!r?.magasin_id) return;
+
+  const mag = r.magasins as unknown as { nom: string; enseigne?: string | null } | null;
+  const enseigne = mag?.enseigne || mag?.nom || "Votre magasin";
+
+  await envoyerPush(
+    { title: "✅ RDV confirmé", body: `${enseigne} — ${r.objet as string}`, url: `/membre/${r.magasin_id as string}`, tag: "rdv-confirme" },
+    "associe",
+    r.magasin_id as string
+  );
+}
+
+// ── 5. RDV REPORTÉ / ANNULÉ → PUSH ASSOCIÉ ──────────────────────────────────
+
+export async function notifierRDVReporteAssoc(rdvId: string): Promise<void> {
+  if (!(await notifActive("notif_associe_rdv_reporte"))) return;
+
+  const supabase = await createClient();
+  const { data: r } = await supabase
+    .from("rendez_vous")
+    .select("objet, statut, magasin_id, magasins!rendez_vous_magasin_id_fkey(nom, enseigne)")
+    .eq("id", rdvId)
+    .single();
+  if (!r?.magasin_id) return;
+
+  const mag = r.magasins as unknown as { nom: string; enseigne?: string | null } | null;
+  const enseigne = mag?.enseigne || mag?.nom || "Votre magasin";
+  const label = r.statut === "annule" ? "annulé" : "reporté";
+
+  await envoyerPush(
+    { title: `📅 RDV ${label}`, body: `${enseigne} — ${r.objet as string}`, url: `/membre/${r.magasin_id as string}`, tag: "rdv-reporte" },
+    "associe",
+    r.magasin_id as string
+  );
+}
+
+// ── 6. NEWS PUBLIÉE → PUSH TOUS LES ASSOCIÉS ─────────────────────────────────
+
+export async function notifierNewsPubliee(newsId: string): Promise<void> {
+  if (!(await notifActive("notif_associe_news_nouvelle"))) return;
+
+  const supabase = await createClient();
+  const { data: n } = await supabase
+    .from("news")
+    .select("titre")
+    .eq("id", newsId)
+    .single();
+  if (!n) return;
+
+  await envoyerPush(
+    { title: "📰 Nouvelle actualité", body: n.titre as string, url: "/news", tag: "news" },
+    "associe"
+  );
+}
+
+// ── 7. REMONTÉE TRAITÉE → PUSH ASSOCIÉ ───────────────────────────────────────
+
+export async function notifierRemonteeTraitee(remonteeId: string): Promise<void> {
+  if (!(await notifActive("notif_associe_remontee_traitee"))) return;
+
+  const supabase = await createClient();
+  const { data: r } = await supabase
+    .from("remontees")
+    .select("titre, magasin_id")
+    .eq("id", remonteeId)
+    .single();
+  if (!r?.magasin_id) return;
+
+  await envoyerPush(
+    { title: "✅ Remontée prise en charge", body: r.titre as string, url: `/membre/${r.magasin_id as string}`, tag: "remontee-traitee" },
+    "associe",
+    r.magasin_id as string
+  );
+}

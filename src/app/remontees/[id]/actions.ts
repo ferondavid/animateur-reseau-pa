@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { notifierRemonteeTraitee } from "@/lib/notifs";
 
 export async function createRemontee(formData: FormData) {
   const supabase = await createClient();
@@ -78,6 +79,7 @@ export async function repondreRemontee(formData: FormData) {
   revalidatePath(`/remontees/${id}`);
   revalidatePath("/remontees");
   revalidatePath("/");
+  try { await notifierRemonteeTraitee(id); } catch {}
   redirect(`/remontees/${id}`);
 }
 

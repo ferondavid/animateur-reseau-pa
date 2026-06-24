@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { notifierConfirmationRDV } from "@/lib/notifs";
+import { notifierConfirmationRDV, notifierRDVConfirmeAssoc, notifierRDVReporteAssoc } from "@/lib/notifs";
 
 function revalider() {
   revalidatePath("/animateur");
@@ -19,8 +19,9 @@ export async function confirmerRDV(id: string, lienVisio?: string) {
   revalider();
   try {
     await notifierConfirmationRDV(id);
+    await notifierRDVConfirmeAssoc(id);
   } catch (err) {
-    console.error("[NOTIF-RDV] échec email confirmation :", err);
+    console.error("[NOTIF-RDV] échec confirmation :", err);
   }
 }
 
@@ -53,12 +54,14 @@ export async function reporterRDV(id: string, nouvelleDate: string, nouvelleHeur
       console.error("[NOTIF-RDV] échec email report :", err);
     }
   }
+  try { await notifierRDVReporteAssoc(id); } catch {}
 }
 
 export async function annulerRDV(id: string) {
   const supabase = await createClient();
   await supabase.from("rendez_vous").update({ statut: "annule" }).eq("id", id);
   revalider();
+  try { await notifierRDVReporteAssoc(id); } catch {}
 }
 
 export async function marquerFait(id: string) {

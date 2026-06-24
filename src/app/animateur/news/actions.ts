@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
+import { notifierNewsPubliee } from "@/lib/notifs";
 
 function revalidAll(id?: string) {
   revalidatePath("/animateur/news");
@@ -30,6 +31,7 @@ export async function togglePublication(id: string, valeur: boolean) {
   const supabase = await createClient();
   await supabase.from("news").update({ publie: valeur }).eq("id", id);
   revalidAll(id);
+  if (valeur) try { await notifierNewsPubliee(id); } catch {}
 }
 
 export async function toggleEpingle(id: string, valeur: boolean) {
@@ -76,8 +78,9 @@ export async function enregistrerNews(formData: FormData): Promise<{ ok: boolean
   };
 
   if (mode === "creer") {
-    const { error } = await supabase.from("news").insert(payload);
+    const { data: created, error } = await supabase.from("news").insert(payload).select("id").single();
     if (error) return { ok: false, error: `Création : ${error.message}` };
+    if (payload.publie && created?.id) try { await notifierNewsPubliee(created.id as string); } catch {}
   } else {
     if (!newsId) return { ok: false, error: "ID news manquant" };
     const { error } = await supabase.from("news").update(payload).eq("id", newsId);
