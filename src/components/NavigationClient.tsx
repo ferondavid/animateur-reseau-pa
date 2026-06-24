@@ -36,10 +36,11 @@ const BUREAU_MASQUES = new Set([
   "/animateur/disponibilites",
 ]);
 
-function getLiens(role: SessionRole): Lien[] {
+function getLiens(role: SessionRole, hrefsMasques: string[]): Lien[] {
   if (role !== "bureau") return TOUS_LIENS;
   return TOUS_LIENS
     .filter((l) => !BUREAU_MASQUES.has(l.href))
+    .filter((l) => !hrefsMasques.includes(l.href))
     .map((l) => l.href === "/animateur" ? { ...l, href: "/bureau", label: "Bureau" } : l);
 }
 
@@ -51,13 +52,15 @@ export default function NavigationClient({
   nbNouvellesRemontees = 0,
   nbRDVEnAttente = 0,
   role = "animateur",
+  hrefsMasques = [],
 }: {
   nbNouvellesRemontees?: number;
   nbRDVEnAttente?: number;
   role?: SessionRole;
+  hrefsMasques?: string[];
 }) {
   const pathname = usePathname();
-  const liens = getLiens(role);
+  const liens = getLiens(role, hrefsMasques);
 
   return (
     <nav
