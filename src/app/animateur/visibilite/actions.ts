@@ -11,7 +11,7 @@ export async function majVisibilite(
   const supabase = await createClient();
   const { error } = await supabase
     .from("visibilite")
-    .update({ [role]: valeur, updated_at: new Date().toISOString() })
+    .update({ [role]: valeur })
     .eq("cle", cle);
   if (error) return { error: "Échec de l'enregistrement." };
   revalidatePath("/animateur/visibilite");
@@ -28,7 +28,7 @@ export async function majVisibiliteBulk(
   const supabase = await createClient();
   const { error } = await supabase
     .from("visibilite")
-    .update({ [role]: valeur, updated_at: new Date().toISOString() })
+    .update({ [role]: valeur })
     .eq("categorie", categorie);
   if (error) return { error: "Échec de l'enregistrement." };
   revalidatePath("/animateur/visibilite");

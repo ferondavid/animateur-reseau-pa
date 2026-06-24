@@ -25,7 +25,7 @@ export async function getVisibilite(): Promise<VisMap> {
  * Par défaut (clé absente / table absente) → true : on garde le comportement actuel
  * tant que les règles ne sont pas posées.
  */
-export function peutVoir(map: VisMap, cle: string, role: VisRole, defaut = true): boolean {
+export function peutVoir(map: VisMap, cle: string, role: VisRole, defaut = false): boolean {
   const r = map[cle];
   if (!r) return defaut;
   return role === "associe" ? r.associe : r.bureau;
