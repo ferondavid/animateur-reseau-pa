@@ -15,6 +15,8 @@ export async function majVisibilite(
     .eq("cle", cle);
   if (error) return { error: "Échec de l'enregistrement." };
   revalidatePath("/animateur/visibilite");
+  revalidatePath("/bureau");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -30,5 +32,7 @@ export async function majVisibiliteBulk(
     .eq("categorie", categorie);
   if (error) return { error: "Échec de l'enregistrement." };
   revalidatePath("/animateur/visibilite");
+  revalidatePath("/bureau");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
