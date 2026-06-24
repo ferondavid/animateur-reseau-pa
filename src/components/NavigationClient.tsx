@@ -7,24 +7,41 @@ import {
   Home, Map, BarChart3, CalendarDays, Eye, Car, Zap,
   Megaphone, Newspaper, Star, Store, Activity, Trophy, KeyRound, SlidersHorizontal,
 } from "lucide-react";
+import type { SessionRole } from "@/lib/auth";
 
-const liens: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/animateur",          label: "Accueil",     icon: Home },
-  { href: "/animateur/carte",    label: "Carte",       icon: Map },
-  { href: "/pilotage",           label: "Pilotage",    icon: BarChart3 },
-  { href: "/animateur/sante",    label: "Santé",       icon: Activity },
-  { href: "/animateur/classement", label: "Classement", icon: Trophy },
-  { href: "/animateur/rdv",      label: "RDV",         icon: CalendarDays },
-  { href: "/visites",            label: "Visites",     icon: Eye },
-  { href: "/animateur/parcours", label: "Parcours",    icon: Car },
-  { href: "/actions-reseau",     label: "Actions",     icon: Zap },
-  { href: "/remontees",          label: "Remontées",   icon: Megaphone },
-  { href: "/animateur/news",     label: "News",        icon: Newspaper },
-  { href: "/evaluations",        label: "Évaluations", icon: Star },
-  { href: "/magasins",           label: "Magasins",    icon: Store },
-  { href: "/animateur/comptes",  label: "Comptes",     icon: KeyRound },
-  { href: "/animateur/visibilite", label: "Visibilité", icon: SlidersHorizontal },
+type Lien = { href: string; label: string; icon: LucideIcon };
+
+const TOUS_LIENS: Lien[] = [
+  { href: "/animateur",            label: "Accueil",     icon: Home },
+  { href: "/animateur/carte",      label: "Carte",       icon: Map },
+  { href: "/pilotage",             label: "Pilotage",    icon: BarChart3 },
+  { href: "/animateur/sante",      label: "Santé",       icon: Activity },
+  { href: "/animateur/classement", label: "Classement",  icon: Trophy },
+  { href: "/animateur/rdv",        label: "RDV",         icon: CalendarDays },
+  { href: "/visites",              label: "Visites",     icon: Eye },
+  { href: "/animateur/parcours",   label: "Parcours",    icon: Car },
+  { href: "/actions-reseau",       label: "Actions",     icon: Zap },
+  { href: "/remontees",            label: "Remontées",   icon: Megaphone },
+  { href: "/animateur/news",       label: "News",        icon: Newspaper },
+  { href: "/evaluations",          label: "Évaluations", icon: Star },
+  { href: "/magasins",             label: "Magasins",    icon: Store },
+  { href: "/animateur/comptes",    label: "Comptes",     icon: KeyRound },
+  { href: "/animateur/visibilite", label: "Visibilité",  icon: SlidersHorizontal },
 ];
+
+const BUREAU_MASQUES = new Set([
+  "/animateur/comptes",
+  "/animateur/visibilite",
+  "/animateur/parametres",
+  "/animateur/disponibilites",
+]);
+
+function getLiens(role: SessionRole): Lien[] {
+  if (role !== "bureau") return TOUS_LIENS;
+  return TOUS_LIENS
+    .filter((l) => !BUREAU_MASQUES.has(l.href))
+    .map((l) => l.href === "/animateur" ? { ...l, href: "/bureau", label: "Bureau" } : l);
+}
 
 function estActif(href: string, pathname: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
@@ -33,11 +50,14 @@ function estActif(href: string, pathname: string): boolean {
 export default function NavigationClient({
   nbNouvellesRemontees = 0,
   nbRDVEnAttente = 0,
+  role = "animateur",
 }: {
   nbNouvellesRemontees?: number;
   nbRDVEnAttente?: number;
+  role?: SessionRole;
 }) {
   const pathname = usePathname();
+  const liens = getLiens(role);
 
   return (
     <nav

@@ -5,7 +5,8 @@ import { CalendarPlus, Pencil, ArrowLeft, ArrowRight, Plus, Lock } from "lucide-
 import BoutonSupprimer from "./BoutonSupprimer";
 import BoutonStatutMagasin from "@/components/BoutonStatutMagasin";
 import CAEvolution from "@/components/CAEvolution";
-import { guardBureau } from "@/lib/visibilite";
+import { guardBureau, getVisibilite, peutVoir } from "@/lib/visibilite";
+import { getSession } from "@/lib/auth";
 
 type Badge = { label: string; bg: string; fg: string };
 const NEUTRAL: Badge = { label: "—", bg: "#ECEAF3", fg: "#6F6982" };
@@ -91,6 +92,8 @@ export default async function MagasinDetailPage({
   const today = new Date().toISOString().split("T")[0];
   const supabase = await createClient();
   const [
+    session,
+    vis,
     { data: m },
     { data: visites },
     { data: actionsOuvertes },
@@ -99,6 +102,8 @@ export default async function MagasinDetailPage({
     { data: caBfa },
     { count: nbAssocies },
   ] = await Promise.all([
+      getSession(),
+      getVisibilite(),
       supabase.from("magasins").select("*").eq("id", id).single(),
       supabase
         .from("visites")
@@ -145,6 +150,13 @@ export default async function MagasinDetailPage({
 
   if (!m) notFound();
 
+  // Visibilité fine pour le bureau (défaut true si clé absente)
+  const estBureau = session?.role === "bureau";
+  const voitNotes    = !estBureau || peutVoir(vis, "magasin_notes",    "bureau");
+  const voitCA       = !estBureau || peutVoir(vis, "magasin_ca",       "bureau");
+  const voitRisque   = !estBureau || peutVoir(vis, "magasin_risque",   "bureau");
+  const voitContacts = !estBureau || peutVoir(vis, "magasin_contacts", "bureau");
+
   const cb = caBfa as {
     ca_global: number | null; ca_leaders: number | null; pct_leaders: number | null;
     bfa_3pct: number | null; bfa_associe: number | null; rang_ca_leaders: number | null;
@@ -171,30 +183,32 @@ export default async function MagasinDetailPage({
               <p className="text-sm mt-0.5" style={{ color: "var(--pa-muted)" }}>{m.enseigne}</p>
             )}
           </div>
-          <div className="flex items-center gap-2 mt-6 flex-wrap">
-            <Link
-              href={`/animateur/rdv/nouvelle?magasin=${id}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-transform active:scale-95"
-              style={{ background: "linear-gradient(135deg,#5BA8F5,#3D7BE8)", boxShadow: "0 4px 12px -4px rgba(61,123,232,0.5)" }}
-            >
-              <CalendarPlus size={15} strokeWidth={2.5} />
-              Proposer un RDV
-            </Link>
-            <Link
-              href={`/magasins/${id}/modifier`}
-              className="inline-flex items-center gap-1.5 px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold"
-            >
-              <Pencil size={15} strokeWidth={2.5} />
-              Modifier
-            </Link>
-            <BoutonStatutMagasin id={id} statut={m.statut} />
-            <BoutonSupprimer id={id} />
-          </div>
+          {!estBureau && (
+            <div className="flex items-center gap-2 mt-6 flex-wrap">
+              <Link
+                href={`/animateur/rdv/nouvelle?magasin=${id}`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-transform active:scale-95"
+                style={{ background: "linear-gradient(135deg,#5BA8F5,#3D7BE8)", boxShadow: "0 4px 12px -4px rgba(61,123,232,0.5)" }}
+              >
+                <CalendarPlus size={15} strokeWidth={2.5} />
+                Proposer un RDV
+              </Link>
+              <Link
+                href={`/magasins/${id}/modifier`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 pa-btn-primary rounded-xl text-sm font-semibold"
+              >
+                <Pencil size={15} strokeWidth={2.5} />
+                Modifier
+              </Link>
+              <BoutonStatutMagasin id={id} statut={m.statut} />
+              <BoutonSupprimer id={id} />
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
           {/* CA & BFA — snapshot réel (fin mai 2026) */}
-          {cb && (
+          {voitCA && cb && (
             <div className="pa-card p-6">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
@@ -229,8 +243,8 @@ export default async function MagasinDetailPage({
             </div>
           )}
 
-          {/* CA — bloc CA évolution en haut */}
-          <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />
+          {/* CA — évolution annuelle */}
+          {voitCA && <CAEvolution magasinId={id} anneeCourante={new Date().getFullYear()} />}
 
           {/* Card : Informations générales */}
           <div className="pa-card p-6">
@@ -256,12 +270,14 @@ export default async function MagasinDetailPage({
                   <Pill {...(statutMagasin[m.statut] ?? { label: m.statut, ...GRAY })} />
                 </dd>
               </div>
-              <div>
-                <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Niveau</dt>
-                <dd style={{ color: "var(--pa-ink)" }}>
-                  {niveauLabels[m.niveau] ?? m.niveau ?? "—"}
-                </dd>
-              </div>
+              {voitRisque && (
+                <div>
+                  <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>Niveau</dt>
+                  <dd style={{ color: "var(--pa-ink)" }}>
+                    {niveauLabels[m.niveau] ?? m.niveau ?? "—"}
+                  </dd>
+                </div>
+              )}
               {m.date_entree_reseau && (
                 <div>
                   <dt className="text-xs mb-0.5" style={{ color: "var(--pa-muted)" }}>
@@ -276,7 +292,7 @@ export default async function MagasinDetailPage({
           </div>
 
           {/* Card : Contact */}
-          <div className="pa-card p-6">
+          {voitContacts && <div className="pa-card p-6">
             <h2 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: "var(--pa-muted)" }}>
               Contact
             </h2>
@@ -308,7 +324,7 @@ export default async function MagasinDetailPage({
                 </dd>
               </div>
             </dl>
-          </div>
+          </div>}
 
           {/* Card : Notes (uniquement si présentes) */}
           {m.notes && (
@@ -322,8 +338,8 @@ export default async function MagasinDetailPage({
             </div>
           )}
 
-          {/* Card : Infos animateur (confidentielles) — affichée seulement si au moins un champ est rempli */}
-          {(m.date_creation_entreprise || m.nb_collaborateurs || m.type_activite || m.score_potentiel || (Array.isArray(m.tags_animateur) && m.tags_animateur.length > 0) || m.notes_animateur) && (
+          {/* Card : Infos animateur (confidentielles) */}
+          {voitNotes && (m.date_creation_entreprise || m.nb_collaborateurs || m.type_activite || m.score_potentiel || (Array.isArray(m.tags_animateur) && m.tags_animateur.length > 0) || m.notes_animateur) && (
             <div className="bg-amber-50 rounded-xl border-2 border-amber-200 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h2 className="text-sm font-bold text-amber-900 uppercase tracking-wide inline-flex items-center gap-2">
@@ -406,12 +422,14 @@ export default async function MagasinDetailPage({
               <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
                 Visites
               </h2>
-              <Link
-                href={`/visites/nouvelle?magasin_id=${id}`}
-                className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
-              >
-                <Plus size={13} strokeWidth={2.5} /> Nouvelle visite
-              </Link>
+              {!estBureau && (
+                <Link
+                  href={`/visites/nouvelle?magasin_id=${id}`}
+                  className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
+                >
+                  <Plus size={13} strokeWidth={2.5} /> Nouvelle visite
+                </Link>
+              )}
             </div>
 
             {(visites ?? []).length === 0 && (visitesPlanifiees ?? []).length === 0 ? (
@@ -530,12 +548,14 @@ export default async function MagasinDetailPage({
               <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
                 Remontées terrain
               </h2>
-              <Link
-                href={`/remontees/nouvelle?magasin_id=${id}`}
-                className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
-              >
-                <Plus size={13} strokeWidth={2.5} /> Nouvelle remontée
-              </Link>
+              {!estBureau && (
+                <Link
+                  href={`/remontees/nouvelle?magasin_id=${id}`}
+                  className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
+                >
+                  <Plus size={13} strokeWidth={2.5} /> Nouvelle remontée
+                </Link>
+              )}
             </div>
 
             {(remonteesActives ?? []).length === 0 ? (
@@ -574,12 +594,14 @@ export default async function MagasinDetailPage({
               <h2 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>
                 Actions
               </h2>
-              <Link
-                href={`/actions-reseau/nouvelle?magasin_id=${id}`}
-                className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
-              >
-                <Plus size={13} strokeWidth={2.5} /> Nouvelle action
-              </Link>
+              {!estBureau && (
+                <Link
+                  href={`/actions-reseau/nouvelle?magasin_id=${id}`}
+                  className="inline-flex items-center gap-1 pa-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold"
+                >
+                  <Plus size={13} strokeWidth={2.5} /> Nouvelle action
+                </Link>
+              )}
             </div>
 
             {(actionsOuvertes ?? []).length === 0 ? (

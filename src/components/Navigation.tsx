@@ -1,8 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 import NavigationClient from "./NavigationClient";
 
 export default async function Navigation() {
-  const supabase = await createClient();
+  const [session, supabase] = await Promise.all([
+    getSession(),
+    createClient(),
+  ]);
 
   const [{ count: nbRemontees }, { count: nbRDV }] = await Promise.all([
     supabase
@@ -19,6 +23,7 @@ export default async function Navigation() {
     <NavigationClient
       nbNouvellesRemontees={nbRemontees ?? 0}
       nbRDVEnAttente={nbRDV ?? 0}
+      role={session?.role ?? "animateur"}
     />
   );
 }
