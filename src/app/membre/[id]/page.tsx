@@ -143,6 +143,9 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
   const voitIndic = peutVoir(vis, "asso_indicateurs", "associe");
   const voitActivite = peutVoir(vis, "asso_activite", "associe");
   const voitCA = peutVoir(vis, "asso_ca", "associe");
+  const voitMeteo = peutVoir(vis, "asso_meteo", "associe");
+  const voitSparkline = peutVoir(vis, "asso_sparkline", "associe");
+  const voitDemandes = peutVoir(vis, "asso_demandes", "associe");
 
   const meteo = magasin.latitude && magasin.longitude
     ? await fetchMeteo(Number(magasin.latitude), Number(magasin.longitude))
@@ -235,7 +238,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             nomAffiche={nomAffiche}
             ville={magasin.ville}
             region={magasin.region}
-            meteo={meteo}
+            meteo={voitMeteo ? meteo : null}
             scoreConfiance={moyCfn ? parseFloat(moyCfn) : null}
           />
         </div>
@@ -274,7 +277,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
         )}
 
         {/* ── Demandes animateur ────────────────────────────────────── */}
-        {nbDemandes > 0 && (
+        {voitDemandes && nbDemandes > 0 && (
           <div className="pa-reveal" style={{ animationDelay: ".22s" }}>
             <Tuile
               icon={
@@ -392,7 +395,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
         )}
 
         {/* ── Sparkline confiance ───────────────────────────────────── */}
-        {sparkNotes.length >= 2 && (
+        {voitSparkline && sparkNotes.length >= 2 && (
           <div className="pa-reveal pa-card p-4" style={{ animationDelay: ".40s" }}>
             <p className="text-[11px] font-semibold uppercase tracking-wide mb-3" style={{ color: "var(--pa-muted)" }}>
               Évolution Confiance

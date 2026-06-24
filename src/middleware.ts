@@ -76,11 +76,30 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // BUREAU : périmètre lecture seule (tableaux). Tout le reste → renvoyé sur /bureau.
+  // BUREAU : périmètre lecture seule étendu. Tout le reste → renvoyé sur /bureau.
   if (role === "bureau") {
+    // Pages animateur jamais accessibles au bureau (restent animateur seul)
+    const BUREAU_NEVER = [
+      "/animateur/parametres",
+      "/animateur/comptes",
+      "/animateur/visibilite",
+      "/animateur/disponibilites",
+      "/animateur/fonctionnalites",
+    ];
+    if (isPrefixMatch(pathname, BUREAU_NEVER)) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/bureau";
+      return NextResponse.redirect(url);
+    }
+    // Pages accessibles au bureau (guardBureau gère le toggle fin par fonctionnalité)
     const BUREAU_ALLOWED = [
       "/bureau", "/pilotage",
-      "/animateur/sante", "/animateur/classement", "/animateur/rapport", "/animateur/notes",
+      "/animateur",       // dashboard + sous-pages (sauf BUREAU_NEVER ci-dessus)
+      "/visites",
+      "/actions-reseau",
+      "/remontees",
+      "/evaluations",
+      "/magasins",
     ];
     if (isPrefixMatch(pathname, BUREAU_ALLOWED)) return NextResponse.next();
     const url = req.nextUrl.clone();

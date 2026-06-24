@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import { Plus, CircleDot, Moon, Archive, ArrowRight, type LucideIcon } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 const STATUT_META: Record<string, { label: string; icon: LucideIcon; bg: string; fg: string }> = {
   actif:   { label: "Actif",      icon: CircleDot, bg: "#D2F2E7", fg: "#0F8C68" },
@@ -38,6 +39,7 @@ export default async function MagasinsPage({
   searchParams: Promise<{ statut?: string }>;
 }) {
   const { statut: statutFilter = "actif" } = await searchParams;
+  await guardBureau("bureau_magasins");
   const supabase = await createClient();
 
   const baseQuery = supabase

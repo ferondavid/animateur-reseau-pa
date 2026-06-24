@@ -5,8 +5,10 @@ import { Plus } from "lucide-react";
 import VuesVisites from "@/components/VuesVisites";
 import type { VisiteTuile } from "@/components/TuilesVisites";
 import { SELECT_JOURS_BLOQUES, mapJoursBloques, type JourBloque } from "@/lib/jours-bloques";
+import { guardBureau } from "@/lib/visibilite";
 
 export default async function VisitesPage() {
+  await guardBureau("bureau_visites");
   const supabase = await createClient();
   const [{ data: visites }, { data: blocRows }] = await Promise.all([
     supabase

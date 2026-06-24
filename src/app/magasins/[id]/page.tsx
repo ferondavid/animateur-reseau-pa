@@ -5,6 +5,7 @@ import { CalendarPlus, Pencil, ArrowLeft, ArrowRight, Plus, Lock } from "lucide-
 import BoutonSupprimer from "./BoutonSupprimer";
 import BoutonStatutMagasin from "@/components/BoutonStatutMagasin";
 import CAEvolution from "@/components/CAEvolution";
+import { guardBureau } from "@/lib/visibilite";
 
 type Badge = { label: string; bg: string; fg: string };
 const NEUTRAL: Badge = { label: "—", bg: "#ECEAF3", fg: "#6F6982" };
@@ -86,6 +87,7 @@ export default async function MagasinDetailPage({
 }) {
   const { id } = await params;
 
+  await guardBureau("bureau_magasins");
   const today = new Date().toISOString().split("T")[0];
   const supabase = await createClient();
   const [

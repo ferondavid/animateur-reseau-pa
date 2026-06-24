@@ -14,6 +14,7 @@ import { getParametre, getParametreNumber, getParametreFloat } from "@/lib/param
 import { calculerPreparation } from "@/lib/preparation-rdv";
 import Tuile from "@/components/ui/Tuile";
 import CountUp from "@/components/ui/CountUp";
+import { guardBureau } from "@/lib/visibilite";
 import {
   Sun, CalendarDays, MapPin, Calendar, Eye, Star, AlertTriangle,
   BarChart3, Car, Megaphone, Zap, Activity, Sparkles,
@@ -86,6 +87,7 @@ function CardMetrique({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function AnimateurPage() {
+  await guardBureau("bureau_accueil");
   const supabase = await createClient();
 
   const now = new Date();

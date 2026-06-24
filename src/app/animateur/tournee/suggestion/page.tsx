@@ -9,6 +9,7 @@ import { suggererTournee } from "@/lib/suggestion-tournee";
 import { getParametre } from "@/lib/parametres";
 import { titreMagasin } from "@/lib/magasin";
 import { Sparkles, Route, Info } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 type MagasinRow = {
   id: string;
@@ -52,6 +53,7 @@ export default async function SuggestionTourneePage({
   const { taille: tailleParam } = await searchParams;
   const taille = [4, 6, 8].includes(Number(tailleParam)) ? Number(tailleParam) : 6;
 
+  await guardBureau("bureau_suggestion");
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
 

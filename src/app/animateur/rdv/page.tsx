@@ -7,6 +7,7 @@ import Navigation from "@/components/Navigation";
 import Link from "next/link";
 import { Plus, Check, AlertTriangle } from "lucide-react";
 import BoutonAccueil from "@/components/BoutonAccueil";
+import { guardBureau } from "@/lib/visibilite";
 
 const TABS = [
   { key: "attente",  label: "En attente", statuts: ["demande", "reporte"] },
@@ -27,6 +28,7 @@ export default async function RDVAdminPage({
 }) {
   const { tab = "attente", magasin, ok, error: errMsg } = await searchParams;
   const activeTab = TABS.find((t) => t.key === tab) ?? TABS[0];
+  await guardBureau("bureau_rdv");
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
 

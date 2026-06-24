@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Navigation from "@/components/Navigation";
 import Link from "next/link";
 import { Plus, ArrowRight } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 type Badge = { label: string; bg: string; fg: string };
 
@@ -47,6 +48,7 @@ export default async function ActionsPage({
   searchParams: Promise<{ filtre?: string }>;
 }) {
   const { filtre } = await searchParams;
+  await guardBureau("bureau_actions");
   const supabase = await createClient();
 
   let query = supabase

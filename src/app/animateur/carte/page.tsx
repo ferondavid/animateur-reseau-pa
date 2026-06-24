@@ -3,10 +3,12 @@ import CarteWrapper from "@/components/CarteWrapper";
 import Link from "next/link";
 import { calculerRisqueMagasins } from "@/lib/risque";
 import PersistRole from "@/components/PersistRole";
+import { guardBureau } from "@/lib/visibilite";
 
 export const dynamic = "force-dynamic";
 
 export default async function CartePleineEcran() {
+  await guardBureau("bureau_carte");
   const supabase = await createClient();
 
   const [{ data: magasins }, { data: visitesPourRisque }, { data: remonteesUrgentesActives }] =

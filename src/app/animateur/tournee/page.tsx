@@ -7,6 +7,7 @@ import Navigation from "@/components/Navigation";
 import SelecteurDateTournee from "@/components/SelecteurDateTournee";
 import ActionsVisiteTournee from "@/components/ActionsVisiteTournee";
 import { titreMagasin } from "@/lib/magasin";
+import { guardBureau } from "@/lib/visibilite";
 import {
   Navigation as NavIcon, Phone, ClipboardCheck, Check,
   Mic, AlertTriangle, MapPin, CalendarDays, CalendarRange,
@@ -66,6 +67,7 @@ export default async function TourneePage({
   const aujourdhui = new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10); // ~France
   const date = dateParam ?? aujourdhui;
 
+  await guardBureau("bureau_tournee");
   const supabase = await createClient();
   const { data } = await supabase
     .from("visites")

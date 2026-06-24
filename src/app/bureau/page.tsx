@@ -9,11 +9,23 @@ import { LogOut, Eye } from "lucide-react";
 type Carte = { cle: string; href: string; titre: string; sous: string; emoji: string; bg: string; color: string };
 
 const CARTES: Carte[] = [
-  { cle: "bureau_pilotage", href: "/pilotage", titre: "Pilotage", sous: "Cockpit réseau, KPIs, magasins à risque", emoji: "📊", bg: "linear-gradient(135deg,#D9EAFB,#BFDBF7)", color: "#2D6FD0" },
-  { cle: "bureau_sante", href: "/animateur/sante", titre: "Santé réseau 360", sous: "Scorecard des 40 magasins", emoji: "🩺", bg: "linear-gradient(135deg,#E4DDFB,#D3C7F7)", color: "#6B4FD8" },
-  { cle: "bureau_classement", href: "/animateur/classement", titre: "Classement CA", sous: "CA Leaders & BFA des associés", emoji: "🏆", bg: "linear-gradient(135deg,#FBF1D8,#F6E3B0)", color: "#B07D14" },
-  { cle: "bureau_rapport", href: "/animateur/rapport", titre: "Rapport d'activité", sous: "Synthèse visites, remontées, RDV", emoji: "📄", bg: "linear-gradient(135deg,#D2F2E7,#B5E9D5)", color: "#0F8C68" },
-  { cle: "bureau_notes", href: "/animateur/notes", titre: "Notes vocales", sous: "Mémos terrain de l'animateur", emoji: "🎤", bg: "linear-gradient(135deg,#F9DCE7,#F4C4D6)", color: "#C04B72" },
+  { cle: "bureau_pilotage",    href: "/pilotage",                    titre: "Pilotage",              sous: "Cockpit réseau, KPIs, magasins à risque",          emoji: "📊", bg: "linear-gradient(135deg,#D9EAFB,#BFDBF7)", color: "#2D6FD0" },
+  { cle: "bureau_sante",       href: "/animateur/sante",             titre: "Santé réseau 360",      sous: "Scorecard des 40 magasins",                        emoji: "🩺", bg: "linear-gradient(135deg,#E4DDFB,#D3C7F7)", color: "#6B4FD8" },
+  { cle: "bureau_classement",  href: "/animateur/classement",        titre: "Classement CA",         sous: "CA Leaders & BFA des associés",                    emoji: "🏆", bg: "linear-gradient(135deg,#FBF1D8,#F6E3B0)", color: "#B07D14" },
+  { cle: "bureau_rapport",     href: "/animateur/rapport",           titre: "Rapport d'activité",    sous: "Synthèse visites, remontées, RDV",                 emoji: "📄", bg: "linear-gradient(135deg,#D2F2E7,#B5E9D5)", color: "#0F8C68" },
+  { cle: "bureau_notes",       href: "/animateur/notes",             titre: "Notes vocales",         sous: "Mémos terrain de l'animateur",                     emoji: "🎤", bg: "linear-gradient(135deg,#F9DCE7,#F4C4D6)", color: "#C04B72" },
+  { cle: "bureau_accueil",     href: "/animateur",                   titre: "Accueil animateur",     sous: "Dashboard général, métriques réseau",              emoji: "🏠", bg: "linear-gradient(135deg,#D2F2E9,#A8DFCA)", color: "#0A7A5A" },
+  { cle: "bureau_carte",       href: "/animateur/carte",             titre: "Carte du réseau",       sous: "Géolocalisation et risque par magasin",             emoji: "🗺️", bg: "linear-gradient(135deg,#DCE9FB,#B0CEFA)", color: "#1D5CB8" },
+  { cle: "bureau_rdv",         href: "/animateur/rdv",               titre: "RDV",                   sous: "Rendez-vous terrain, visio et téléphone",          emoji: "📅", bg: "linear-gradient(135deg,#FBE9D2,#F5D0A8)", color: "#A05B10" },
+  { cle: "bureau_tournee",     href: "/animateur/tournee",           titre: "Tournée du jour",       sous: "Visites planifiées et vue semaine",                 emoji: "🚗", bg: "linear-gradient(135deg,#D6D9FB,#B5BAF8)", color: "#3A41C4" },
+  { cle: "bureau_suggestion",  href: "/animateur/tournee/suggestion",titre: "Tournée suggérée",      sous: "Priorités + regroupement géographique",            emoji: "✨", bg: "linear-gradient(135deg,#F0DFFB,#E0C5F7)", color: "#8B3FC8" },
+  { cle: "bureau_parcours",    href: "/animateur/parcours",          titre: "Parcours / itinéraire", sous: "Optimisation d'itinéraire + recharge VE",          emoji: "📍", bg: "linear-gradient(135deg,#FBD9D9,#F5B5B5)", color: "#B82020" },
+  { cle: "bureau_visites",     href: "/visites",                     titre: "Visites",               sous: "Toutes les visites planifiées et réalisées",        emoji: "👁️", bg: "linear-gradient(135deg,#D9F0FB,#B5E1F7)", color: "#1475A8" },
+  { cle: "bureau_actions",     href: "/actions-reseau",              titre: "Actions réseau",        sous: "Actions ouvertes, en cours, réalisées",             emoji: "⚡", bg: "linear-gradient(135deg,#FBECD2,#F5D89B)", color: "#8C6010" },
+  { cle: "bureau_remontees",   href: "/remontees",                   titre: "Remontées",             sous: "Alertes terrain des associés",                     emoji: "📣", bg: "linear-gradient(135deg,#FBD9E8,#F5B5CF)", color: "#A0205A" },
+  { cle: "bureau_evaluations", href: "/evaluations",                 titre: "Évaluations",           sous: "Satisfaction des accompagnements (6 critères)",    emoji: "⭐", bg: "linear-gradient(135deg,#FBFBD2,#F0F0A0)", color: "#8C8010" },
+  { cle: "bureau_magasins",    href: "/magasins",                    titre: "Magasins",              sous: "Liste et fiches des associés",                     emoji: "🏪", bg: "linear-gradient(135deg,#D9FBE8,#B5F5CF)", color: "#0A8C40" },
+  { cle: "bureau_news",        href: "/animateur/news",              titre: "News (gestion)",        sous: "Création et publication des actualités réseau",     emoji: "📰", bg: "linear-gradient(135deg,#E8D9FB,#D5B5F5)", color: "#6B20A0" },
 ];
 
 function eur(v: number): string {

@@ -6,6 +6,7 @@ import Navigation from "@/components/Navigation";
 import ParcoursMagasins from "@/components/ParcoursMagasins";
 import type { ConfigVE } from "@/components/ParcoursMagasins";
 import BoutonAccueil from "@/components/BoutonAccueil";
+import { guardBureau } from "@/lib/visibilite";
 
 export default async function ParcoursPage({
   searchParams,
@@ -16,6 +17,7 @@ export default async function ParcoursPage({
   const prefillMagasinIds = prefill
     ? prefill.split(",").map((s) => s.trim()).filter(Boolean)
     : undefined;
+  await guardBureau("bureau_parcours");
   const supabase = await createClient();
 
   const [

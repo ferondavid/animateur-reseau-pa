@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Navigation from "@/components/Navigation";
 import Link from "next/link";
 import { Plus, ArrowRight } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 type Badge = { label: string; bg: string; fg: string };
 
@@ -62,6 +63,7 @@ export default async function RemonteesPage({
   searchParams: Promise<{ filtre?: string }>;
 }) {
   const { filtre } = await searchParams;
+  await guardBureau("bureau_remontees");
   const supabase = await createClient();
 
   // Compteur nouvelles indépendant du filtre actif

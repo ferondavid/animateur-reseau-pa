@@ -8,8 +8,10 @@ import type { NewsItem } from "@/components/CardNews";
 import { getParametreNumber } from "@/lib/parametres";
 import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
 import NewsManager from "@/components/NewsManager";
+import { guardBureau } from "@/lib/visibilite";
 
 export default async function AdminNewsPage() {
+  await guardBureau("bureau_news");
   const supabase = await createClient();
   const [{ data: newsList }, nbNewsActuel] = await Promise.all([
     supabase

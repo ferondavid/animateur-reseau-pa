@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import EtoilesNote from "@/components/EtoilesNote";
 import { QUESTIONS_EVAL, moyenneNotes } from "@/lib/evaluations";
 import { titreMagasin } from "@/lib/magasin";
+import { guardBureau } from "@/lib/visibilite";
 
 // Moyenne des notes animateur (confiance + business)
 function moyAnim(nc: number | null, nb: number | null): number | null {
@@ -16,6 +17,7 @@ function moyAnim(nc: number | null, nb: number | null): number | null {
 }
 
 export default async function EvaluationsPage() {
+  await guardBureau("bureau_evaluations");
   const supabase = await createClient();
 
   // Requêtes parallèles : visites réalisées + toutes les évaluations reçues

@@ -7,6 +7,7 @@ import Navigation from "@/components/Navigation";
 import ActionsVisiteTournee from "@/components/ActionsVisiteTournee";
 import { titreMagasin } from "@/lib/magasin";
 import { ChevronLeft, ChevronRight, Phone, CalendarRange, CalendarDays } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 type Magasin = { id: string; nom: string; enseigne: string | null; ville: string | null; contact_telephone: string | null };
 type Visite = {
@@ -41,6 +42,7 @@ export default async function TourneeSemainePage({
   const from = fromParam ?? aujourdhui;
   const to = decale(from, 6);
 
+  await guardBureau("bureau_tournee");
   const supabase = await createClient();
   const { data } = await supabase
     .from("visites")
