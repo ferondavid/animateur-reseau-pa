@@ -2,7 +2,7 @@
 //  - le HTML / les pages / les API ne sont JAMAIS mis en cache (toujours frais)
 //  - seuls les assets immuables (/_next/static/* avec hash, /icon*) sont cachés
 //  - à chaque mise à jour du SW, on PURGE tout l'ancien cache (fini les vieilles versions)
-const CACHE = "anim-pa-v4";
+const CACHE = "anim-pa-v5";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
