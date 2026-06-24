@@ -15,6 +15,7 @@ import { calculerPreparation } from "@/lib/preparation-rdv";
 import Tuile from "@/components/ui/Tuile";
 import CountUp from "@/components/ui/CountUp";
 import { guardBureau } from "@/lib/visibilite";
+import { getSession } from "@/lib/auth";
 import {
   Sun, CalendarDays, MapPin, Calendar, Eye, Star, AlertTriangle,
   BarChart3, Car, Megaphone, Zap, Activity, Sparkles,
@@ -88,7 +89,7 @@ function CardMetrique({
 
 export default async function AnimateurPage() {
   await guardBureau("bureau_accueil");
-  const supabase = await createClient();
+  const [session, supabase] = await Promise.all([getSession(), createClient()]);
 
   const now = new Date();
   const today = now.toISOString().split("T")[0];
@@ -270,7 +271,7 @@ export default async function AnimateurPage() {
 
   return (
     <main className="min-h-screen p-6">
-      <PersistRole role="animateur" />
+      <PersistRole role={session?.role ?? "animateur"} />
       <div className="max-w-6xl mx-auto space-y-5">
 
         {/* ── Hero ────────────────────────────────────────────────── */}
