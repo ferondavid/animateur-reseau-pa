@@ -17,3 +17,18 @@ export async function majVisibilite(
   revalidatePath("/animateur/visibilite");
   return { ok: true };
 }
+
+export async function majVisibiliteBulk(
+  categorie: string,
+  role: "associe" | "bureau",
+  valeur: boolean
+): Promise<{ ok?: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("visibilite")
+    .update({ [role]: valeur, updated_at: new Date().toISOString() })
+    .eq("categorie", categorie);
+  if (error) return { error: "Échec de l'enregistrement." };
+  revalidatePath("/animateur/visibilite");
+  return { ok: true };
+}
