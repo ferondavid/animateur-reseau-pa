@@ -4,25 +4,68 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, Settings2 } from "lucide-react";
 import BoutonAccueil from "@/components/BoutonAccueil";
-import type { NewsItem } from "@/components/CardNews";
+import CardNews, { type NewsItem } from "@/components/CardNews";
 import { getParametreNumber } from "@/lib/parametres";
 import SelectNbNewsFiche from "@/components/SelectNbNewsFiche";
 import NewsManager from "@/components/NewsManager";
 import { guardBureau } from "@/lib/visibilite";
+import { getSession } from "@/lib/auth";
+import Navigation from "@/components/Navigation";
 
 export default async function AdminNewsPage() {
   await guardBureau("bureau_news");
-  const supabase = await createClient();
+  const [session, supabase] = await Promise.all([getSession(), createClient()]);
+  const estBureau = session?.role === "bureau";
+
   const [{ data: newsList }, nbNewsActuel] = await Promise.all([
     supabase
       .from("news")
       .select("*")
+      .eq("publie", true)
       .order("epinglee", { ascending: false })
       .order("date_publication", { ascending: false }),
-    getParametreNumber("nb_news_fiche_membre", 1),
+    estBureau ? Promise.resolve(0) : getParametreNumber("nb_news_fiche_membre", 1),
   ]);
 
   const liste = (newsList ?? []) as NewsItem[];
+
+  /* ── Vue bureau : lecture seule ──────────────────────────────────────── */
+  if (estBureau) {
+    return (
+      <main className="min-h-screen p-6 md:p-10">
+        <div className="max-w-5xl mx-auto space-y-6">
+          <BoutonAccueil />
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}>
+              Actualités du réseau
+            </h1>
+            <p className="text-sm mt-0.5" style={{ color: "var(--pa-muted)" }}>
+              {liste.length} publication{liste.length > 1 ? "s" : ""} publiée{liste.length > 1 ? "s" : ""}
+            </p>
+          </div>
+          <Navigation />
+          {liste.length === 0 ? (
+            <div className="pa-card p-12 text-center">
+              <p className="text-sm" style={{ color: "var(--pa-muted)" }}>Aucune actualité publiée.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {liste.map((n) => <CardNews key={n.id} news={n} />)}
+            </div>
+          )}
+        </div>
+      </main>
+    );
+  }
+
+  /* ── Vue animateur : gestion complète ───────────────────────────────── */
+  const { data: toutesLesNews } = await supabase
+    .from("news")
+    .select("*")
+    .order("epinglee", { ascending: false })
+    .order("date_publication", { ascending: false });
+
+  const listeComplete = (toutesLesNews ?? []) as NewsItem[];
 
   return (
     <main className="min-h-screen p-6 md:p-10">
@@ -45,7 +88,6 @@ export default async function AdminNewsPage() {
           </Link>
         </div>
 
-        {/* Réglage d'affichage sur les fiches membre */}
         <div className="pa-card p-4">
           <p className="text-sm font-semibold mb-2 flex items-center gap-1.5" style={{ color: "var(--pa-ink)" }}>
             <Settings2 size={14} style={{ color: "var(--pa-muted)" }} />
@@ -54,7 +96,7 @@ export default async function AdminNewsPage() {
           <SelectNbNewsFiche valeurInitiale={nbNewsActuel} />
         </div>
 
-        {liste.length === 0 ? (
+        {listeComplete.length === 0 ? (
           <div className="pa-card p-12 text-center space-y-4">
             <p className="text-sm" style={{ color: "var(--pa-muted)" }}>Aucune news pour l&apos;instant.</p>
             <Link href="/animateur/news/nouvelle"
@@ -64,7 +106,7 @@ export default async function AdminNewsPage() {
             </Link>
           </div>
         ) : (
-          <NewsManager liste={liste} />
+          <NewsManager liste={listeComplete} />
         )}
       </div>
     </main>
