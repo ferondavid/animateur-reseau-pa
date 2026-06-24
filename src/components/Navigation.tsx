@@ -22,6 +22,7 @@ const BUREAU_HREF_MAP: Record<string, string> = {
   bureau_magasins:    "/magasins",
   bureau_rapport:     "/animateur/rapport",
   bureau_notes:       "/animateur/notes",
+  bureau_actualites:  "/news",
 };
 
 export default async function Navigation() {

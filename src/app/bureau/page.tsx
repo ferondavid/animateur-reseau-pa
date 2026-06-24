@@ -26,6 +26,7 @@ const CARTES: Carte[] = [
   { cle: "bureau_evaluations", href: "/evaluations",                 titre: "Évaluations",           sous: "Satisfaction des accompagnements (6 critères)",    emoji: "⭐", bg: "linear-gradient(135deg,#FBFBD2,#F0F0A0)", color: "#8C8010" },
   { cle: "bureau_magasins",    href: "/magasins",                    titre: "Magasins",              sous: "Liste et fiches des associés",                     emoji: "🏪", bg: "linear-gradient(135deg,#D9FBE8,#B5F5CF)", color: "#0A8C40" },
   { cle: "bureau_news",        href: "/animateur/news",              titre: "News (gestion)",        sous: "Création et publication des actualités réseau",     emoji: "📰", bg: "linear-gradient(135deg,#E8D9FB,#D5B5F5)", color: "#6B20A0" },
+  { cle: "bureau_actualites", href: "/news",                        titre: "Actualités réseau",     sous: "Actualités publiées par l'animateur",               emoji: "📰", bg: "linear-gradient(135deg,#E8D9FB,#D5B5F5)", color: "#6B20A0" },
 ];
 
 function eur(v: number): string {

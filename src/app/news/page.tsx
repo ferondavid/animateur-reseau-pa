@@ -4,6 +4,7 @@ import BoutonRetourNews from "@/components/BoutonRetourNews";
 import { getGradient } from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
 import { stripMarkdown } from "@/lib/markdown";
+import { guardBureau } from "@/lib/visibilite";
 
 const TYPE_BADGE: Record<string, string> = {
   info:       "bg-blue-100 text-blue-700",
@@ -26,6 +27,7 @@ function tempsRelatif(dateStr: string): string {
 }
 
 export default async function NewsListePage() {
+  await guardBureau("bureau_actualites");
   const supabase = await createClient();
 
   const { data: newsList } = await supabase

@@ -100,6 +100,7 @@ export function middleware(req: NextRequest) {
       "/remontees",
       "/evaluations",
       "/magasins",
+      "/news",
     ];
     if (isPrefixMatch(pathname, BUREAU_ALLOWED)) return NextResponse.next();
     const url = req.nextUrl.clone();
