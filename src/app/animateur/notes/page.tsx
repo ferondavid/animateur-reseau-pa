@@ -7,6 +7,7 @@ import BoutonAccueil from "@/components/BoutonAccueil";
 import EnregistreurNote from "@/components/EnregistreurNote";
 import ListeNotesSelectionnable from "@/components/ListeNotesSelectionnable";
 import type { NoteItem } from "@/components/ListeNotesSelectionnable";
+import { guardBureau } from "@/lib/visibilite";
 
 export default async function NotesVocalesPage({
   searchParams,
@@ -17,6 +18,7 @@ export default async function NotesVocalesPage({
   const autoStart = record === "1";
   const statutActif = statut === "archivee" ? "archivee" : "active";
 
+  await guardBureau("bureau_notes");
   const supabase = await createClient();
   const { data: notesData } = await supabase
     .from("notes_vocales")

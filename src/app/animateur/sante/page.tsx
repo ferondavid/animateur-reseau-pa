@@ -6,6 +6,7 @@ import BoutonAccueil from "@/components/BoutonAccueil";
 import { calculerRisqueMagasins } from "@/lib/risque";
 import ScorecardReseau, { type LigneScorecard } from "@/components/ScorecardReseau";
 import { Activity } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 type MagasinRow = {
   id: string;
@@ -25,6 +26,7 @@ type EvalRow = { magasin_id: string; q6_satisfaction_globale: number | null };
 type CaRow = { magasin_id: string; annee: number; montant: number | string };
 
 export default async function SanteReseauPage() {
+  await guardBureau("bureau_sante");
   const supabase = await createClient();
   const anneeCourante = new Date().getFullYear();
   const anneePrecedente = anneeCourante - 1;

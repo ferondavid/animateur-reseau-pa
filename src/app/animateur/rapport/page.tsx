@@ -6,6 +6,7 @@ import BarreRapport from "@/components/BarreRapport";
 import Link from "next/link";
 import BoutonAccueil from "@/components/BoutonAccueil";
 import { AlertTriangle } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 // ─── Helpers date ─────────────────────────────────────────────────────────────
 
@@ -111,6 +112,7 @@ export default async function RapportPage({
 
   const { dateDebut, dateFin, libelle, refNormalisee } = computePeriode(periodeType, ref);
 
+  await guardBureau("bureau_rapport");
   const supabase = await createClient();
 
   // ── Magasins (scope complet) ──────────────────────────────────────────────

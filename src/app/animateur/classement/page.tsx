@@ -5,6 +5,7 @@ import Navigation from "@/components/Navigation";
 import BoutonAccueil from "@/components/BoutonAccueil";
 import ClassementCA, { type LigneClassement } from "@/components/ClassementCA";
 import { Trophy } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 type Row = {
   magasin_id: string;
@@ -21,6 +22,7 @@ function eur(v: number): string {
 }
 
 export default async function ClassementPage() {
+  await guardBureau("bureau_classement");
   const supabase = await createClient();
   const { data } = await supabase
     .from("ca_bfa")

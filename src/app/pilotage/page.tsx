@@ -4,6 +4,7 @@ import Navigation from "@/components/Navigation";
 import FiltresPilotage from "@/components/FiltresPilotage";
 import Link from "next/link";
 import { ArrowRight, AlertTriangle } from "lucide-react";
+import { guardBureau } from "@/lib/visibilite";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -77,6 +78,7 @@ export default async function PilotagePage({
   const { periode = "trimestre", niveau = "tous", region = "toutes", magasin_id = "" } =
     await searchParams;
 
+  await guardBureau("bureau_pilotage");
   const supabase = await createClient();
   const dateFrom = computeDateFrom(periode);
   const today = new Date().toISOString().split("T")[0];

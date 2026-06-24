@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
   Home, Map, BarChart3, CalendarDays, Eye, Car, Zap,
-  Megaphone, Newspaper, Star, Store, Activity, Trophy, KeyRound,
+  Megaphone, Newspaper, Star, Store, Activity, Trophy, KeyRound, SlidersHorizontal,
 } from "lucide-react";
 
 const liens: { href: string; label: string; icon: LucideIcon }[] = [
@@ -23,6 +23,7 @@ const liens: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/evaluations",        label: "Évaluations", icon: Star },
   { href: "/magasins",           label: "Magasins",    icon: Store },
   { href: "/animateur/comptes",  label: "Comptes",     icon: KeyRound },
+  { href: "/animateur/visibilite", label: "Visibilité", icon: SlidersHorizontal },
 ];
 
 function estActif(href: string, pathname: string): boolean {

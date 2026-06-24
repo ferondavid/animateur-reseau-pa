@@ -11,6 +11,8 @@
 
 La colonne **Visible par** liste qui voit la fonctionnalité **en plus de l'animateur** (qui a tout). « Animateur seul » = réservé à l'animateur.
 
+> ⚙️ **Réglable dans l'app** : les accès **Bureau** (5 tableaux) et les **sections de la fiche Associé** (actus, indicateurs, activité, CA) se paramètrent en direct depuis **nav → Visibilité** (`/animateur/visibilite`). Le reste est fixe par conception.
+
 ---
 
 ## Accès & authentification
@@ -85,6 +87,7 @@ La colonne **Visible par** liste qui voit la fonctionnalité **en plus de l'anim
 | Fonctionnalité | Visible par |
 |---|---|
 | Comptes des associés (créer/modifier/supprimer login+MDP) | Animateur seul |
+| Visibilité (réglage qui-voit-quoi Bureau/Associé) | Animateur seul |
 | Paramètres (email, agenda Google, véhicule électrique, départ) | Animateur seul |
 | Page Fonctionnalités (catalogue) | Animateur seul |
 

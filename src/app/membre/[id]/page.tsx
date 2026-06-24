@@ -9,6 +9,7 @@ import CardNews from "@/components/CardNews";
 import type { NewsItem } from "@/components/CardNews";
 import CAEvolution from "@/components/CAEvolution";
 import { getParametreNumber } from "@/lib/parametres";
+import { getVisibilite, peutVoir } from "@/lib/visibilite";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 import CarteDemandeAnimateur, { type RDVEnAttente, type VisiteEnAttente } from "@/components/CarteDemandeAnimateur";
 import TabsMembre from "@/components/TabsMembre";
@@ -136,6 +137,13 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
     bfa_associe: number | null; rang_ca_leaders: number | null;
   } | null;
 
+  // Règles de visibilité (sections affichées à l'associé)
+  const vis = await getVisibilite();
+  const voitNews = peutVoir(vis, "asso_news", "associe");
+  const voitIndic = peutVoir(vis, "asso_indicateurs", "associe");
+  const voitActivite = peutVoir(vis, "asso_activite", "associe");
+  const voitCA = peutVoir(vis, "asso_ca", "associe");
+
   const meteo = magasin.latitude && magasin.longitude
     ? await fetchMeteo(Number(magasin.latitude), Number(magasin.longitude))
     : null;
@@ -244,7 +252,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
         </div>
 
         {/* ── Actualités ────────────────────────────────────────────── */}
-        {newsList.length > 0 && (
+        {voitNews && newsList.length > 0 && (
           <div className="pa-reveal" style={{ animationDelay: ".18s" }}>
             <Tuile
               icon={
@@ -291,6 +299,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
         )}
 
         {/* ── Votre activité ────────────────────────────────────────── */}
+        {voitActivite && (
         <div className="pa-reveal" style={{ animationDelay: ".26s" }}>
           <Tuile
             icon={
@@ -309,8 +318,10 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             />
           </Tuile>
         </div>
+        )}
 
         {/* ── Indicateurs KPI ───────────────────────────────────────── */}
+        {voitIndic && (
         <div className="pa-reveal" id="indicateurs" style={{ animationDelay: ".32s" }}>
           <Tuile
             icon={
@@ -336,8 +347,10 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             </div>
           </Tuile>
         </div>
+        )}
 
         {/* ── Chiffre d'affaires ────────────────────────────────────── */}
+        {voitCA && (
         <div className="pa-reveal" style={{ animationDelay: ".36s" }}>
           <Tuile
             icon={
@@ -376,6 +389,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
             </div>
           </Tuile>
         </div>
+        )}
 
         {/* ── Sparkline confiance ───────────────────────────────────── */}
         {sparkNotes.length >= 2 && (
