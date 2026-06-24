@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Home } from "lucide-react";
+import { getSession } from "@/lib/auth";
 
-/**
- * Bouton retour à l'accueil animateur — icône maison, en haut à gauche.
- * Remplace les anciens liens « Retour dashboard » placés de façon incohérente.
- */
-export default function BoutonAccueil() {
+export default async function BoutonAccueil() {
+  const session = await getSession();
+  const href = session?.role === "bureau" ? "/bureau" : "/animateur";
+
   return (
     <Link
-      href="/animateur"
+      href={href}
       aria-label="Accueil"
       title="Accueil"
       className="pa-home-btn inline-flex items-center justify-center w-9 h-9 rounded-xl transition-all"
