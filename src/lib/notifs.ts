@@ -11,7 +11,7 @@ async function emailAnimateur(): Promise<string> {
 }
 
 async function notifActive(cle: string): Promise<boolean> {
-  const v = await getParametre(cle, "true");
+  const v = await getParametre(cle, "false");
   return v === "true" || v === "1";
 }
 
@@ -37,7 +37,7 @@ function htmlLayout(titre: string, body: string, ctaUrl?: string, ctaLabel?: str
 // ── 1. REMONTÉE URGENTE ──────────────────────────────────────────────────────
 
 export async function notifierRemonteeUrgente(remonteeId: string): Promise<void> {
-  if (!(await notifActive("notif_remontee_urgente"))) return;
+  if (!(await notifActive("notif_animateur_remontee_urgente"))) return;
 
   const supabase = await createClient();
   const { data: r } = await supabase
@@ -85,7 +85,7 @@ export async function notifierRemonteeUrgente(remonteeId: string): Promise<void>
 // ── 2. NOUVEAU RDV DEMANDÉ PAR UN MAGASIN ───────────────────────────────────
 
 export async function notifierNouveauRDVMagasin(rdvId: string): Promise<void> {
-  if (!(await notifActive("notif_rdv_demande"))) return;
+  if (!(await notifActive("notif_animateur_rdv_demande"))) return;
 
   const supabase = await createClient();
   const { data: r } = await supabase
@@ -148,7 +148,7 @@ export async function notifierNouveauRDVMagasin(rdvId: string): Promise<void> {
 // ── 3. RDV CONFIRMÉ → EMAIL + INVITATION .ICS ───────────────────────────────
 
 export async function notifierConfirmationRDV(rdvId: string): Promise<void> {
-  if (!(await notifActive("notif_rdv_confirme"))) return;
+  if (!(await notifActive("notif_animateur_rdv_confirme"))) return;
   const animEmail = await emailAnimateur();
 
   const supabase = await createClient();
