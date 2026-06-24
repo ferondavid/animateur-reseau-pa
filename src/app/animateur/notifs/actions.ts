@@ -10,7 +10,7 @@ export async function majNotif(
   const supabase = await createClient();
   const { error } = await supabase
     .from("parametres")
-    .upsert({ key: cle, value: valeur ? "true" : "false" });
+    .upsert({ cle, valeur: valeur ? "true" : "false" }, { onConflict: "cle" });
   if (error) return { error: "Échec de l'enregistrement." };
   revalidatePath("/animateur/notifs");
   return { ok: true };

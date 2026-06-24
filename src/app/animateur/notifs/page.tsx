@@ -79,10 +79,10 @@ export default async function NotifsPage() {
 
   const { data: params } = await supabase
     .from("parametres")
-    .select("key, value")
-    .like("key", "notif_%");
+    .select("cle, valeur")
+    .like("cle", "notif_%");
 
-  const map = new Map((params ?? []).map((p: { key: string; value: string }) => [p.key, p.value]));
+  const map = new Map((params ?? []).map((p: { cle: string; valeur: string }) => [p.cle, p.valeur]));
 
   const lignes: LigneNotif[] = EVENEMENTS.map((e) => ({
     ...e,
