@@ -17,6 +17,7 @@ type MagasinPin = {
   longitude: number;
   contact_telephone?: string | null;
   niveau?: NiveauMagasin | string | null;
+  sous_enseigne?: boolean | null;
   risque?: {
     niveau: NiveauRisque;
     raisons: string[];
@@ -73,7 +74,7 @@ const LIBELLES: Record<NiveauRisque, string> = {
   eleve: "Élevé",
 };
 
-function pinIcon(niveauRisque: NiveauRisque, niveauMagasin?: string | null): L.DivIcon {
+function pinIcon(niveauRisque: NiveauRisque, niveauMagasin?: string | null, souEnseigne?: boolean | null): L.DivIcon {
   const color = COULEURS[niveauRisque];
   const clair = COULEURS_CLAIR[niveauRisque];
   const gid = `pin-${niveauRisque}`;
@@ -99,6 +100,10 @@ function pinIcon(niveauRisque: NiveauRisque, niveauMagasin?: string | null): L.D
       </svg>`;
   }
 
+  const badgePA = souEnseigne
+    ? `<span style="position:absolute;top:-8px;left:-6px;background:#1475A8;color:white;font-size:9px;font-weight:700;padding:1px 3px;border-radius:3px;line-height:1.4;z-index:3;box-shadow:0 1px 2px rgba(0,0,0,.3)">PA</span>`
+    : "";
+
   const html = `
     <div style="position:relative;width:30px;height:44px;">
       ${pulse}
@@ -119,6 +124,7 @@ function pinIcon(niveauRisque: NiveauRisque, niveauMagasin?: string | null): L.D
         <circle cx="12" cy="12" r="3.7" fill="white"/>
       </svg>
       ${badgeNiveau}
+      ${badgePA}
     </div>`;
   return L.divIcon({
     html,
@@ -181,7 +187,7 @@ export default function Carte({ magasins }: { magasins: MagasinPin[] }) {
             <Marker
               key={m.id}
               position={[m.latitude, m.longitude]}
-              icon={pinIcon(niveau, niveauMag)}
+              icon={pinIcon(niveau, niveauMag, m.sous_enseigne)}
             >
               <Popup>
                 <div className="space-y-1.5">
@@ -280,6 +286,13 @@ export default function Carte({ magasins }: { magasins: MagasinPin[] }) {
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <span className="font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>Badge :</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span style={{ background: "#1475A8", color: "white", fontSize: "9px", fontWeight: 700, padding: "1px 3px", borderRadius: "3px", lineHeight: 1.4 }}>PA</span>
+              <span>Sous enseigne PA</span>
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
           <span className="font-bold uppercase tracking-wide" style={{ color: "var(--pa-muted)" }}>Niveau :</span>
           <span className="inline-flex items-center gap-1.5">
             <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-white text-[8px]" style={{ background: "#E8B43A" }}>★</span>
