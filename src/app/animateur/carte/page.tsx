@@ -17,7 +17,7 @@ export default async function CartePleineEcran() {
       supabase
         .from("magasins")
         .select(
-          "id, nom, enseigne, ville, region, latitude, longitude, contact_telephone, niveau, sous_enseigne, membre_ca"
+          "id, nom, enseigne, ville, region, latitude, longitude, contact_telephone, contact_nom, niveau, sous_enseigne, membre_ca"
         )
         .eq("statut", "actif")
         .not("latitude", "is", null)

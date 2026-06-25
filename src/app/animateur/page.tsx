@@ -116,7 +116,7 @@ export default async function AnimateurPage() {
     supabase.from("visites").select("*", { count: "exact", head: true }).gte("date_realisee", debutMois).lte("date_realisee", finMois),
     supabase.from("visites").select("note_confiance").eq("statut", "realisee").gte("date_realisee", debutTrimestre).not("note_confiance", "is", null),
     supabase.from("visites").select("note_business").eq("statut", "realisee").gte("date_realisee", debutTrimestre).not("note_business", "is", null),
-    supabase.from("magasins").select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone, niveau, sous_enseigne, membre_ca").eq("statut", "actif").not("latitude", "is", null).order("nom"),
+    supabase.from("magasins").select("id, nom, enseigne, ville, region, latitude, longitude, contact_telephone, contact_nom, niveau, sous_enseigne, membre_ca").eq("statut", "actif").not("latitude", "is", null).order("nom"),
     supabase.from("visites").select("id, date_prevue, objectif, magasins(nom, enseigne)").eq("statut", "planifiee").gte("date_prevue", today).order("date_prevue", { ascending: true }).limit(5),
     supabase.from("actions").select("*", { count: "exact", head: true }).in("statut", ["ouverte", "en_cours"]),
     supabase.from("remontees").select("*", { count: "exact", head: true }).eq("statut", "nouvelle"),

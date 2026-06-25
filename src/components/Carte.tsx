@@ -16,6 +16,7 @@ type MagasinPin = {
   latitude: number;
   longitude: number;
   contact_telephone?: string | null;
+  contact_nom?: string | null;
   niveau?: NiveauMagasin | string | null;
   sous_enseigne?: boolean | null;
   membre_ca?: boolean | null;
@@ -200,6 +201,11 @@ export default function Carte({ magasins }: { magasins: MagasinPin[] }) {
                   <strong style={{ color: "#241F33", fontSize: "14px", fontWeight: 600, letterSpacing: "-0.2px" }}>
                     {titreMagasin(m.enseigne, m.nom)}
                   </strong>
+                  {m.contact_nom && (
+                    <div style={{ color: "#6B4FD8", fontSize: "12px", fontWeight: 600 }}>
+                      {m.contact_nom}
+                    </div>
+                  )}
                   <div style={{ color: "#8B8699", fontSize: "12px" }}>
                     {m.ville}
                     {m.region ? ` · ${m.region}` : ""}
