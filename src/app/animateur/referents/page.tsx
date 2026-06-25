@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Navigation from "@/components/Navigation";
 import BoutonAccueil from "@/components/BoutonAccueil";
-import { Users } from "lucide-react";
+import { Users, Building2 } from "lucide-react";
 
 type Referent = {
   nom: string;
@@ -65,6 +65,34 @@ const COULEURS = [
   { bg: "#D9FBE8", color: "#0A8C40" },
   { bg: "#FBD9D9", color: "#B82020" },
   { bg: "#F0DFFB", color: "#8B3FC8" },
+];
+
+const CA: string[] = [
+  "Rémy ALLEGRE",
+  "Carole ANDRÉ",
+  "Philippe COCHET",
+  "Fabien DUPRÉ",
+  "Stéphane LANGEREAU",
+  "Anthony GARNIER",
+  "Michel HOUEL",
+  "Jean-Louis MOURA",
+  "José-Alexandre MUNOZ",
+  "Benoit NEVEUR",
+  "Roch PERRIN",
+];
+
+const COULEURS_CA = [
+  { bg: "#FBF1D8", color: "#B07D14" },
+  { bg: "#D9EAFB", color: "#2D6FD0" },
+  { bg: "#D2F2E7", color: "#0F8C68" },
+  { bg: "#FBE0E8", color: "#C0476E" },
+  { bg: "#EDEBFB", color: "#6B4FD8" },
+  { bg: "#D9FBE8", color: "#0A8C40" },
+  { bg: "#FBD9D9", color: "#B82020" },
+  { bg: "#F0DFFB", color: "#8B3FC8" },
+  { bg: "#E4DDFB", color: "#6B4FD8" },
+  { bg: "#FBF1D8", color: "#B07D14" },
+  { bg: "#D9EAFB", color: "#2D6FD0" },
 ];
 
 function initiales(nom: string): string {
@@ -131,6 +159,39 @@ export default function ReferentsPage() {
                     </span>
                   ))}
                 </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Conseil d'Administration */}
+        <div>
+          <h2
+            className="text-lg font-bold flex items-center gap-2 mt-2"
+            style={{ color: "var(--pa-ink)", letterSpacing: "-0.3px" }}
+          >
+            <Building2 size={18} style={{ color: "#B07D14" }} />
+            Conseil d&apos;Administration
+          </h2>
+          <p className="text-sm mt-0.5" style={{ color: "var(--pa-muted)" }}>
+            {CA.length} membres
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {CA.map((nom, i) => {
+            const c = COULEURS_CA[i % COULEURS_CA.length];
+            return (
+              <div key={nom} className="pa-card p-3 flex items-center gap-3">
+                <span
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0"
+                  style={{ background: c.bg, color: c.color }}
+                >
+                  {initiales(nom)}
+                </span>
+                <p className="text-xs font-semibold leading-tight" style={{ color: "var(--pa-ink)" }}>
+                  {nom}
+                </p>
               </div>
             );
           })}
