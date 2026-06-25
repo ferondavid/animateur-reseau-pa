@@ -6,6 +6,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { notifierNouvelleEvaluation } from "@/lib/notifs";
 
 export async function submitEvaluation(formData: FormData) {
   const visite_id = formData.get("visite_id") as string;
@@ -37,6 +38,7 @@ export async function submitEvaluation(formData: FormData) {
   revalidatePath(`/visites/${visite_id}`);
   revalidatePath("/evaluations");
   revalidatePath("/");
+  try { await notifierNouvelleEvaluation(visite_id, magasin_id); } catch {}
 
   // ?merci=1 permet à la page de distinguer "vient de soumettre" vs "déjà évalué"
   redirect(`/evaluation/${visite_id}?merci=1`);

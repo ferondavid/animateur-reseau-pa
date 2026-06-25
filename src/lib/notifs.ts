@@ -260,7 +260,99 @@ export async function notifierConfirmationRDV(rdvId: string): Promise<void> {
   console.log("[NOTIF] confirmation RDV :", result);
 }
 
-// ── 4. RDV CONFIRMÉ → PUSH ASSOCIÉ ──────────────────────────────────────────
+// ── 4. NOUVELLE REMONTÉE (NON URGENTE) → PUSH + EMAIL ANIMATEUR ─────────────
+
+export async function notifierNouvelleRemontee(remonteeId: string): Promise<void> {
+  if (!(await notifActive("notif_animateur_remontee_nouvelle"))) return;
+
+  const supabase = await createClient();
+  const { data: r } = await supabase
+    .from("remontees")
+    .select("id, titre, description, gravite, type, magasins(nom, enseigne, ville)")
+    .eq("id", remonteeId)
+    .single();
+
+  // Urgente = déjà couverte par notifierRemonteeUrgente
+  if (!r || r.gravite === "urgente") return;
+
+  const mag = r.magasins as unknown as { nom: string; enseigne?: string | null; ville?: string | null } | null;
+  const enseigne = mag?.enseigne || mag?.nom || "Magasin";
+  const graviteLabel = r.gravite === "attention" ? "⚠️ Attention" : "ℹ️ Normale";
+
+  await envoyerPush({
+    title: "📣 Nouvelle remontée",
+    body: `${enseigne}${mag?.ville ? ` · ${mag.ville}` : ""} — ${r.titre as string}`,
+    url: `${APP_URL}/remontees/${remonteeId}`,
+    tag: "remontee-nouvelle",
+  });
+
+  const animEmail = await emailAnimateur();
+  if (!animEmail) return;
+
+  const html = htmlLayout(
+    "📣 Nouvelle remontée terrain",
+    `<p style="color:#1e293b;margin:0 0 16px">
+      <strong>${enseigne}</strong>${mag?.ville ? ` · ${mag.ville}` : ""} a créé une remontée terrain.
+    </p>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px 16px;border-radius:8px">
+      <p style="margin:0;font-weight:600;color:#1e293b">${r.titre as string}</p>
+      <p style="margin:6px 0 0;color:#475569;font-size:13px">${graviteLabel}</p>
+      ${r.description ? `<p style="margin:8px 0 0;color:#475569;font-size:14px;white-space:pre-wrap">${r.description as string}</p>` : ""}
+    </div>`,
+    `${APP_URL}/remontees/${remonteeId}`,
+    "Voir la remontée"
+  );
+
+  await envoyerEmail({
+    destinataires: [animEmail],
+    sujet: `📣 ${r.titre as string} — ${enseigne}`,
+    htmlBody: html,
+  });
+}
+
+// ── 5. NOUVELLE ÉVALUATION → PUSH + EMAIL ANIMATEUR ─────────────────────────
+
+export async function notifierNouvelleEvaluation(visiteId: string, magasinId: string): Promise<void> {
+  if (!(await notifActive("notif_animateur_evaluation_nouvelle"))) return;
+
+  const supabase = await createClient();
+  const { data: mag } = await supabase
+    .from("magasins")
+    .select("nom, enseigne, ville")
+    .eq("id", magasinId)
+    .single();
+
+  const m = mag as { nom: string; enseigne?: string | null; ville?: string | null } | null;
+  const enseigne = m?.enseigne || m?.nom || "Magasin";
+
+  await envoyerPush({
+    title: "⭐ Nouvelle évaluation",
+    body: `${enseigne}${m?.ville ? ` · ${m.ville}` : ""} a complété l'évaluation d'accompagnement`,
+    url: `${APP_URL}/evaluations`,
+    tag: "evaluation-nouvelle",
+  });
+
+  const animEmail = await emailAnimateur();
+  if (!animEmail) return;
+
+  const html = htmlLayout(
+    "⭐ Nouvelle évaluation d'accompagnement",
+    `<p style="color:#1e293b;margin:0 0 16px">
+      <strong>${enseigne}</strong>${m?.ville ? ` · ${m.ville}` : ""} vient de compléter l'évaluation de l'accompagnement.
+    </p>
+    <p style="color:#475569;font-size:14px">Consultez les résultats dans l'espace Évaluations.</p>`,
+    `${APP_URL}/evaluations`,
+    "Voir les évaluations"
+  );
+
+  await envoyerEmail({
+    destinataires: [animEmail],
+    sujet: `⭐ Nouvelle évaluation — ${enseigne}`,
+    htmlBody: html,
+  });
+}
+
+// ── 6. RDV CONFIRMÉ → PUSH ASSOCIÉ ──────────────────────────────────────────
 
 export async function notifierRDVConfirmeAssoc(rdvId: string): Promise<void> {
   if (!(await notifActive("notif_associe_rdv_confirme"))) return;
