@@ -5,7 +5,7 @@ import { confirmerRDV, annulerRDV, marquerFait } from "../actions";
 import { redirect } from "next/navigation";
 import { getParametre, getParametreNumber, getParametreFloat } from "@/lib/parametres";
 import { calculerPreparation } from "@/lib/preparation-rdv";
-import { ArrowLeft, Store, Phone, Monitor, Check, X, Sunrise } from "lucide-react";
+import { ArrowLeft, Store, Phone, Monitor, Check, X, Sunrise, CalendarCheck } from "lucide-react";
 
 type Badge = { label: string; bg: string; fg: string };
 const GRAY = { bg: "#ECEAF3", fg: "#6F6982" };
@@ -42,6 +42,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
 
   const [
     { data: rdv },
+    { data: visiteLinked },
     latDep, lngDep,
     vitesseKmh, coefRoute, bufferMin, margeCharge,
     veActif, autonomieKm, seuilPct,
@@ -58,6 +59,11 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
       `)
       .eq("id", id)
       .single(),
+    supabase
+      .from("visites")
+      .select("id, statut, date_realisee, note_confiance, note_business")
+      .eq("rdv_id", id)
+      .maybeSingle(),
     getParametre("lat_depart_habituel", ""),
     getParametre("lng_depart_habituel", ""),
     getParametreFloat("vitesse_moyenne_kmh", 70),
@@ -245,6 +251,41 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
           </div>
         )}
 
+        {/* Visite liée */}
+        {visiteLinked && (
+          <div className="pa-card p-5 space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-wide inline-flex items-center gap-1.5" style={{ color: "var(--pa-muted)" }}>
+              <CalendarCheck size={14} strokeWidth={2.5} style={{ color: "#534AB7" }} /> Visite liée
+            </h2>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <VisiteStatutBadge statut={visiteLinked.statut} />
+              <Link
+                href={`/visites/${visiteLinked.id}`}
+                className="text-sm font-semibold inline-flex items-center gap-1"
+                style={{ color: "#534AB7" }}
+              >
+                Voir la visite →
+              </Link>
+            </div>
+            {visiteLinked.statut === "realisee" && (visiteLinked.note_confiance || visiteLinked.note_business) && (
+              <div className="flex gap-4">
+                {visiteLinked.note_confiance && (
+                  <div>
+                    <p className="text-xs" style={{ color: "var(--pa-muted)" }}>Confiance</p>
+                    <p className="text-lg font-bold" style={{ color: "var(--pa-ink)" }}>{visiteLinked.note_confiance}/5</p>
+                  </div>
+                )}
+                {visiteLinked.note_business && (
+                  <div>
+                    <p className="text-xs" style={{ color: "var(--pa-muted)" }}>Business</p>
+                    <p className="text-lg font-bold" style={{ color: "var(--pa-ink)" }}>{visiteLinked.note_business}/5</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Actions */}
         {(isActionnable || isConfirme) && (
           <div className="flex flex-wrap gap-3">
@@ -284,5 +325,21 @@ function Row({ label, value }: { label: string; value: string }) {
       <dt className="text-xs w-32 shrink-0 pt-0.5" style={{ color: "var(--pa-muted)" }}>{label}</dt>
       <dd className="text-sm flex-1" style={{ color: "var(--pa-ink)" }}>{value}</dd>
     </div>
+  );
+}
+
+const VISITE_STATUT: Record<string, { label: string; bg: string; fg: string }> = {
+  planifiee: { label: "Planifiée",  bg: "#EDEBFB", fg: "#534AB7" },
+  realisee:  { label: "Réalisée",  bg: "#D2F2E7", fg: "#0F8C68" },
+  annulee:   { label: "Annulée",   bg: "#FBE0E8", fg: "#C0476E" },
+  reportee:  { label: "Reportée",  bg: "#E4F0FB", fg: "#2D6FD0" },
+};
+
+function VisiteStatutBadge({ statut }: { statut: string }) {
+  const cfg = VISITE_STATUT[statut] ?? { label: statut, bg: "#ECEAF3", fg: "#6F6982" };
+  return (
+    <span className="text-sm font-semibold px-3 py-1 rounded-full" style={{ background: cfg.bg, color: cfg.fg }}>
+      {cfg.label}
+    </span>
   );
 }

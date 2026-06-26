@@ -8,6 +8,8 @@ import { notifierConfirmationRDV, notifierRDVConfirmeAssoc, notifierRDVReporteAs
 function revalider() {
   revalidatePath("/animateur");
   revalidatePath("/animateur/rdv");
+  revalidatePath("/animateur/tournee");
+  revalidatePath("/animateur/tournee/semaine");
 }
 
 export async function confirmerRDV(id: string, lienVisio?: string) {
@@ -16,6 +18,33 @@ export async function confirmerRDV(id: string, lienVisio?: string) {
     .from("rendez_vous")
     .update({ statut: "confirme", ...(lienVisio ? { lien_visio: lienVisio } : {}) })
     .eq("id", id);
+
+  // Créer automatiquement une visite planifiée si RDV physique
+  const { data: rdv } = await supabase
+    .from("rendez_vous")
+    .select("type, magasin_id, date_souhaitee, heure_souhaitee, objet")
+    .eq("id", id)
+    .single();
+
+  if (rdv?.type === "physique" && rdv.magasin_id && rdv.date_souhaitee) {
+    const { data: existing } = await supabase
+      .from("visites")
+      .select("id")
+      .eq("rdv_id", id)
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase.from("visites").insert({
+        magasin_id:   rdv.magasin_id,
+        date_prevue:  rdv.date_souhaitee,
+        heure_prevue: rdv.heure_souhaitee ?? null,
+        objectif:     rdv.objet ?? null,
+        statut:       "planifiee",
+        rdv_id:       id,
+      });
+    }
+  }
+
   revalider();
   try {
     await notifierConfirmationRDV(id);
@@ -45,6 +74,17 @@ export async function reporterRDV(id: string, nouvelleDate: string, nouvelleHeur
       ...(raison ? { message: raison } : {}),
     })
     .eq("id", id);
+
+  // Mettre à jour la visite liée si elle existe
+  await supabase
+    .from("visites")
+    .update({
+      date_prevue:  nouvelleDate,
+      heure_prevue: nouvelleHeure ?? null,
+    })
+    .eq("rdv_id", id)
+    .eq("statut", "planifiee");
+
   revalider();
 
   if (etaitConfirme) {
@@ -60,6 +100,14 @@ export async function reporterRDV(id: string, nouvelleDate: string, nouvelleHeur
 export async function annulerRDV(id: string) {
   const supabase = await createClient();
   await supabase.from("rendez_vous").update({ statut: "annule" }).eq("id", id);
+
+  // Annuler la visite planifiée liée
+  await supabase
+    .from("visites")
+    .update({ statut: "annulee" })
+    .eq("rdv_id", id)
+    .eq("statut", "planifiee");
+
   revalider();
   try { await notifierRDVReporteAssoc(id); } catch {}
 }
@@ -67,6 +115,15 @@ export async function annulerRDV(id: string) {
 export async function marquerFait(id: string) {
   const supabase = await createClient();
   await supabase.from("rendez_vous").update({ statut: "fait" }).eq("id", id);
+
+  // Marquer la visite liée comme réalisée
+  const today = new Date().toISOString().split("T")[0];
+  await supabase
+    .from("visites")
+    .update({ statut: "realisee", date_realisee: today })
+    .eq("rdv_id", id)
+    .eq("statut", "planifiee");
+
   revalider();
 }
 
