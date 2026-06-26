@@ -10,7 +10,7 @@ export default function LoginPage() {
         {/* Header hero */}
         <div className="pa-hero pa-reveal text-center mb-10 p-8">
           <div className="flex justify-center mb-4">
-            <Image src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={180} height={80} style={{ objectFit: "contain", mixBlendMode: "multiply" as const }} />
+            <Image src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={180} height={80} style={{ mixBlendMode: "multiply" as const }} />
           </div>
           <h1
             className="text-2xl md:text-3xl font-bold mb-2"
