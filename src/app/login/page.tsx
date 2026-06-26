@@ -10,13 +10,15 @@ export default function LoginPage() {
         {/* Header hero */}
         <div className="pa-hero pa-reveal text-center mb-10 p-8">
           <div className="flex justify-center mb-4">
-            <Image src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={180} height={80} style={{ mixBlendMode: "multiply" as const }} />
+            <div style={{ background: "white", borderRadius: "16px", padding: "12px 24px", boxShadow: "0 0 0 4px rgba(255,255,255,0.3), 0 8px 32px -8px rgba(45,111,208,0.5)", display: "inline-block" }}>
+              <Image src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={180} height={80} style={{ objectFit: "contain", display: "block" }} />
+            </div>
           </div>
           <h1
             className="text-2xl md:text-3xl font-bold mb-2"
             style={{ color: "#fff", letterSpacing: "-0.3px" }}
           >
-            Animation réseau Piscinistes Associés
+            Animation réseau
           </h1>
           <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "14px" }}>
             Connectez-vous pour accéder à votre espace
