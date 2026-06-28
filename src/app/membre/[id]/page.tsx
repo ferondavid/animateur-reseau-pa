@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import PersistRole from "@/components/PersistRole";
@@ -236,7 +235,7 @@ export default async function FicheMembre({ params }: { params: Promise<{ id: st
 
         {/* ── Logo ──────────────────────────────────────────────────── */}
         <div className="flex justify-center pt-2">
-          <Image src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={120} height={54} style={{ objectFit: "contain" }} />
+          <img src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={120} height={54} style={{ objectFit: "contain" }} />
         </div>
 
         {/* ── Hero ──────────────────────────────────────────────────── */}

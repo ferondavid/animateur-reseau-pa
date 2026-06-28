@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
@@ -72,7 +71,7 @@ export default function NavigationClient({
 
   return (
     <div className="flex items-center gap-2" style={{ maxWidth: "fit-content", margin: "0 auto" }}>
-      <Image src="/pISCINISTES-ASSOCIES-logo.jpg" alt="PA" width={80} height={36} style={{ objectFit: "contain" }} className="shrink-0" />
+      <img src="/pISCINISTES-ASSOCIES-logo.jpg" alt="PA" width={80} height={36} style={{ objectFit: "contain" }} className="shrink-0" />
       <button
         onClick={() => scroll("left")}
         className="hidden sm:flex shrink-0 items-center justify-center w-7 h-7 rounded-xl transition-all"

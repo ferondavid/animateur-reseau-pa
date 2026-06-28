@@ -1,4 +1,3 @@
-import Image from "next/image";
 import FormulaireLogin from "@/components/FormulaireLogin";
 import BoutonInstallerPWA from "@/components/BoutonInstallerPWA";
 import AideConnexion from "@/components/AideConnexion";
@@ -10,7 +9,7 @@ export default function LoginPage() {
         {/* Header hero */}
         <div className="pa-reveal mb-10" style={{ background: "white", padding: "2rem", textAlign: "center" }}>
           <div className="flex justify-center mb-4">
-            <Image src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={180} height={80} style={{ objectFit: "contain", display: "block" }} />
+            <img src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={180} height={80} style={{ objectFit: "contain", display: "block" }} />
           </div>
           <h1
             className="text-2xl md:text-3xl font-bold mb-2"

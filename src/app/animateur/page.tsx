@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import CarteWrapper from "@/components/CarteWrapper";
 import Navigation from "@/components/Navigation";
@@ -278,7 +277,7 @@ export default async function AnimateurPage() {
         {/* ── Hero ────────────────────────────────────────────────── */}
         <div className="pa-hero pa-reveal" style={{ animationDelay: ".04s" }}>
           <div className="flex justify-center mb-3">
-            <Image src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={160} height={70} style={{ objectFit: "contain", mixBlendMode: "multiply" }} />
+            <img src="/pISCINISTES-ASSOCIES-logo.jpg" alt="Piscinistes Associés" width={160} height={70} style={{ objectFit: "contain", mixBlendMode: "multiply" }} />
           </div>
           <div className="flex items-start justify-between gap-4">
             <div>
